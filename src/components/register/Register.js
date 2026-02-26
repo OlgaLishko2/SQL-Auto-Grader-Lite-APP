@@ -1,59 +1,37 @@
-import React, { useState } from "react";
-import { auth, db } from "../../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+// src/components/register/Register.js
+import React from "react";
 import "./Register.css";
 
 function Register() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setMessage("⚠️ Please enter both email and password");
-      return;
-    }
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      await setDoc(doc(db, "users", user.uid), {
-        email: email,
-        role: "student",
-      });
-
-      setMessage(`✅ Registered successfully with email: ${email}`);
-      setEmail("");
-      setPassword("");
-    } catch (error) {
-      setMessage(`❌ ${error.message}`);
-    }
-  };
-
   return (
-    <div className="container">
-      <h2 className="title">Register</h2>
-      <form onSubmit={handleRegister} className="form">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="input"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input"
-        />
-        <button type="submit" className="button-register">Register</button>
-      </form>
-      {message && <p className="message">{message}</p>}
+    <div className="auth-page">
+      <div className="auth-card">
+        <h2>Login or / Registertion</h2>
+        
+        <form className="auth-form">
+          <div className="input-group">
+            <label>Email</label>
+            <input type="email" placeholder="Email" />
+          </div>
+          
+          <div className="input-group">
+            <label>Password</label>
+            <input type="password" placeholder="Password" />
+            <span className="forgot-link">Forgot password?</span>
+          </div>
+
+          <button className="main-submit-btn">Login</button>
+        </form>
+
+        <div className="or-divider">or</div>
+
+        <div className="social-links">
+          <button className="soc-btn google">Continue with Google</button>
+          <button className="soc-btn github">Continue with GitHub</button>
+        </div>
+
+        <p className="switch-auth">New user? <a href="/login">Sign up here</a></p>
+      </div>
     </div>
   );
 }

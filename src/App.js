@@ -1,25 +1,40 @@
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Home from "./components/home/Home"; 
 import Register from "./components/register/Register";
 import Login from "./components/login/Login";
+import About from "./components/about/About";
+import "./App.css";
 
 function App() {
   return (
     <Router>
-      <div style={{ textAlign: "center", padding: "10px" }}>
-        <nav>
-          <Link to="/register" style={{ margin: "0 10px" }}>
-            Register
-          </Link>
-          <Link to="/login" style={{ margin: "0 10px" }}>
-            Login
-          </Link>
+      <div className="app-wrapper">
+        
+        <nav className="navbar">
+          <div className="nav-container">
+            <Link to="/" className="logo">
+              <span className="logo-icon">🌐</span> SQL
+            </Link>
+            <div className="nav-links">
+              <Link to="/" className="nav-item">Home</Link>
+              <Link to="/about" className="nav-item">About</Link>
+              <Link to="/login" className="login-button">Login</Link>
+            </div>
+          </div>
         </nav>
-        <Routes>
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<h2>Welcome to SQL Auto-Grader Lite</h2>} />
-        </Routes>
+
+      
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/about" element={<About />} />
+          </Routes>
+        </main>
+
       </div>
     </Router>
   );
