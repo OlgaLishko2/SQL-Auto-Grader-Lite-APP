@@ -1,67 +1,84 @@
 import React, { useState } from "react";
-import { auth, db } from "../../firebase";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../../firebase"; 
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
-import "./Login.css";
+import "../register/Register.css"; 
 
 function Login() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const navigate = useNavigate();
+  const [error, setError] = useState("");
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      setMessage("⚠️ Please enter email and password");
-      return;
-    }
+    setError("");
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
+    const userDoc = await getDoc(doc(db, "users", user.uid));
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.role !== "student") {
-          setMessage("❌ You are not allowed to login as a student");
-          return;
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const userRole = userData.role;
+
+        console.log("User role:", userRole);
+
+     
+        
+        if (userRole === "teacher") {
+          navigate("/teacher-dashboard");
+        } else {
+          navigate("/student-dashboard");
         }
-        setMessage("✅ Login successful");
-        navigate("/"); // пока редирект на главную
-      } else {
-        setMessage("❌ No user data found");
-      }
-    } catch (error) {
-      setMessage(`❌ ${error.message}`);
+      } 
+    } catch (err) {
+    setError("Wrong email or password. Or user does not exist.");
     }
   };
 
+
+
+
   return (
-    <div className="container">
-      <h2 className="title">Login</h2>
-      <form onSubmit={handleLogin} className="form">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="input"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input"
-        />
-        <button type="submit" className="button-login">Login</button>
-      </form>
-      {message && <p className="message">{message}</p>}
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>Welcome Back</h2>
+        {error && <p style={{ color: "red", textAlign: "center", marginBottom: "10px" }}>{error}</p>}
+        <p className="auth-subtitle">Log in to your account</p>
+
+        <form className="auth-form" onSubmit={handleLogin}>
+          <div className="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="name@example.com" value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required/>
+          </div>
+
+          <div className="form-group">
+            <div className="label-row">
+              <label>Password</label>
+              <span className="forgot-link">Forgot?</span>
+            
+            
+            </div>
+            <input type="password" placeholder="••••••••" value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required />
+          </div>
+          <button type="submit" className="auth-btn">Login</button>
+        </form>
+
+        <p className="auth-footer">
+          Don't have an account? <span onClick={() => navigate("/register")}>Sign Up</span>
+        </p>
+      </div>
     </div>
   );
 }

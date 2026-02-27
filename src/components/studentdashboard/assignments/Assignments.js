@@ -1,5 +1,7 @@
 import React from "react";
 import DataTable from "react-data-table-component";
+import PageTitle from '../topbar/PageTitle';
+
 const columns = [
   {
     name: "Sr no.",
@@ -16,7 +18,7 @@ const columns = [
     selector: row => row.adate,
   },
   {
-    name: "status",
+    name: "Status",
     selector: row => row.status,
   },
     {
@@ -33,17 +35,19 @@ const data = [
 
 const Assignments = () => {
   return (
-    <div className="card shadow mb-4">
-    <DataTable
-      title="Assignments"
-      columns={columns}
-      data={data}
-      pagination
-      highlightOnHover
-      striped
-      responsive
-    />
-    </div>
+    <>
+        <PageTitle pagetitle="Assignments" />
+        <div className="card shadow mb-4">
+            <DataTable
+            columns={columns}
+            data={data}
+            pagination
+            highlightOnHover
+            striped
+            responsive
+            />
+        </div>
+     </>
   );
 };
 
