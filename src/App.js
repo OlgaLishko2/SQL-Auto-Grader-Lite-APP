@@ -1,4 +1,3 @@
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Home from "./components/home/Home"; 
@@ -11,12 +10,9 @@ function App() {
   return (
     <Router>
       <div className="app-wrapper">
-        
         <nav className="navbar">
           <div className="nav-container">
-            <Link to="/" className="logo">
-              <span className="logo-icon">🌐</span> SQL
-            </Link>
+            <Link to="/" className="logo">🌐 SQL</Link>
             <div className="nav-links">
               <Link to="/" className="nav-item">Home</Link>
               <Link to="/about" className="nav-item">About</Link>
@@ -25,7 +21,6 @@ function App() {
           </div>
         </nav>
 
-      
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -34,7 +29,6 @@ function App() {
             <Route path="/about" element={<About />} />
           </Routes>
         </main>
-
       </div>
     </Router>
   );

@@ -1,36 +1,35 @@
-// src/components/register/Register.js
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./Register.css";
 
 function Register() {
+  const navigate = useNavigate();
+
   return (
-    <div className="auth-page">
+    <div className="auth-container">
       <div className="auth-card">
-        <h2>Login or / Registertion</h2>
+        <h2>Create Account</h2>
+        <p className="auth-subtitle">Join the SQL Practice Platform</p>
         
         <form className="auth-form">
-          <div className="input-group">
+          <div className="form-group">
+            <label>Full Name</label>
+            <input type="text" placeholder="John Doe" />
+          </div>
+          <div className="form-group">
             <label>Email</label>
-            <input type="email" placeholder="Email" />
+            <input type="email" placeholder="name@example.com" />
           </div>
-          
-          <div className="input-group">
+          <div className="form-group">
             <label>Password</label>
-            <input type="password" placeholder="Password" />
-            <span className="forgot-link">Forgot password?</span>
+            <input type="password" placeholder="••••••••" />
           </div>
-
-          <button className="main-submit-btn">Login</button>
+          <button type="submit" className="auth-btn">Sign Up</button>
         </form>
 
-        <div className="or-divider">or</div>
-
-        <div className="social-links">
-          <button className="soc-btn google">Continue with Google</button>
-          <button className="soc-btn github">Continue with GitHub</button>
-        </div>
-
-        <p className="switch-auth">New user? <a href="/login">Sign up here</a></p>
+        <p className="auth-footer">
+          Already have an account? <span onClick={() => navigate("/login")}>Login</span>
+        </p>
       </div>
     </div>
   );

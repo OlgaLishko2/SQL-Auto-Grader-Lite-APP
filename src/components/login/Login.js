@@ -1,67 +1,35 @@
-import React, { useState } from "react";
-import { auth, db } from "../../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";
+import "../register/Register.css"; 
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!email || !password) {
-      setMessage("⚠️ Please enter email and password");
-      return;
-    }
-
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.role !== "student") {
-          setMessage("❌ You are not allowed to login as a student");
-          return;
-        }
-        setMessage("✅ Login successful");
-        navigate("/"); // пока редирект на главную
-      } else {
-        setMessage("❌ No user data found");
-      }
-    } catch (error) {
-      setMessage(`❌ ${error.message}`);
-    }
-  };
-
   return (
-    <div className="container">
-      <h2 className="title">Login</h2>
-      <form onSubmit={handleLogin} className="form">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="input"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="input"
-        />
-        <button type="submit" className="button-login">Login</button>
-      </form>
-      {message && <p className="message">{message}</p>}
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2>Welcome Back</h2>
+        <p className="auth-subtitle">Log in to your account</p>
+
+        <form className="auth-form">
+          <div className="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="name@example.com" />
+          </div>
+          <div className="form-group">
+            <div className="label-row">
+              <label>Password</label>
+              <span className="forgot-link">Forgot?</span>
+            </div>
+            <input type="password" placeholder="••••••••" />
+          </div>
+          <button type="submit" className="auth-btn">Login</button>
+        </form>
+
+        <p className="auth-footer">
+          Don't have an account? <span onClick={() => navigate("/register")}>Sign Up</span>
+        </p>
+      </div>
     </div>
   );
 }

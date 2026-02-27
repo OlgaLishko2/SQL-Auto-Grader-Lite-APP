@@ -7,7 +7,9 @@ function Home() {
 
   return (
     <div className="home-container">
-      {/* Hero Section как на Figure 1 */}
+    
+    
+    
       <section className="hero">
         <h1>SQL Practice Platform</h1>
         <p>Learn SQL interactively in your browser using real datasets.</p>
@@ -16,7 +18,7 @@ function Home() {
         </button>
       </section>
 
-      {/* Explore Features Section */}
+     
       <section className="features">
         <h2>Explore Features</h2>
         <div className="features-grid">
