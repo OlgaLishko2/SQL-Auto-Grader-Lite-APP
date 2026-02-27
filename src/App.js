@@ -5,8 +5,8 @@ import Home from "./components/home/Home";
 import Register from "./components/register/Register";
 import Login from "./components/login/Login";
 import About from "./components/about/About";
+import StudentDashboard from "./components/studentdashboard/dashboard/StudentDashboard";
 import "./App.css";
-
 function App() {
   return (
     <Router>
@@ -36,7 +36,12 @@ function App() {
         </main>
 
       </div>
+
+        <Routes>
+            <Route path="/student-dashboard" element={<StudentDashboard />} />
+       </Routes>
     </Router>
+    
   );
 }
 
