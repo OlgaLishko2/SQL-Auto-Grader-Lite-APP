@@ -58,8 +58,19 @@
   text-decoration: none;
 }
 
+.logout-button {
+  background: #4a76c5;
+  color: #fff !important;
+  padding: 10px 25px;
+  border-radius: 6px;
+  text-decoration: none;
+  border: none;          
+
+}
 .main-content {
   flex: 1;
   background-color: #f8fafc;
   width: 100%;
 }
+
+
