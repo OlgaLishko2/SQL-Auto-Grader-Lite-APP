@@ -4,6 +4,7 @@ import Home from "./components/home/Home";
 import Register from "./components/register/Register";
 import Login from "./components/login/Login";
 import About from "./components/about/About";
+import TeacherDashboard from "./components/teacherDashboard/TeacherDashboard";
 import "./App.css";
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
           </Routes>
