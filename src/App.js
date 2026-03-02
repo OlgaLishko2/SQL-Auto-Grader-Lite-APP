@@ -1,5 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { auth } from "./firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+
 import Home from "./components/home/Home"; 
 import Register from "./components/register/Register";
 import Login from "./components/login/Login";
@@ -14,7 +17,27 @@ import Results from "./components/studentdashboard/results/Results";
 
 
 import "./App.css";
+
 function App() {
+
+  const [user, setUser] = useState(null);
+
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = () => {
+    signOut(auth).then(() => {
+      window.location.href = "/"; 
+    });
+  };
+
+
+
   return (
     <Router>
       <div className="app-wrapper">
@@ -24,7 +47,17 @@ function App() {
             <div className="nav-links">
               <Link to="/" className="nav-item">Home</Link>
               <Link to="/about" className="nav-item">About</Link>
-              <Link to="/login" className="login-button">Login</Link>
+  
+            {user ? (
+            <button 
+                  onClick={handleLogout} 
+                  className="logout-button"
+                >
+                  Logout
+                </button>
+              ) : (
+                <Link to="/login" className="login-button">Login</Link>
+              )}
             </div>
           </div>
         </nav>

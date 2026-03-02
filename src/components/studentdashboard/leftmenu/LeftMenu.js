@@ -42,17 +42,17 @@ const LeftMenu = () => {
             <div className="sidebar-heading">
                 Seetings
             </div>
-            <li className="nav-item">
-                <a className="nav-link" href="#">
-                    <i className="fas fa-fw fa-toolbox"></i>
+          <li className="nav-item">
+                <NavLink className="nav-link" to="/student-dashboard/profile">
+                    <i className="fas fa-fw fa-user"></i>
                     <span>Profile</span>
-                </a>
+                </NavLink>
              </li>
-             <li className="nav-item">
+             {/* <li className="nav-item">
                 <a className="nav-link" href="#">
                     <i className="fas fa-fw fa-user"></i>
                     <span>Logout</span></a>
-            </li>
+            </li> */}
         </ul>
      )
 }
