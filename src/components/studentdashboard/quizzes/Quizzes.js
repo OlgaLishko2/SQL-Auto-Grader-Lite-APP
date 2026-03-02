@@ -3,7 +3,7 @@ import DataTable from "react-data-table-component";
 import PageTitle from '../topbar/PageTitle';
 
 /**
- * Column configuration for the Assignments DataTable
+ * Column configuration for the Quizzes DataTable
  * Each object represents one column in the table
  */
 const columns = [
@@ -18,8 +18,8 @@ const columns = [
     sortable: true,
   },
  {
-    name: "Assign Date",
-    selector: row => row.adate,
+    name: "Created Date",
+    selector: row => row.cdate,
   },
   {
     name: "Status",
@@ -30,24 +30,25 @@ const columns = [
     selector: row => row.action,
   }
 ];
+
 /**
- * Static assignment data (temporary)
+ * Static Quizzes data (temporary)
  * Later this can come from  database
  */
 const data = [
-  { id: 1, title: "Assignment1", adate: "20 Apr,26" , status: "Done" },
-  { id: 2, title: "Assignment2", adate: "20 Apr,26", status: "Pending" },
-  { id: 3, title: "Assignment3", adate: "20 Apr,26", status: "Done" },
+  { id: 1, title: "Quizzes1", cdate: "20 Apr,26" , status: "Done" },
+  { id: 2, title: "Quizzes2", cdate: "20 Apr,26", status: "Pending" },
+  { id: 3, title: "Quizzes3", cdate: "20 Apr,26", status: "Done" },
 ];
 
 /**
- * Assignments component
- * Displays assignment list in a DataTable
+ * Quizzes component
+ * Displays Quiz list in a DataTable
  */
-const Assignments = () => {
+const Quizzes = () => {
   return (
     <>
-        <PageTitle pagetitle="Assignments" />
+        <PageTitle pagetitle="Quizzes" />
         <div className="card shadow mb-4">
             <DataTable
             columns={columns}
@@ -63,4 +64,4 @@ const Assignments = () => {
 };
 
 
-export default Assignments
+export default Quizzes

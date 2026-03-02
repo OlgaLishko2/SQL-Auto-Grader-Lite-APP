@@ -8,11 +8,13 @@ import Register from "./components/register/Register";
 import Login from "./components/login/Login";
 import About from "./components/about/About";
 
+/*Import Student admin pages */
 import Layout from "./components/studentdashboard/layout/Layout";
-
 import StudentDashboard from "./components/studentdashboard/dashboard/StudentDashboard";
 import Assignments from "./components/studentdashboard/assignments/Assignments";
-import Profile from "./components/profile/Profile";
+import Quizzes from "./components/studentdashboard/quizzes/Quizzes";
+import Results from "./components/studentdashboard/results/Results";
+
 
 import "./App.css";
 
@@ -67,7 +69,8 @@ function App() {
             <Route path="/student-dashboard" element={<Layout />}>
               <Route index element={<StudentDashboard />} />
               <Route path="assignments" element={<Assignments />} />
-              <Route path="/student-dashboard/profile" element={<Profile />} />
+              <Route path="quizzes" element={<Quizzes />} />
+              <Route path="results" element={<Results />} />
             </Route>
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />

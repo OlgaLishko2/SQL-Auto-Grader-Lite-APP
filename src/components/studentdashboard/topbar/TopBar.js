@@ -3,11 +3,8 @@ import { auth, db } from "../../../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 
-
-
 const TopBar = () => {
-
-    const [userName, setUserName] = useState("");
+const [userName, setUserName] = useState("");
     useEffect(() => {
         const fetchUserData = async () => {
             if (auth.currentUser) {

@@ -5,6 +5,7 @@ import "../../studentdashboard/Dashboard.css";
 
 import LeftMenu from '../leftmenu/LeftMenu';
 import TopBar from '../topbar/TopBar';
+import Footer from '../footer/Footer';
 
 const Layout = () => {
     return(
@@ -19,6 +20,7 @@ const Layout = () => {
                 <Outlet />
                 </div>
             </div>
+            { <Footer></Footer>}
         </div>
     </div>
     )
