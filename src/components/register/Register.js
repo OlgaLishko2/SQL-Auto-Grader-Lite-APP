@@ -22,7 +22,8 @@ function Register() {
     try {
      
       const res = await createUserWithEmailAndPassword(auth, email, password);
-      const defaultRole = "student";
+      //const defaultRole = "student";
+      const defaultRole = "teacher";
     
 
       await setDoc(doc(db, "users", res.user.uid), {
@@ -34,7 +35,10 @@ function Register() {
       });
 
       console.log("Success! Account created.");
-      navigate("/student-dashboard");
+      if(defaultRole == 'student')
+        navigate("/student-dashboard");
+      else
+        navigate("/teacher-dashboard");
 
 
     } catch (err) {

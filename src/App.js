@@ -9,6 +9,8 @@ import Layout from "./components/studentdashboard/layout/Layout";
 
 import StudentDashboard from "./components/studentdashboard/dashboard/StudentDashboard";
 import Assignments from "./components/studentdashboard/assignments/Assignments";
+import TeacherDashboard from "./components/teacherDashboard/TeacherDashboard";
+import DatasetChoice from "./components/teacherDashboard/DatasetChoice";
 
 import "./App.css";
 function App() {
@@ -36,6 +38,8 @@ function App() {
             </Route>
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
+            <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+            <Route path="/teacher-dashboard/assignments" element={<DatasetChoice />}/>
           </Routes>
         </main>
       </div>
