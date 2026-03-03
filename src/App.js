@@ -8,12 +8,18 @@ import Register from "./components/register/Register";
 import Login from "./components/login/Login";
 import About from "./components/about/About";
 
-/*Import Student admin pages */
+
 import Layout from "./components/studentdashboard/layout/Layout";
 import StudentDashboard from "./components/studentdashboard/dashboard/StudentDashboard";
 import Assignments from "./components/studentdashboard/assignments/Assignments";
+
 import Quizzes from "./components/studentdashboard/quizzes/Quizzes";
 import Results from "./components/studentdashboard/results/Results";
+
+
+
+import AssignmentDetail from "./components/studentdashboard/assignments/AssignmentDetail";
+import Profile from "./components/profile/Profile";
 
 
 import "./App.css";
@@ -67,11 +73,15 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
             <Route path="/student-dashboard" element={<Layout />}>
-              <Route index element={<StudentDashboard />} />
-              <Route path="assignments" element={<Assignments />} />
-              <Route path="quizzes" element={<Quizzes />} />
-              <Route path="results" element={<Results />} />
-            </Route>
+  
+  <Route index element={<StudentDashboard />} />
+  <Route path="assignments" element={<Assignments />} />
+  <Route path="assignments/:id" element={<AssignmentDetail />} />
+  <Route path="quizzes" element={<Quizzes />} /> 
+  <Route path="results" element={<Results />} /> 
+  <Route path="profile" element={<Profile />} /> 
+</Route>
+
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
           </Routes>
@@ -82,4 +92,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; 
