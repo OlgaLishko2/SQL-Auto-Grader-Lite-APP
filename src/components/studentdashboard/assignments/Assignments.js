@@ -2,6 +2,7 @@ import React from "react";
 import {useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import PageTitle from '../topbar/PageTitle';
+import DatabaseManager from "../../../db/DatabaseManager";
 
 const Assignments = () => {
   const navigate = useNavigate();
@@ -73,6 +74,7 @@ const data = [
             striped
             responsive
             />
+            <DatabaseManager/>
         </div>
      </>
   );
