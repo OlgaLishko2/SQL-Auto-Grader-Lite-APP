@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import CreateQuestionSet from './CreateQuestionSet';
+import CreateQuestionSet from '../createquestionset/CreateQuestionSet';
 
 const AssignmentForm = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -31,7 +31,7 @@ const AssignmentForm = () => {
   const tabs = ['Create Assignment', 'Question Details', 'Add Questions', 'Assign Students'];
 
   return (
-    <div style={{ maxWidth: '500px', margin: '20px auto', border: '1px solid #ccc', padding: '20px' }}>
+    <div style={{ maxWidth: 'auto', margin: '20px auto', border: '1px solid #ccc', padding: '20px' }}>
       {/* Tab Navigation */}
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
         {tabs.map((tab, index) => (
@@ -71,19 +71,12 @@ const AssignmentForm = () => {
           </div>
         )}
         {activeTab === 2 && (
-          <div>
-            <label htmlFor='question_set'>Existing Question set: </label>
-            <CreateQuestionSet />
-            <label htmlFor='new_question'>New Question set: </label>
-            <input name="new_question" type="checkbox" checked={formData.question_set} onChange={handleChange} />        
-                       
-          </div>
+          <CreateQuestionSet />
         )}
         {activeTab === 3 && (
           <div>
             <label htmlFor='student_class'>Student Cohort: </label>
-            <input name="student_class" type="checkbox" checked={formData.student_class} onChange={handleChange} />        
-                       
+            <input name="student_class" type="checkbox" checked={formData.student_class} onChange={handleChange} /><br/> 
             <label htmlFor='enable_submission_notification'>Enable Notification(on submission): </label>
             <input name="enable_submission_notification" type="checkbox" checked={formData.enable_submission_notification} onChange={handleChange} /><br/>
             <label htmlFor='reminder_interval'>Reminder Interval: </label>

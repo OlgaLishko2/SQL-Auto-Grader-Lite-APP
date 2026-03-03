@@ -19,7 +19,7 @@ const LeftMenu = () => {
                 Progress
             </div>
             <li className="nav-item">
-                <NavLink className="nav-link" to="/teacher-dashboard/assignments">
+                <NavLink className="nav-link" to="/teacher-dashboard/assignment-form">
                     <i className="fas fa-fw fa-book"></i>
                     <span>Create Assignment</span>
                 </NavLink>
