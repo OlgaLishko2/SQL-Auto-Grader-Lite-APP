@@ -28,7 +28,7 @@ const columns = [
       cell: row => (
         <span className={`badge ${
           row.status === 'Completed' || row.status === 'Done' ? 'bg-success' : 
-          row.status === 'Pending' ? 'bg-warning text-dark' : 'bg-primary'
+          row.status === 'In Progress' ? 'bg-warning text-dark' : 'bg-primary'
         }`} style={{ color: 'white', padding: '5px 10px', borderRadius: '12px', fontSize: '11px' }}>
           {row.status}
         </span>
@@ -54,8 +54,8 @@ const columns = [
 ];
 
 const data = [
-  { id: 1, title: "Assignment1", adate: "20 Apr,26" , status: "Done" },
-  { id: 2, title: "Assignment2", adate: "15 Apr,26", status: "Pending" },
+  { id: 1, title: "Assignment1", adate: "20 Apr,26" , status: "Completed" },
+  { id: 2, title: "Assignment2", adate: "15 Apr,26", status: "In Progress" },
   { id: 3, title: "Assignment3", adate: "10 Apr,26", status: "Done" },
   {id: 4, title: "Assignment3", adate: "4 Apr,26", status: "New" }
 ];
