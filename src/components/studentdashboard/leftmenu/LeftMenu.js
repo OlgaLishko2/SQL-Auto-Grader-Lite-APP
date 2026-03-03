@@ -27,32 +27,32 @@ const LeftMenu = () => {
                 </NavLink>
              </li>
             <li className="nav-item">
-                <a className="nav-link" href="#">
+                <NavLink className="nav-link" to="/student-dashboard/quizzes">
                     <i className="fas fa-fw fa-question"></i>
                     <span>Quizzes</span>
-                </a>
+                </NavLink>
              </li>
             <li className="nav-item">
-                <a className="nav-link" href="#">
+                <NavLink className="nav-link"  to="/student-dashboard/results">
                     <i className="fas fa-fw fa-chart-area"></i>
                     <span>Result</span>
-                </a>
+                </NavLink>
              </li>
             <hr className="sidebar-divider"/>
             <div className="sidebar-heading">
                 Settings
             </div>
-            <li className="nav-item">
-                <a className="nav-link" href="#">
-                    <i className="fas fa-fw fa-toolbox"></i>
+          <li className="nav-item">
+                <NavLink className="nav-link" to="/student-dashboard/profile">
+                    <i className="fas fa-fw fa-user"></i>
                     <span>Profile</span>
-                </a>
+                </NavLink>
              </li>
-             <li className="nav-item">
+             {/* <li className="nav-item">
                 <a className="nav-link" href="#">
                     <i className="fas fa-fw fa-user"></i>
                     <span>Logout</span></a>
-            </li>
+            </li> */}
         </ul>
      )
 }

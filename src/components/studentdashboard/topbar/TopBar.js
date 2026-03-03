@@ -1,46 +1,53 @@
-import react from "react";
+import React, { useState, useEffect } from "react";
+import { auth, db } from "../../../firebase"; 
+import { doc, getDoc } from "firebase/firestore";
+
 
 const TopBar = () => {
-    return(
-           <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                    <button id="sidebarToggleTop" className="btn btn-link d-md-none rounded-circle mr-3">
-                        <i className="fa fa-bars"></i>
-                    </button>
-                 <ul className="navbar-nav ml-auto">
-                      <li className="nav-item dropdown no-arrow">
-                            <a className="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span className="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                                <img className="img-profile rounded-circle"
-                                    src="img/undraw_profile.svg"/>
-                            </a>
-                            <div className="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
-                                <a className="dropdown-item" href="#">
-                                    <i className="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
-                                </a>
-                                <a className="dropdown-item" href="#">
-                                    <i className="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Settings
-                                </a>
-                                <a className="dropdown-item" href="#">
-                                    <i className="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Activity Log
-                                </a>
-                                <div className="dropdown-divider"></div>
-                                <a className="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                                    <i className="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
-                            </div>
-                        </li>
+const [userName, setUserName] = useState("");
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (auth.currentUser) {
+                const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                if (userDoc.exists()) {
+                    setUserName(userDoc.data().fullName);
+                }
+            }
+        };
+        fetchUserData();
+    }, []);
 
-                    </ul>
 
-                </nav>
-    
-    )
-}
+    return (
+        <nav className="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+            <ul className="navbar-nav ml-auto">
+                <li className="nav-item">
+                    <div className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                     
+                        <span className="text-gray-600 small" style={{ fontWeight: '500' }}>
+                            {userName || "Student"}
+                        </span>
+                        
+                   
+                        <div style={{
+                            width: '35px', 
+                            height: '35px', 
+                            backgroundColor: '#4e73df', 
+                            borderRadius: '50%', 
+                            color: 'white', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            fontWeight: 'bold',
+                            fontSize: '14px'
+                        }}>
+                            {userName ? userName.charAt(0).toUpperCase() : "S"}
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    );
+};
 
-export default TopBar
+export default TopBar;
