@@ -11,6 +11,7 @@ function Register() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("student");
   const [error, setError] = useState("");
 
 
@@ -22,19 +23,23 @@ function Register() {
     try {
      
       const res = await createUserWithEmailAndPassword(auth, email, password);
-      const defaultRole = "student";
     
 
       await setDoc(doc(db, "users", res.user.uid), {
         uid: res.user.uid,
         fullName: fullName,
         email: email,
-        role: defaultRole,
+        role: role,
         createdAt: new Date(),
       });
 
       console.log("Success! Account created.");
-      navigate("/student-dashboard");
+     
+      if (role === "teacher") {
+        navigate("/teacher-dashboard");
+      } else {
+        navigate("/student-dashboard");
+      }
 
 
     } catch (err) {
@@ -70,6 +75,21 @@ function Register() {
               required />
           </div>
 
+
+<div className="form-group">
+            <label>I am registering as:</label>
+            <select 
+              className="role-select"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+            >
+              <option value="student">Student</option>
+              <option value="teacher">Teacher</option>
+            </select>
+          </div>
+
+          
 
           <div className="form-group">
             <label>Password</label>
