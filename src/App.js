@@ -50,7 +50,7 @@ function App() {
       <div className="app-wrapper">
         <nav className="navbar">
           <div className="nav-container">
-            <Link to="/" className="logo">🌐 SQL</Link>
+            <Link to="/" className="logo">🌐 SQL Practice Platform</Link>
             <div className="nav-links">
               <Link to="/" className="nav-item">Home</Link>
               <Link to="/about" className="nav-item">About</Link>
