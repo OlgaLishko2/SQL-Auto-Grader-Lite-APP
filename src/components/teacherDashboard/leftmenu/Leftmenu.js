@@ -21,13 +21,13 @@ const LeftMenu = () => {
             <li className="nav-item">
                 <NavLink className="nav-link" to="/teacher-dashboard/assignments">
                     <i className="fas fa-fw fa-book"></i>
-                    <span>Assignments</span>
+                    <span>Create Assignment</span>
                 </NavLink>
              </li>
             <li className="nav-item">
                 <a className="nav-link" href="/teacher-dashboard/quizzes">
                     <i className="fas fa-fw fa-question"></i>
-                    <span>Quizzes</span>
+                    <span>Create Quizze</span>
                 </a>
              </li>
             <li className="nav-item">
