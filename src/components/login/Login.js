@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase"; 
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendEmailVerification} from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import "../register/Register.css"; 
 
@@ -21,6 +21,15 @@ function Login() {
       
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
+
+
+
+if (!user.emailVerified) {
+        await sendEmailVerification(user); // resend link
+        setError("Email not verified. We've sent a NEW verification link to your inbox. Please check it!");
+        return; 
+      }
+
 
     const userDoc = await getDoc(doc(db, "users", user.uid));
 
