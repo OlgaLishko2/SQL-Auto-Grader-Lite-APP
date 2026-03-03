@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase"; 
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
 import "./Register.css";
 
@@ -14,6 +14,7 @@ function Register() {
   const [role, setRole] = useState("student");
   const [error, setError] = useState("");
 
+const [isWaitingForVerify, setIsWaitingForVerify] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault(); 
@@ -24,6 +25,7 @@ function Register() {
      
       const res = await createUserWithEmailAndPassword(auth, email, password);
     
+      await sendEmailVerification(res.user); //send verif email
 
       await setDoc(doc(db, "users", res.user.uid), {
         uid: res.user.uid,
@@ -35,11 +37,7 @@ function Register() {
 
       console.log("Success! Account created.");
      
-      if (role === "teacher") {
-        navigate("/teacher-dashboard");
-      } else {
-        navigate("/student-dashboard");
-      }
+setIsWaitingForVerify(true);
 
 
     } catch (err) {
@@ -48,7 +46,35 @@ function Register() {
   };
 
 
+  const handleResend = async () => {
+    try {
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+        alert("Verification email sent again!");
+      }
+    } catch (err) {
+      setError("Too many requests. Please wait a moment.");
+    }
+  };
 
+if (isWaitingForVerify) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <div className="verify-icon">✉️</div>
+          <h2>Check your email</h2>
+          <p className="auth-subtitle">
+            We've sent a verification link to <b>{email}</b>. 
+            Please check your inbox (and spam folder).
+          </p>
+
+          <p className="auth-footer">
+            Verified already? <span onClick={() => navigate("/login")}>Go to Login</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
