@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase"; 
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { setDoc, doc } from "firebase/firestore";
 import "./Register.css";
 
@@ -11,10 +11,8 @@ function Register() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("student");
   const [error, setError] = useState("");
 
-const [isWaitingForVerify, setIsWaitingForVerify] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault(); 
@@ -24,20 +22,22 @@ const [isWaitingForVerify, setIsWaitingForVerify] = useState(false);
     try {
      
       const res = await createUserWithEmailAndPassword(auth, email, password);
+      const defaultRole = "student";
     
-      await sendEmailVerification(res.user); //send verif email
 
       await setDoc(doc(db, "users", res.user.uid), {
         uid: res.user.uid,
         fullName: fullName,
         email: email,
-        role: role,
+        role: defaultRole,
         createdAt: new Date(),
       });
 
       console.log("Success! Account created.");
-     
-setIsWaitingForVerify(true);
+      if(defaultRole == 'student')
+        navigate("/student-dashboard");
+      else
+        navigate("/teacher-dashboard");
 
 
     } catch (err) {
@@ -46,35 +46,7 @@ setIsWaitingForVerify(true);
   };
 
 
-  const handleResend = async () => {
-    try {
-      if (auth.currentUser) {
-        await sendEmailVerification(auth.currentUser);
-        alert("Verification email sent again!");
-      }
-    } catch (err) {
-      setError("Too many requests. Please wait a moment.");
-    }
-  };
 
-if (isWaitingForVerify) {
-    return (
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="verify-icon">✉️</div>
-          <h2>Check your email</h2>
-          <p className="auth-subtitle">
-            We've sent a verification link to <b>{email}</b>. 
-            Please check your inbox (and spam folder).
-          </p>
-
-          <p className="auth-footer">
-            Verified already? <span onClick={() => navigate("/login")}>Go to Login</span>
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="auth-container">
@@ -101,21 +73,6 @@ if (isWaitingForVerify) {
               required />
           </div>
 
-
-<div className="form-group">
-            <label>I am registering as:</label>
-            <select 
-              className="role-select"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-            >
-              <option value="student">Student</option>
-              <option value="teacher">Teacher</option>
-            </select>
-          </div>
-
-          
 
           <div className="form-group">
             <label>Password</label>

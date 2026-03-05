@@ -91,7 +91,7 @@ function CreateQuestionSet() {
 
   return (
     <div style={{ padding: "40px" }}>
-      <h1>Create Assignment</h1>
+      <h1>Create Question Set</h1>
 
       {/* Dataset Selection */}
       <div style={{ marginBottom: "30px" }}>
@@ -195,15 +195,17 @@ function CreateQuestionSet() {
                   />
                   Alias Strict 
                 </label>
-                <label style={{ marginLeft: "15px" }}>
+
+                <label style={{ marginLeft: "5px" }}>
                   <input
                     value={q.max_number_of_attempts}
                     onChange={(e) =>
                       updateQuestion(index, "max_number_of_attempts", e.target.checked)
                     }
                   />
-                  Alias Strict 
+                  Maximum Attempts Number: 
                 </label>
+
               </div>
             </div>
 
@@ -263,7 +265,7 @@ function CreateQuestionSet() {
           }}
           onClick={createAssignment}
         >
-          Create Assignment
+          Add questions
         </button>
       </div>
     </div>

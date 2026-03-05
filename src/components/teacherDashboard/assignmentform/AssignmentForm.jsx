@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import CreateQuestionSet from '../createquestionset/CreateQuestionSet';
+import { auth, db } from "../../../firebase"; 
+import { setDoc, doc, collection } from "firebase/firestore";
 
 const AssignmentForm = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -13,7 +15,7 @@ const AssignmentForm = () => {
     // Tab 4: publish
     enable_submission_notification: false, reminder_interval: 0
   });
-
+  let refDoc;
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -22,9 +24,28 @@ const AssignmentForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleFormSubmit = async(e) => {
     e.preventDefault();
     console.log('Final Form Submission with data:', formData);
+    try {
+      refDoc = await setDoc(doc(db, "assignments", "one"), {
+        id: 1,
+        description: formData.description,
+        title: formData.title,
+        due_date: formData.due_date,
+        assignTo: formData.student_class,
+        status: "created",
+        total_marks: formData.total_marks,
+        //createdBy: auth.currentUser.uid,
+        createdDate: new Date()  
+      });
+      console.log("assignment id is :", refDoc);
+      /* question set should have the assignment id for reference */
+      //formData.question_set = refDoc.id;
+    }
+    catch(error){
+      console.log("Error while updating assignment table:", error);
+    }
     alert('Form Submitted');
   };
 
@@ -47,7 +68,7 @@ const AssignmentForm = () => {
       </div>
 
       {/* Form Content */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleFormSubmit}>
         {activeTab === 0 && (
           <div>
             <label htmlFor='title'>Title: </label>
@@ -64,8 +85,6 @@ const AssignmentForm = () => {
           <div>
             <label htmlFor='question_set'>Question set: </label>
             <input name="question_set" placeholder="questions" value={formData.question_set} onChange={handleChange} /><br/>
-            <label htmlFor=''>Points per question: </label>
-            <input name="points" placeholder="points" value={formData.points} onChange={handleChange} />
             <label htmlFor="question_type">Question type: </label>
             <input name="question_type"  placeholder="Type" value={formData.question_type} onChange={handleChange} /><br/>
           </div>

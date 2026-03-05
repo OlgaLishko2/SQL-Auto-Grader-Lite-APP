@@ -17,6 +17,7 @@ import Quizzes from "./components/studentdashboard/quizzes/Quizzes";
 import Results from "./components/studentdashboard/results/Results";
 import AssignmentDetail from "./components/studentdashboard/assignments/AssignmentDetail";
 import Profile from "./components/profile/Profile";
+import CreateQuestionSet from "./components/teacherDashboard/createquestionset/CreateQuestionSet";
 
 import "./App.css";
 
@@ -95,7 +96,8 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
             <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-            <Route path="/teacher-dashboard/assignment-form" element={<AssignmentForm />}/>
+            <Route path="/teacher-dashboard/assignment" element={<AssignmentForm />}/>
+            <Route path="/teacher-dashboard/assignment-form" element={<CreateQuestionSet />}/>
           </Routes>
         </main>
       </div>
