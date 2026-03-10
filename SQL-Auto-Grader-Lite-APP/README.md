@@ -1,0 +1,2 @@
+SQL-Auto-Grader-Lite
+SQL Auto-Grader Lite is a fully free, web-first educational platform designed to teach SQL through hands-on practice. Unlike traditional platforms that require expensive server-side database hosting, this application executes SQL entirely in the user’s browser using SQLite WASM. It provides students with instant feedback through an automated grading system that compares their result sets against hidden reference solutions.
