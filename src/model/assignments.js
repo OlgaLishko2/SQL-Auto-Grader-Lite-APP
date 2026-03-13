@@ -31,7 +31,7 @@ async function createNewAssignment(assignment) {
       assignment_id: assignmentId,
     });
 
-    return newDocRef;
+    return assignmentId;
   } catch (error) {
     console.error(`createNewAssignment: ${error}`);
   }

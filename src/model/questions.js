@@ -34,7 +34,7 @@ async function createNewQuestion(question) {
       question_id: questionId,
     });
 
-    return newDocRef;
+    return questionId;
   } catch (error) {
     console.error(`createNewQuestion: ${error}`);
   }
