@@ -1,6 +1,6 @@
-import { createContext, useContext, useMemo, useState, useCallback } from "react"
-import { fetchTablesDB, fetchDatasetsDB, insertDataset, insertTable, getTableSchema, generateCreateTableSQL} from "./setupDatabases";
-
+import { createContext, useContext, useMemo, useCallback } from "react"
+import { fetchTablesDB, fetchDatasetsDB, insertDataset, insertTable, getTableSchema, generateCreateTableSQL, fetchData } from "./setupDatabases";
+import { addDataToFirestore } from '../setup/setupFirebaseDb'
 // Create a Context object to hold global data
 // Creates the 'Context' object—the global storage container for your Todo data.
 const AppContext = createContext();
@@ -9,44 +9,58 @@ const AppContext = createContext();
 const { Provider } = AppContext;
 
 const AppProvider = ({ children }) => {
-    const allDataset = useCallback(async()=>{
+    // const [refreshKey, setRefreshKey] = useState(0);
+
+    const allDataset = useCallback(async () => {
         const data = await fetchDatasetsDB()
         return data
     }, [])
-    const allTables = useCallback(async(name)=>{
+    const allTables = useCallback(async (name) => {
         const data = await fetchTablesDB(name)
         return data
     }, [])
-    const addDataset = useCallback(async(name)=>{
-        insertDataset(name)
-        // const data = await fetchDatasetsDB()
-        // return data
+
+    const addDataset = useCallback(async (name) => {
+        await insertDataset(name)
+        // setRefreshKey(prev => prev + 1)
     }, [])
-    const addTable = useCallback(async(name, db_name)=>{
-        insertTable(name, db_name)
+    const addTable = useCallback(async (name, db_name) => {
+        await insertTable(name, db_name)
+        // setRefreshKey(prev => prev + 1)
+    }, [])
+
+    const fetchItems = useCallback(async (dbname, table) => {
+        const result = await fetchData(dbname, table)
+        return result
+    }, [])
+    const insertData = useCallback(async (db, query) => {
+        await addDataToFirestore(db, [query])
     }, [])
 
     const getTable = useCallback(async (datasetName, tableName) => {
-    const schema = await getTableSchema(tableName, datasetName);
-    if (schema) {
-        return { exists: true, schema };
-    }
-    return { exists: false, schema }
- },[])
- const createTable=useCallback((dbname, tableName, columns)=>{
-    const data = generateCreateTableSQL(dbname, tableName, columns)
-    return data
- },[])
-// useMemo: Memoizes the data object so child components don't re-render 
-// unless the todoList or functions actually change.
+        const schema = await getTableSchema(tableName, datasetName);
+        if (schema) {
+            return { exists: true, schema };
+        }
+        return { exists: false, schema }
+    }, [])
+    const createTable = useCallback((dbname, tableName, columns) => {
+        const data = generateCreateTableSQL(dbname, tableName, columns)
+        // setRefreshKey(prev => prev + 1)
+        return data
+    }, [])
+    // useMemo: Memoizes the data object so child components don't re-render 
+    // unless the todoList or functions actually change.
     const value = useMemo(() => ({
+        insertData,
+        fetchItems,
         allDataset,
         allTables,
         addDataset,
         addTable,
         getTable,
         createTable
-    }), [allDataset, allTables, addDataset, addTable, getTable, createTable])
+    }), [insertData, fetchItems, allDataset, allTables, addDataset, addTable, getTable, createTable])
     return <Provider value={value}>{children}</Provider>
 }
 
