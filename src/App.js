@@ -22,9 +22,18 @@ import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/
 // teacher
 import DatabaseLoader from "./pages/dashboard/teacher/datasets/dbLoader"
 import AssignmentForm from "./pages/dashboard/teacher/assignmentform/AssignmentForm"
+import AssignmentList from "./pages/dashboard/teacher/assignmentform/AssignmentList"
+import CohortManager from "./pages/dashboard/teacher/cohorts/CohortManager"
 
 
 import "./App.css";
+
+function TeacherAssignments() {
+  const [creating, setCreating] = useState(false);
+  return creating
+    ? <AssignmentForm onDone={() => setCreating(false)} />
+    : <AssignmentList onCreate={() => setCreating(true)} />;
+}
 
 function App() {
   const [role, setRole] = useState(null);
@@ -66,13 +75,18 @@ function App() {
 
             <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Dashboard role={role}/>} />
-              <Route path="assignments" element={(role ==="student"?<Assignments />:<AssignmentForm/>)} />
+              <Route path="assignments" element={
+                role === "student"
+                  ? <Assignments />
+                  : <TeacherAssignments />
+              } />
               <Route path="assignments/:id" element={<AntiCheatingAssignmentDetail />} />
               <Route path="quizzes" element={<Quizzes />} />
               <Route path="results" element={<Results />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
               {/* <Route path="datasets" element={<Datasets />} /> */}
               <Route path="datasets" element={<DatabaseLoader />} />
+              <Route path="cohorts" element={<CohortManager />} />
               <Route path="profile" element={<Profile />} />
             </Route>
 

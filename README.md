@@ -7,10 +7,9 @@ A web-based educational platform for learning SQL through hands-on practice. SQL
 ## Tech Stack
 
 - **React 19** — UI framework
-- **Firebase** — Authentication (email/password) + Firestore (user data, datasets)
+- **Firebase** — Authentication (email/password) + Firestore (user data, assignments, questions)
 - **sql.js** — SQLite compiled to WebAssembly, runs SQL in the browser
 - **react-router-dom v7** — Client-side routing
-- **react-data-table-component** — Data tables for assignments, quizzes, results
 - **CRACO** — Create React App config override (for WASM support)
 - **Font Awesome 5** — Icons
 
@@ -27,29 +26,27 @@ A web-based educational platform for learning SQL through hands-on practice. SQL
 - **Assignments** — View and start SQL assignments with status tracking (New / In Progress / Completed)
 - **Quizzes** — View quiz list with status
 - **Results** — View grades, marks, percentage, pass/fail per assignment and quiz
-- **SQL Tester** — Run SELECT queries against real datasets directly from the dashboard
 - **Anti-cheat system** — Disables copy/paste, right-click, text selection; detects tab switching and window blur during assignments
 
 ### Teacher Dashboard
 - **Datasets** — Create and manage datasets and tables stored in Firestore
-  - Create datasets
-  - Create tables with custom schema (column name, type, nullable, primary/foreign key)
-  - Fetch and view table data
-  - Insert rows via raw SQL (`INSERT INTO ...`)
-
-### Shared
-- Responsive navbar with hamburger menu on mobile
-- Role-based sidebar navigation (student vs teacher)
-- Shared dashboard home with summary cards
+- **Cohorts** — Group students into cohorts (Beginner, Intermediate, Advanced)
+- **Assignments** — Create multi-step assignments with:
+  - Title, description, total marks, due date
+  - Assign to a student cohort
+  - Add questions with preset SQL questions or custom ones
+  - Per-question settings: difficulty, max attempts, order matters, alias strict
+  - Shared SQL code editor (fixed on right) to test queries while building questions
+- **Edit Questions** — Expand any assignment to edit its questions inline
 
 ---
 
 ## Database Architecture
 
 Datasets are **not** stored as physical `.sqlite` files. Instead:
-- Dataset schemas and seed data are defined as SQL queries in `db-config.json`
+- Dataset schemas and seed data are defined as SQL queries in `src/data/db-config.json`
 - On first run, this config is uploaded to Firestore (`sqliteConfigs/mainConfig`)
-- On each app load, `loadSqliteData()` fetches the config from Firestore and builds **in-memory SQLite databases** using `sql.js`
+- On each app load, the config is fetched from Firestore and builds **in-memory SQLite databases** using `sql.js`
 - Teachers can add new datasets/tables dynamically — changes are saved back to Firestore
 
 ---
@@ -58,37 +55,43 @@ Datasets are **not** stored as physical `.sqlite` files. Instead:
 
 ```
 src/
+├── data/                       # DEV ONLY seed files (remove before production push)
+│   ├── devSeed.js              # All seed functions — delete this before pushing to GitHub
+│   ├── seedData.json           # Sample cohorts, assignments, questions
+│   ├── questions.json          # Preset SQL questions with difficulty levels
+│   └── db-config.json          # SQLite schema + seed data for in-browser databases
+│
 ├── components/
-│   ├── bars/               # Navbar, Footer
-│   ├── comparison/         # SQL result comparison logic
+│   ├── bars/                   # Navbar, Footer
+│   ├── comparison/             # SQL result comparison logic
 │   ├── db/
-│   │   ├── dbTest.js       # SQL Tester component
+│   │   ├── sqlTest.js          # SQL Tester component
 │   │   ├── queryValidation.js  # SELECT-only enforcement + query normalization
-│   │   ├── sqlOperations.js    # runSelectQuery helper
-│   │   ├── useDatabase.js      # Hook: loads all DBs from Firestore
-│   │   ├── service/        # AppContext (global DB state), setupDatabases
-│   │   └── setup/          # Firebase DB setup, db-config.json
-│   ├── hooks/              # useAntiCheat hook
-│   └── model/              # Data models (assignments, questions)
+│   │   ├── service/            # AppContext (global DB state), setupDatabases
+│   │   └── setup/              # Firebase DB setup
+│   ├── hooks/                  # useAntiCheat hook
+│   └── model/                  # Firestore data models (assignments, questions, cohorts, presetQuestions)
 │
 ├── pages/
-│   ├── home/               # Landing page
-│   ├── about/              # About page
-│   ├── login/              # Login page
-│   ├── register/           # Register page (email verification)
-│   ├── profile/            # User profile page
+│   ├── home/
+│   ├── about/
+│   ├── login/
+│   ├── register/
+│   ├── profile/
 │   └── dashboard/
-│       ├── layout/         # Dashboard shell (sidebar + topbar + outlet)
-│       ├── leftmenu/       # Sidebar navigation
-│       ├── topbar/         # Top bar with user avatar
-│       ├── Dashboard.js    # Shared dashboard home (role-aware cards + SQL Tester)
-│       ├── CardDashboard.js
+│       ├── layout/             # Dashboard shell (sidebar + topbar + outlet)
+│       ├── leftmenu/           # Sidebar navigation
+│       ├── topbar/             # Top bar
+│       ├── Dashboard.js        # Dashboard home (seed buttons for dev, role-aware cards)
 │       ├── student/
-│       │   ├── assignments/  # Assignments list + anti-cheat assignment detail
-│       │   ├── quizzes/      # Quizzes list
-│       │   └── results/      # Results table
+│       │   ├── assignments/    # Assignments list + anti-cheat detail
+│       │   ├── quizzes/
+│       │   └── results/
 │       └── teacher/
-│           └── datasets/     # Dataset & table manager (DatabaseManager)
+│           ├── assignmentform/ # AssignmentForm (multi-step) + AssignmentList
+│           ├── cohorts/        # CohortManager
+│           ├── createquestionset/ # CreateQuestionSet with fixed code editor
+│           └── datasets/       # DatabaseManager
 ```
 
 ---
@@ -96,7 +99,7 @@ src/
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ (required to run the development toolchain — not needed at runtime)
+- Node.js 18+
 - A Firebase project with Authentication and Firestore enabled
 
 ### Install
@@ -120,6 +123,13 @@ REACT_APP_FIREBASE_APP_ID=your_app_id
 npm start
 ```
 
+### First-Time Setup (Dev Only)
+Log in as a teacher and use the buttons on the Dashboard:
+1. **Seed Sample Data** — loads cohorts, assignments, and preset questions into Firestore
+2. **Upload Dataset Config** — uploads the SQLite schema to Firestore so databases load in-browser
+
+> Before pushing to GitHub: delete `src/data/devSeed.js` and remove the 2 marked `DEV ONLY` lines in `Dashboard.js`
+
 ---
 
 ## Routes
@@ -135,6 +145,8 @@ npm start
 | `/dashboard/assignments/:id` | Student | Assignment detail (anti-cheat) |
 | `/dashboard/quizzes` | Student | Quizzes list |
 | `/dashboard/results` | Student | Results |
+| `/dashboard/assignments` | Teacher | Assignment list + create form |
+| `/dashboard/cohorts` | Teacher | Cohort manager |
 | `/dashboard/datasets` | Teacher | Dataset manager |
 | `/dashboard/profile` | Both | Profile |
 
@@ -143,9 +155,7 @@ npm start
 ## Anti-Cheat System
 
 During assignments, `useAntiCheat` hook:
-- Disables text selection
-- Blocks copy and paste events
-- Detects tab switching (`visibilitychange`)
-- Detects window blur (switching apps)
+- Disables text selection, copy, and paste
+- Detects tab switching (`visibilitychange`) and window blur
 - Disables right-click context menu
 - Logs each violation with a timestamp

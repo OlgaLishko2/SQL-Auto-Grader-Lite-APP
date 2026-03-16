@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useAppContext } from "../../../../components/db/service/context";
 import { createNewQuestion } from '../../../../components/model/questions';
 import { getPresetQuestions, addPresetQuestion } from '../../../../components/model/presetQuestions';
+import "./CreateQuestionSet.css";
 // import { seedPresetQuestions } from '../../../../components/model/seedPresetQuestions';
 
-function CreateQuestionSet({ assgnmntId }) {
+function CreateQuestionSet({ assgnmntId, onSaved }) {
   const { runSelectQuery, allTables, allDataset } = useAppContext();
 
   const [selectedDataset, setSelectedDataset] = useState("");
@@ -63,6 +64,7 @@ function CreateQuestionSet({ assgnmntId }) {
         orderMatters: false,
         aliasStrict: false,
         max_number_of_attempts: 1,
+        difficulty: "easy",
         created_on: new Date(),
         updated_on: new Date(),
       },
@@ -81,19 +83,21 @@ function CreateQuestionSet({ assgnmntId }) {
     setQueryResult(values.map((row) => row.join(", ")).join("\n"));
   };
 
+  const [studentQuery, setStudentQuery] = useState("");
+  const [savedCount, setSavedCount] = useState(0);
+
   const createAssignment = async () => {
-    const blob = new Blob(
-      [JSON.stringify({ dataset: selectedDataset, tables: selectedTables, questions }, null, 2)],
-      { type: "application/json" }
-    );
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "assignment.json";
-    link.click();
+    const invalid = questions.filter((q) => !q.questionText.trim() || !q.answer.trim());
+    if (questions.length === 0) return alert("Add at least one question before saving.");
+    if (invalid.length > 0) return alert("Every question must have both question text and an answer.");
 
     try {
-      const result = await createNewQuestion(questions);
-      console.log("Question inserted, id:", result);
+      await Promise.all(
+        questions.map((q) => createNewQuestion({ ...q, assignment_id: assgnmntId }))
+      );
+      setSavedCount(questions.length);
+      if (onSaved) onSaved(questions.length);
+      alert(`${questions.length} question(s) saved!`);
     } catch (err) {
       console.log("Error inserting questions:", err);
     }
@@ -102,9 +106,6 @@ function CreateQuestionSet({ assgnmntId }) {
   return (
     <div style={{ padding: "40px" }}>
       <h1>Create Question Set</h1>
-      {/* <button onClick={() => seedPresetQuestions().then(() => alert("Seeded!"))}>
-        Seed Preset Questions (run once)
-      </button> */}
 
       <div style={{ marginBottom: "30px" }}>
         <h3>Select Dataset</h3>
@@ -132,24 +133,17 @@ function CreateQuestionSet({ assgnmntId }) {
         </div>
       )}
 
+      {/* Questions take full width; code editor is fixed overlay on right */}
       <div>
-        <h2>Questions</h2>
-        <button onClick={addQuestion}>Add Question</button>
 
-        {questions.map((q, index) => (
-          <div
-            key={index}
-            style={{
-              display: "flex",
-              gap: "20px",
-              marginTop: "30px",
-              border: "1px solid #ccc",
-              padding: "20px",
-            }}
-          >
-            {/* Question Container */}
-            <div style={{ flex: 1 }}>
-              <h4>Question</h4>
+        <div className="questions-wrapper">
+          <h2>Questions</h2>
+          <button disabled={!selectedDataset || selectedTables.length === 0} onClick={addQuestion}>Add Question</button>
+          {savedCount > 0 && <span style={{ marginLeft: "12px", color: "green" }}>✓ {savedCount} question(s) saved</span>}
+
+          {questions.map((q, index) => (
+            <div key={index} className="question-row" style={{ flexDirection: "column" }}>
+              <h4>Question {index + 1}</h4>
               <select
                 onChange={(e) => {
                   if (!e.target.value) return;
@@ -157,6 +151,7 @@ function CreateQuestionSet({ assgnmntId }) {
                   updateQuestion(index, "assignment_id", assgnmntId);
                   updateQuestion(index, "questionText", preset.question);
                   updateQuestion(index, "answer", preset.answer);
+                  updateQuestion(index, "difficulty", preset.difficulty || "easy");
                 }}
               >
                 <option value="">-- Select Preset Question --</option>
@@ -173,87 +168,82 @@ function CreateQuestionSet({ assgnmntId }) {
                 placeholder="Or write new question..."
                 value={q.questionText}
                 onChange={(e) => updateQuestion(index, "questionText", e.target.value)}
-                style={{ width: "100%", height: "100px", marginTop: "10px" }}
+                style={{ width: "100%", height: "80px", marginTop: "10px" }}
               />
 
-              <div>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={q.orderMatters}
-                    onChange={(e) => updateQuestion(index, "orderMatters", e.target.checked)}
-                  />
-                  Order Matters
-                </label>
-                <label style={{ marginLeft: "15px" }}>
-                  <input
-                    type="checkbox"
-                    checked={q.aliasStrict}
-                    onChange={(e) => updateQuestion(index, "aliasStrict", e.target.checked)}
-                  />
-                  Alias Strict
-                </label>
-                <label style={{ marginLeft: "10px" }}>
-                  Maximum Attempts:
-                  <input
-                    type="text"
-                    value={q.max_number_of_attempts}
-                    onChange={(e) => updateQuestion(index, "max_number_of_attempts", e.target.value)}
-                  />
-                </label>
-                <div style={{ marginTop: "40px" }}>
-                  <button
-                    style={{ padding: "10px 20px", fontSize: "16px", backgroundColor: "black", color: "white" }}
-                    onClick={createAssignment}
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Answer Container */}
-            <div style={{ flex: 1 }}>
-              <h4>Answer</h4>
               <textarea
+                placeholder="Answer..."
                 value={q.answer}
                 onChange={(e) => updateQuestion(index, "answer", e.target.value)}
-                style={{ width: "100%", height: "150px" }}
+                style={{ width: "100%", height: "80px", marginTop: "8px" }}
               />
-              <button
-                style={{ marginTop: "8px" }}
-                onClick={() =>
-                  addPresetQuestion({
-                    datasetName: selectedDataset,
-                    tableName: q.table || selectedTables[0] || "",
-                    question: q.questionText,
-                    answer: q.answer,
-                  }).then(() => alert("Preset saved to Firebase!"))
-                }
-              >
-                Save as Preset
-              </button>
-            </div>
 
-            {/* Code Editor Container */}
-            <div style={{ flex: 1 }}>
-              <h4>Code Editor</h4>
-              <textarea
-                placeholder="Write SQL query here..."
-                style={{ width: "100%", height: "120px" }}
-                onChange={(e) => updateQuestion(index, "studentQuery", e.target.value)}
-              />
-              <button style={{ marginTop: "10px" }} onClick={() => executeQuery(q.studentQuery)}>
-                Execute
+                <label>
+                  <input type="checkbox" checked={q.orderMatters} onChange={(e) => updateQuestion(index, "orderMatters", e.target.checked)} />
+                  {" "}Order Matters
+                </label>
+                <label>
+                  <input type="checkbox" checked={q.aliasStrict} onChange={(e) => updateQuestion(index, "aliasStrict", e.target.checked)} />
+                  {" "}Alias Strict
+                </label>
+                <label>
+                  Max Attempts:
+                  <input type="text" value={q.max_number_of_attempts} onChange={(e) => updateQuestion(index, "max_number_of_attempts", e.target.value)} style={{ width: "50px", marginLeft: "6px" }} />
+                </label>
+                <label>
+                  Difficulty:
+                  <select value={q.difficulty} onChange={(e) => updateQuestion(index, "difficulty", e.target.value)} style={{ marginLeft: "6px" }}>
+                    <option value="easy">Easy</option>
+                    <option value="medium">medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </label>
+                <button
+                  onClick={() =>
+                    addPresetQuestion({
+                      datasetName: selectedDataset,
+                      tableName: q.table || selectedTables[0] || "",
+                      question: q.questionText,
+                      answer: q.answer,
+                    }).then(() => alert("Preset saved to Firebase!"))
+                  }
+                >
+                  Save as Preset
+                </button>
+              </div>
+          ))}
+
+          {questions.length > 0 && (
+            <div style={{ marginTop: "20px" }}>
+              <button
+                style={{ padding: "10px 20px", fontSize: "16px", backgroundColor: "black", color: "white" }}
+                onClick={createAssignment}
+              >
+                Save Questions
               </button>
-              <textarea
-                value={queryResult}
-                readOnly
-                style={{ width: "100%", height: "100px", marginTop: "10px", backgroundColor: "#f3f3f3" }}
-              />
             </div>
-          </div>
-        ))}
+          )}
+        </div>
+
+        {/* Right: fixed code editor */}
+        <div className="code-editor">
+          <h4>Code Editor</h4>
+          <textarea
+            placeholder="Write SQL query here..."
+            value={studentQuery}
+            style={{ width: "100%", height: "160px", boxSizing: "border-box" }}
+            onChange={(e) => setStudentQuery(e.target.value)}
+          />
+          <button style={{ marginTop: "10px" }} onClick={() => executeQuery(studentQuery)}>
+            Execute
+          </button>
+          <textarea
+            value={queryResult}
+            readOnly
+            style={{ width: "100%", height: "120px", marginTop: "10px", backgroundColor: "#f3f3f3", boxSizing: "border-box" }}
+          />
+        </div>
+
       </div>
     </div>
   );

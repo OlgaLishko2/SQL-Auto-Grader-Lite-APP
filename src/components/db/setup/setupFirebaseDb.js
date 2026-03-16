@@ -1,15 +1,7 @@
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../../firebase.js';
 import initSqlJs from 'sql.js';
-import sqliteData from './db-config.json' with { type: 'json' };
 
-const uploadSqliteConfig = async () => {
-   await setDoc(doc(db, 'sqliteConfigs', 'mainConfig'), sqliteData);
-   console.log('Uploaded successfully');
-};
-
-// Run once to upload initial data
-// uploadSqliteConfig().then(() => console.log('Reset complete'));
 let SQL = null;
 let runtimeConfig = {}; // Mutable copy
 
