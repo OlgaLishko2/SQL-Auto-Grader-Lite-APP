@@ -12,10 +12,14 @@ import About from "./components/about/About";
 import Layout from "./components/studentdashboard/layout/Layout";
 import StudentDashboard from "./components/studentdashboard/dashboard/StudentDashboard";
 import Assignments from "./components/studentdashboard/assignments/Assignments";
+import Teacher_Layout from "./components/teacherDashboard/teacher_layout/Teacher_Layout"
+import TeacherDashboard from "./components/teacherDashboard/TeacherDashboard";
+import AssignmentForm from "./components/teacherDashboard/assignmentform/AssignmentForm";
 import Quizzes from "./components/studentdashboard/quizzes/Quizzes";
 import Results from "./components/studentdashboard/results/Results";
 import AssignmentDetail from "./components/studentdashboard/assignments/AssignmentDetail";
 import Profile from "./components/profile/Profile";
+import CreateQuestionSet from "./components/teacherDashboard/createquestionset/CreateQuestionSet";
 
 import "./App.css";
 
@@ -93,6 +97,11 @@ function App() {
 
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
+            <Route path="/teacher-dashboard" element={<Teacher_Layout />}>
+              <Route index element={<TeacherDashboard />} />
+              <Route path="/teacher-dashboard/assignment" element={<AssignmentForm />}/>
+              <Route path="/teacher-dashboard/assignment-form" element={<CreateQuestionSet />}/>
+            </Route>
           </Routes>
         </main>
       </div>
