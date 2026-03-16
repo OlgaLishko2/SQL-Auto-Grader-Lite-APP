@@ -4,10 +4,6 @@
   "private": true,
   "dependencies": {
     "@craco/craco": "^7.1.0",
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^13.5.0",
     "firebase": "^12.9.0",
     "fontawesome": "^5.6.3",
     "jquery": "^4.0.0",
@@ -16,14 +12,15 @@
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.1",
     "react-scripts": "5.0.1",
-    "sql.js": "^1.14.0",
-    "web-vitals": "^2.1.4"
+    "sql.js": "^1.14.0"
   },
   "scripts": {
     "start": "craco start",
     "build": "craco build",
     "test": "craco test",
-    "eject": "craco eject"
+    "eject": "craco eject",
+    "cypress": "cypress open",
+    "cypress:run": "cypress run"
   },
   "eslintConfig": {
     "extends": [
@@ -42,5 +39,13 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "cypress": "^15.12.0",
+    "web-vitals": "^5.1.0"
   }
 }
