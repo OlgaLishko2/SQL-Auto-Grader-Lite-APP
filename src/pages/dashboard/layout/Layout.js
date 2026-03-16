@@ -19,6 +19,7 @@ const studentNavItems = [
 const teacherNavItems = [
   { name: 'Dashboard',   address: '/dashboard',             icon: 'fa-tachometer-alt' },
   { name: 'Datasets',    address: '/dashboard/datasets',    icon: 'fa-book' },
+  { name: 'Assignments', address: '/dashboard/assignments', icon: 'fa-book' },
   { name: 'Profile',     address: '/dashboard/profile',     icon: 'fa-user' },
 ];
 

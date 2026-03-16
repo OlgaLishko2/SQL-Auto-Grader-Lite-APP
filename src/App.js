@@ -9,6 +9,8 @@ import Register from "./pages/register/Register";
 import Login from "./pages/login/Login";
 import About from "./pages/about/About";
 import Footer from "./components/bars/Footer";
+import Profile from "./pages/profile/Profile";
+import NavBar from "./components/bars/Navbar";
 
 import Layout from "./pages/dashboard/layout/Layout";
 import Dashboard from "./pages/dashboard/Dashboard";
@@ -19,10 +21,10 @@ import Results from "./pages/dashboard/student/results/Results";
 import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
 // teacher
 import DatabaseLoader from "./pages/dashboard/teacher/datasets/dbLoader"
-import Profile from "./pages/profile/Profile";
+import AssignmentForm from "./pages/dashboard/teacher/assignmentform/AssignmentForm"
+
 
 import "./App.css";
-import NavBar from "./components/bars/Navbar";
 
 function App() {
   const [role, setRole] = useState(null);
@@ -64,11 +66,11 @@ function App() {
 
             <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Dashboard role={role}/>} />
-              <Route path="assignments" element={<Assignments />} />
+              <Route path="assignments" element={(role ==="student"?<Assignments />:<AssignmentForm/>)} />
               <Route path="assignments/:id" element={<AntiCheatingAssignmentDetail />} />
               <Route path="quizzes" element={<Quizzes />} />
               <Route path="results" element={<Results />} />
-
+              {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
               {/* <Route path="datasets" element={<Datasets />} /> */}
               <Route path="datasets" element={<DatabaseLoader />} />
               <Route path="profile" element={<Profile />} />
