@@ -16,6 +16,7 @@ import Layout from "./pages/dashboard/layout/Layout";
 import Dashboard from "./pages/dashboard/Dashboard";
 // student
 import Assignments from "./pages/dashboard/student/assignments/Assignments";
+import QuestionList from "./pages/dashboard/student/assignments/QuestionList";
 import Quizzes from "./pages/dashboard/student/quizzes/Quizzes";
 import Results from "./pages/dashboard/student/results/Results";
 import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
@@ -27,6 +28,7 @@ import CohortManager from "./pages/dashboard/teacher/cohorts/CohortManager"
 
 
 import "./App.css";
+import AssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
 
 function TeacherAssignments() {
   const [creating, setCreating] = useState(false);
@@ -81,7 +83,9 @@ function App() {
                   : <TeacherAssignments />
               } />
               <Route path="assignments/:id" element={<AntiCheatingAssignmentDetail />} />
-              <Route path="quizzes" element={<Quizzes />} />
+              <Route path="questions/:assignment_id" element={<QuestionList />} />
+              <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
+               <Route path="quizzes" element={<Quizzes />} />
               <Route path="results" element={<Results />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
               {/* <Route path="datasets" element={<Datasets />} /> */}

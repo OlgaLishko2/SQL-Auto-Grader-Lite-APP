@@ -1,24 +1,61 @@
+import React, { useEffect, useState } from "react";
 import {useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
-import PageTitle from '../../topbar/PageTitle';
+import PageTitle from "../../topbar/PageTitle";
+import Breadcrumb from "../../topbar/Breadcrumb";
 
-const Assignments = () => {
+import { auth, db  } from "../../../../firebase";
+import DatabaseManager from "../../teacher/datasets/DatabaseManager";
+// import DatabaseManager from "../../../../db/DatabaseManager";
+import { getAllAssignmentByOwner } from "../../../../components/model/assignments";
+
+const Assignments =  () => {
   const navigate = useNavigate();
+  const [assignmentsdata, setAssignmentsdata] = useState([]);
 
-const columns = [
+  useEffect(() => {
+
+  // Get data from assignments table from firebase
+  const fetchdata = async () =>{
+    try{
+        const user = auth.currentUser;
+        if (!user) return;
+        //console.log(user)
+     
+        const data = await getAllAssignmentByOwner(user.uid);
+        setAssignmentsdata(data);
+       //console.log(data)
+    }
+    catch(error){
+      console.error("Error:", error);
+    }
+  }
+
+ fetchdata();
+}, []);
+ 
+// First letter captial for Assignments title
+  const capitalizeFirstLetter = (str) => {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
+
+  const columns = [
   {
-    name: "No",
-    selector: row => row.id,
+    name: "S.No",
+    selector:  (row, index) => index + 1,
     sortable: true,
   },
   {
     name: "Title",
     selector: row => row.title,
     sortable: true,
+    cell: row => capitalizeFirstLetter(row.title),
   },
  {
-    name: "Assign Date",
-    selector: row => row.adate,
+    name: "Due Date",
+    selector: row => row.dueDate,
   },
   {
     name: "Status",
@@ -41,9 +78,9 @@ const columns = [
           <span className="text-muted" style={{ fontSize: '12px' }}>Review only</span>
         ) : (
           <button 
-            className="btn btn-sm btn-primary"
-            style={{ borderRadius: '4px', fontSize: '12px' }}
-            onClick={() => navigate(`/dashboard/assignments/${row.id}`)}
+           
+            className="btn btn-sm btn-primary" style={{ borderRadius: '4px', fontSize: '12px' }}
+            onClick={() => navigate(`/dashboard/questions/${row.assignment_id}`)}
           >
             {row.status === "New" ? "Start Test" : "Continue"}
           </button>
@@ -52,21 +89,24 @@ const columns = [
   }
 ];
 
-const data = [
-  { id: 1, title: "Assignment1", adate: "20 Apr,26" , status: "Completed" },
-  { id: 2, title: "Assignment2", adate: "15 Apr,26", status: "In Progress" },
-  { id: 3, title: "Assignment3", adate: "10 Apr,26", status: "Done" },
-  {id: 4, title: "Assignment3", adate: "4 Apr,26", status: "New" }
-];
+
 
 
   return (
     <>
+      <div className="d-sm-flex justify-content-between mb-4">
         <PageTitle pagetitle="Assignments" />
+        <Breadcrumb
+          items={[
+            { label: "Dashboard", link: "/dashboard" },
+            { label: "Assignments", active: true },
+          ]} />
+      </div>
+             
         <div className="card shadow mb-4">
             <DataTable
             columns={columns}
-            data={data}
+            data={assignmentsdata}
             pagination
             highlightOnHover
             striped
