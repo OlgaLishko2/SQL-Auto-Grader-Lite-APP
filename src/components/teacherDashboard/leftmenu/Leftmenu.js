@@ -31,9 +31,9 @@ const LeftMenu = () => {
                 </a>
              </li>
             <li className="nav-item">
-                <a className="nav-link" href="#">
+                <a className="nav-link" href="/teacher-dashboard/submission-status">
                     <i className="fas fa-fw fa-chart-area"></i>
-                    <span>Result</span>
+                    <span>Submission Status</span>
                 </a>
              </li>
             <hr className="sidebar-divider"/>

@@ -1,0 +1,32 @@
+{
+  "datasetA": {
+    "users": [
+      {
+        "id": 1,
+        "question": "Select all users",
+        "answer": "SELECT * FROM users;"
+      },
+      {
+        "id": 2,
+        "question": "Count users",
+        "answer": "SELECT COUNT(*) FROM users;"
+      }
+    ],
+    "orders": [
+      {
+        "id": 3,
+        "question": "Get all orders",
+        "answer": "SELECT * FROM orders;"
+      }
+    ]
+  },
+  "datasetB": {
+    "products": [
+      {
+        "id": 4,
+        "question": "List products",
+        "answer": "SELECT * FROM products;"
+      }
+    ]
+  }
+}

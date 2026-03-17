@@ -20,6 +20,7 @@ import Results from "./components/studentdashboard/results/Results";
 import AssignmentDetail from "./components/studentdashboard/assignments/AssignmentDetail";
 import Profile from "./components/profile/Profile";
 import CreateQuestionSet from "./components/teacherDashboard/createquestionset/CreateQuestionSet";
+import SubmissionStatusPage from "./components/teacherDashboard/SubmissionStatus/SubmissionStatusPage";
 
 import "./App.css";
 
@@ -101,6 +102,7 @@ function App() {
               <Route index element={<TeacherDashboard />} />
               <Route path="/teacher-dashboard/assignment" element={<AssignmentForm />}/>
               <Route path="/teacher-dashboard/assignment-form" element={<CreateQuestionSet />}/>
+              <Route path="/teacher-dashboard/submission-status" element={<SubmissionStatusPage />}/>
             </Route>
           </Routes>
         </main>
