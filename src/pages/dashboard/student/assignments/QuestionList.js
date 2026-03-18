@@ -34,9 +34,7 @@ const QuestionList = () => {
     fetchdata();
   }, []);
 
- fetchdata();
-}, []);
- 
+
 // First letter captial for Question title
   const capitalizeFirstLetter = (str) => {
     if (!str) return "";
