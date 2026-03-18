@@ -146,21 +146,17 @@ export const fetchData = async (dbname, tableName) => {
     }
 };
 
-export const selectQuery = async (dbname, query, timeoutMs = 5000) => {
+export const selectQuery = async (dbname, query) => {    
     const db = await initDB(dbname);
     if (!db) {
         console.error(`Database '${dbname}' not found`);
         return [];
     }
     try {
-        const timeout = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Query timed out")), timeoutMs)
-        );
-        const execution = new Promise((resolve) => resolve(db.exec(query)));
-        const result = await Promise.race([execution, timeout]);
-        return result;
+        const result = db.exec(query);
+        return result; // returns [{columns: [...], values: [[...]]}]
     } catch (error) {
-        console.error(`Failed to fetch data:`, error.message);
-        throw error; // re-throw so callers can show the timeout message
+        console.error(`Failed to fetch data:`, error);
+        return [];
     }
 };
