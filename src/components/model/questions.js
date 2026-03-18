@@ -7,28 +7,33 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import {
+  countAttempt,
+  getBestAttemptByUserQuestion,
+} from "./questionAttempts";
 import { db } from "../../firebase";
 
-//question_id will be create by firestore
-//   const question = {
-//     assignment_id: "QumeTD0jZAv0LiNBUd7M",
-//     prompt:
-//       "List all customers (id, name) who signed up in 2026, ordered by signup_date (newest first).",
-//     teacher_solution_sql:
-//       "SELECT id, name\nFROM customers\nWHERE signup_date >= '2026-01-01' AND signup_date < '2027-01-01'\nORDER BY signup_date DESC;",
-//     order_matters: 1,
-//     alias_matters: 0,
-//     max_attempt_time: 3,
-//     created_on: "2026-03-01",
-//     updated_on: "2026-03-05",
-//   };
+const questionCollection = collection(db, "questions");
 
-const dbCollection = collection(db, "questions");
+function normalizeQuestion(question) {
+  const maxAttempts =
+    question.max_number_of_attempts ?? question.max_attempt_time ?? 1;
+
+  return {
+    ...question,
+    prompt: question.prompt ?? question.questionText ?? "",
+    answer: question.answer ?? question.teacher_solution_sql ?? "",
+    orderMatters: question.orderMatters ?? Boolean(question.order_matters),
+    aliasStrict: question.aliasStrict ?? Boolean(question.alias_matters),
+    max_number_of_attempts: Number(maxAttempts)
+  };
+}
 
 async function createNewQuestion(question) {
   try {
-    const newDocRef = doc(dbCollection);
+    const newDocRef = doc(questionCollection);
     const questionId = newDocRef.id;
+
     await setDoc(newDocRef, {
       ...question,
       question_id: questionId,
@@ -37,43 +42,78 @@ async function createNewQuestion(question) {
     return questionId;
   } catch (error) {
     console.error(`createNewQuestion: ${error}`);
+    return null;
   }
 }
 
-//Return an array of questions
-async function getAllQuestionByAssignment(assignment_id) {
+async function getAllQuestionByAssignment(assignmentId) {
   try {
     const questionsQuery = query(
-      dbCollection,
-      where("assignment_id", "==", assignment_id),
+      questionCollection,
+      where("assignment_id", "==", assignmentId),
     );
-    let questions = [];
-    const querySnapshot = await getDocs(questionsQuery);
-    querySnapshot.forEach((doc) => {
-      questions.push(doc.data());
-    });
-    return questions;
+    const snapshot = await getDocs(questionsQuery);
+
+    return snapshot.docs.map((questionDoc) =>
+      normalizeQuestion(questionDoc.data()),
+    );
   } catch (error) {
     console.error(`getAllQuestionByAssignment: ${error}`);
+    return [];
+  }
+}
+
+async function getAllQuestionAndAttempt(assignmentId, userId) {
+  try {
+    const questions = await getAllQuestionByAssignment(assignmentId);
+
+    return Promise.all(
+      questions.map(async (question) => {
+        const attemptTime = await countAttempt(question.question_id, userId);
+        const bestAttempt = await getBestAttemptByUserQuestion(
+          userId,
+          question.question_id,
+        );
+        const isSolved = Boolean(bestAttempt?.is_correct);
+        const status =
+          attemptTime === 0
+            ? "Not Started"
+            : isSolved
+              ? "Correct"
+              : "Incorrect";
+
+        return {
+          ...question,
+          attemptTime,
+          isSolved,
+          status
+        };
+      }),
+    );
+  } catch (error) {
+    console.error(`getAllQuestionAndAttempt: ${error}`);
+    return [];
   }
 }
 
 async function updateQuestion(question) {
   try {
-    const questionQuery = query(
-      dbCollection,
+    const questionsQuery = query(
+      questionCollection,
       where("question_id", "==", question.question_id),
     );
-    const objQuestion = await getDocs(questionQuery);
+    const snapshot = await getDocs(questionsQuery);
 
-    if (objQuestion.empty) {
+    if (snapshot.empty) {
       return null;
     }
-    const questionDocRef = objQuestion.docs[0].ref;
-    await updateDoc(questionDocRef, question);
+
+    const questionDocRef = snapshot.docs[0].ref;
+    await updateDoc(questionDocRef, normalizeQuestion(question));
     return questionDocRef;
   } catch (error) {
-    console.error(`updatequestion: ${error}`);
+    console.error(`updateQuestion: ${error}`);
+    return null;
   }
 }
 
