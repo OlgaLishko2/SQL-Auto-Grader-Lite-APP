@@ -58,6 +58,43 @@ export const getTableSchema = async (tableName, dbname) => {
 }
 
 
+export const getTableInTable = async (tableName, dbname) => {
+    const createSQL = await getTableSchema(tableName, dbname);
+    if (!createSQL) return [];
+
+    const match = createSQL.match(/\((.+)\)$/s);
+    if (!match) return [];
+
+    const splitCols = (str) => {
+        const cols = []; let depth = 0, cur = '';
+        for (const ch of str) {
+            if (ch === '(') depth++;
+            else if (ch === ')') depth--;
+            else if (ch === ',' && depth === 0) { cols.push(cur.trim()); cur = ''; continue; }
+            cur += ch;
+        }
+        if (cur.trim()) cols.push(cur.trim());
+        return cols;
+    };
+    const allCols = splitCols(match[1]).filter(Boolean);
+    const fkCols = new Set(
+        allCols
+            .filter(col => col.toUpperCase().startsWith('FOREIGN KEY'))
+            .map(col => { const m = col.match(/FOREIGN KEY\s*\((\w+)\)/i); return m?.[1]; })
+            .filter(Boolean)
+    );
+    return allCols.filter(col => !col.toUpperCase().startsWith('FOREIGN KEY') && !col.toUpperCase().startsWith('PRIMARY KEY')).map(col => {
+        const parts = col.split(/\s+/);
+        return {
+            name: parts[0],
+            type: parts[1] || '',
+            notNull: col.toUpperCase().includes('NOT NULL'),
+            primaryKey: col.toUpperCase().includes('PRIMARY KEY'),
+            foreignKey: fkCols.has(parts[0]),
+        };
+    });
+};
+
 export const generateCreateTableSQL = async (dbname, tableName, columns) => {
     const columnDefs = columns.map(col => {
         let def = `${col.name} ${col.type}`;
@@ -109,17 +146,21 @@ export const fetchData = async (dbname, tableName) => {
     }
 };
 
-export const selectQuery = async (dbname, query) => {    
+export const selectQuery = async (dbname, query, timeoutMs = 5000) => {
     const db = await initDB(dbname);
     if (!db) {
         console.error(`Database '${dbname}' not found`);
         return [];
     }
     try {
-        const result = db.exec(query);
-        return result; // returns [{columns: [...], values: [[...]]}]
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Query timed out")), timeoutMs)
+        );
+        const execution = new Promise((resolve) => resolve(db.exec(query)));
+        const result = await Promise.race([execution, timeout]);
+        return result;
     } catch (error) {
-        console.error(`Failed to fetch data:`, error);
-        return [];
+        console.error(`Failed to fetch data:`, error.message);
+        throw error; // re-throw so callers can show the timeout message
     }
 };
