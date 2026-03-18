@@ -10618,7 +10618,7 @@ a:focus {
     font-size: 2rem;
   }
   .sidebar.toggled .sidebar-brand .sidebar-brand-text {
-    display: none;
+    display: block;
   }
   .sidebar.toggled .sidebar-heading {
     text-align: center;
@@ -11283,3 +11283,4 @@ body.sidebar-toggled footer.sticky-footer {
 .text-dashboard-title{
   color:#1a2b4b;
 }
+

@@ -11,8 +11,8 @@ import TopBar from '../topbar/TopBar';
 const studentNavItems = [
   { name: 'Dashboard',   address: '/dashboard',             icon: 'fa-tachometer-alt' },
   { name: 'Assignments', address: '/dashboard/assignments', icon: 'fa-book' },
-  { name: 'Quizzes',     address: '/dashboard/quizzes',     icon: 'fa-question' },
-  { name: 'Result',      address: '/dashboard/results',     icon: 'fa-chart-area' },
+  // { name: 'Quizzes',     address: '/dashboard/quizzes',     icon: 'fa-question' },
+  { name: 'Submission',      address: '/dashboard/results',     icon: 'fa-chart-area' },
   { name: 'Profile',     address: '/dashboard/profile',     icon: 'fa-user' },
 ];
 
