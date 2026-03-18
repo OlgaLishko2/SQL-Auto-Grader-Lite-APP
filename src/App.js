@@ -85,7 +85,7 @@ function App() {
               <Route path="assignments/:id" element={<AntiCheatingAssignmentDetail />} />
               <Route path="questions/:assignment_id" element={<QuestionList />} />
               <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
-               <Route path="quizzes" element={<Quizzes />} />
+              <Route path="quizzes" element={<Quizzes />} />
               <Route path="results" element={<Results />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
               {/* <Route path="datasets" element={<Datasets />} /> */}

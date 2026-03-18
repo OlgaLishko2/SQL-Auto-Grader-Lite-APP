@@ -94,7 +94,7 @@ const Assignments =  () => {
 
   return (
     <>
-      <div className="d-sm-flex justify-content-between mb-4">
+      <div className="d-sm-flex justify-content-between mb-0">
         <PageTitle pagetitle="Assignments" />
         <Breadcrumb
           items={[
