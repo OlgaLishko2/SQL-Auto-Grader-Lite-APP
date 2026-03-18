@@ -121,7 +121,7 @@ async function updateQuestion(question) {
 async function getSingleQuestionDetails(question_id) {
   try {
     const questionQuery = query(
-      dbCollection,
+      questionCollection,
       where("question_id", "==", question_id),
     );
     const singleQuestion = await getDocs(questionQuery);
@@ -135,4 +135,4 @@ async function getSingleQuestionDetails(question_id) {
     console.error(`getSingleQuestionDetails: ${error}`);
   }
 }
-export { createNewQuestion, getAllQuestionByAssignment, updateQuestion,getSingleQuestionDetails };
+export { createNewQuestion, getAllQuestionByAssignment, getAllQuestionAndAttempt, updateQuestion,getSingleQuestionDetails };
