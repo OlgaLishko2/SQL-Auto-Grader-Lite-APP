@@ -25,6 +25,7 @@ import DatabaseLoader from "./pages/dashboard/teacher/datasets/dbLoader"
 import AssignmentForm from "./pages/dashboard/teacher/assignmentform/AssignmentForm"
 import AssignmentList from "./pages/dashboard/teacher/assignmentform/AssignmentList"
 import CohortManager from "./pages/dashboard/teacher/cohorts/CohortManager"
+import SubmissionStatusPage from "./pages/dashboard/teacher/submissionstatus/SubmissionStatusPage";
 
 
 import "./App.css";
@@ -91,6 +92,7 @@ function App() {
               {/* <Route path="datasets" element={<Datasets />} /> */}
               <Route path="datasets" element={<DatabaseLoader />} />
               <Route path="cohorts" element={<CohortManager />} />
+              <Route path="submissionstatus" element={<SubmissionStatusPage />} />
               <Route path="profile" element={<Profile />} />
             </Route>
 
