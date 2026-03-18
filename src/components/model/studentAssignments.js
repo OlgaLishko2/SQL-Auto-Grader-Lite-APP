@@ -96,8 +96,44 @@ async function updateStudentAssignment(studentAssignment) {
   }
 }
 
+
+//Return an array of  completed assignemnts by Student
+async function getAllCompletedAssignmnetByStudent(studentId) {
+
+  try {
+    const studentAssignmentQuery = query(
+      dbCollection,
+      where("student_user_id", "==", studentId),
+      where("status", "==", "submitted"),
+      orderBy("assigned_on", "desc"),
+    );
+    let assignments = [];
+    const querySnapshot = await getDocs(studentAssignmentQuery);
+    for (const doc of querySnapshot.docs) {
+      let assignmentQuery = query(
+        collection(db, "assignments"),
+        where("assignment_id", "==", doc.data().assignment_id),
+      );
+      let assignmentSnapShot = await getDocs(assignmentQuery);
+      let assignment = assignmentSnapShot.docs[0]?.data();
+      if (assignment) {
+        assignment.status = doc.data().status;
+        assignment.assigned_on = doc.data().assigned_on;
+        assignments.push(assignment);
+      }
+    }
+   
+    return assignments;
+    
+  } catch (error) {
+    console.error(`getAllCompletedAssignmnetByStudent: ${error}`);
+  }
+}
+
+
 export {
   createNewStudentAssignment,
   getAllAssignmnetByStudent,
   updateStudentAssignment,
+  getAllCompletedAssignmnetByStudent,
 };

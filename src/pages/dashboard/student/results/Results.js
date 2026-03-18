@@ -1,5 +1,43 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import DataTable from "react-data-table-component";
-import PageTitle from '../../topbar/PageTitle';
+import PageTitle from "../../topbar/PageTitle";
+import Breadcrumb from "../../topbar/Breadcrumb";
+
+
+import { auth, db } from "../../../../firebase";
+import DatabaseManager from "../../teacher/datasets/DatabaseManager";
+
+import { getAllCompletedAssignmnetByStudent } from "../../../../components/model/studentAssignments";
+
+
+
+
+/**
+ * Results component
+ * Displays Student result list in a DataTable
+ */
+const Results = () => {
+  const navigate = useNavigate();
+  const [submissionsdata, setsubmissionsdata] = useState([]);
+
+  useEffect(() => {
+    // Get data from student assignments table from firebase
+    const fetchdata = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
+        
+        const data = await getAllCompletedAssignmnetByStudent(user.uid);
+        setsubmissionsdata(data);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchdata();
+  }, []);
 
 /**
  * Column configuration for the Results DataTable
@@ -8,13 +46,14 @@ import PageTitle from '../../topbar/PageTitle';
 const columns = [
   {
     name: "Sr no.",
-    selector: row => row.id,
+   selector: (row, index) => index + 1,
     sortable: true,
   },
   {
     name: "Title",
     selector: row => row.title,
     sortable: true,
+    cell: (row) => capitalizeFirstLetter(row.title),
   },
    {
     name: "Marks Obtained / Total Marks",
@@ -25,111 +64,50 @@ const columns = [
     name: "Percentage",
     selector: row => row.percentage,
   },
-   {
-    name: "Result",
-    cell: row => (
-      <span
-        style={{
-          color: row.results === "Fail" ? "red" : "green",
-          fontWeight: "bold",
-        }}
-      >
-        {row.results}
-      </span>
-    ),
-     sortable: true,
-  },
- {
-    name: "Submission Date",
-    selector: row => row.cdate,
-  },
+  
   {
-    name: "Status",
-    selector: row => row.status,
+    name: "Action",
+    cell: (row) => (
+    <button
+      className="btn btn-primary btn-sm"
+       style={{ borderRadius: "4px", fontSize: "12px" }}
+            onClick={() =>
+              navigate(`/dashboard/questions/${row.assignment_id}`)
+            }
+    >
+      View Detail
+    </button>
+  ),
   }
 ];
 
-/**
- * Static Results data (temporary)
- * Later this can come from  database
- */
-const data = [
-  {
-    id: 1,
-    title: "Assignment 1",
-    oMarks: 18,          
-    totalMarks: 20,       
-    percentage: "90%",    
-    results: "Pass",      
-    cdate: "2026-03-01", 
-    status: "Submitted", 
-  },
-  {
-    id: 2,
-    title: "Assignment 2",
-    oMarks: 12,
-    totalMarks: 20,
-    percentage: "60%",
-    results: "Pass",
-    cdate: "2026-03-02",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    title: "Assignment 3",
-    oMarks: 7,
-    totalMarks: 20,
-    percentage: "35%",
-    results: "Fail",
-    cdate: "2026-03-03",
-    status: "Submitted",
-  },
-  {
-    id: 4,
-    title: "Quiz 1",
-    oMarks: 15,
-    totalMarks: 15,
-    percentage: "100%",
-    results: "Pass",
-    cdate: "2026-03-04",
-    status: "Submitted",
-  },
-];
+  // First letter captial for Assignments title
+  const capitalizeFirstLetter = (str) => {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
 
-//red and green row border
-const conditionalRowStyles = [
-  {
-    when: row => row.results === "Fail",
-    style: {
-      borderLeft: "2px solid red",
-      borderRadius: "5px",
-    },
-  },
-  {
-    when: row => row.results === "Pass",
-    style: {
-      borderLeft: "2px solid green",
-      borderRadius: "5px",
-    },
-  },
-];
-/**
- * Results component
- * Displays Student result list in a DataTable
- */
-const Results = () => {
+
+
   return (
     <>
-        <PageTitle pagetitle="Results" />
+      <div className="d-sm-flex justify-content-between mb-0">
+        <PageTitle pagetitle="Submission" />
+        <Breadcrumb
+          items={[
+            { label: "Dashboard", link: "/dashboard" },
+            { label: "Submission", active: true },
+          ]}
+        />
+      </div>
         <div className="card shadow mb-4">
             <DataTable
             columns={columns}
-            data={data}
+            data={submissionsdata}
             pagination
             highlightOnHover
             striped
             responsive
-            conditionalRowStyles={conditionalRowStyles} 
             />
         </div>
      </>
