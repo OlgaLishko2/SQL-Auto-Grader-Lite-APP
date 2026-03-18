@@ -58,6 +58,43 @@ export const getTableSchema = async (tableName, dbname) => {
 }
 
 
+export const getTableInTable = async (tableName, dbname) => {
+    const createSQL = await getTableSchema(tableName, dbname);
+    if (!createSQL) return [];
+
+    const match = createSQL.match(/\((.+)\)$/s);
+    if (!match) return [];
+
+    const splitCols = (str) => {
+        const cols = []; let depth = 0, cur = '';
+        for (const ch of str) {
+            if (ch === '(') depth++;
+            else if (ch === ')') depth--;
+            else if (ch === ',' && depth === 0) { cols.push(cur.trim()); cur = ''; continue; }
+            cur += ch;
+        }
+        if (cur.trim()) cols.push(cur.trim());
+        return cols;
+    };
+    const allCols = splitCols(match[1]).filter(Boolean);
+    const fkCols = new Set(
+        allCols
+            .filter(col => col.toUpperCase().startsWith('FOREIGN KEY'))
+            .map(col => { const m = col.match(/FOREIGN KEY\s*\((\w+)\)/i); return m?.[1]; })
+            .filter(Boolean)
+    );
+    return allCols.filter(col => !col.toUpperCase().startsWith('FOREIGN KEY') && !col.toUpperCase().startsWith('PRIMARY KEY')).map(col => {
+        const parts = col.split(/\s+/);
+        return {
+            name: parts[0],
+            type: parts[1] || '',
+            notNull: col.toUpperCase().includes('NOT NULL'),
+            primaryKey: col.toUpperCase().includes('PRIMARY KEY'),
+            foreignKey: fkCols.has(parts[0]),
+        };
+    });
+};
+
 export const generateCreateTableSQL = async (dbname, tableName, columns) => {
     const columnDefs = columns.map(col => {
         let def = `${col.name} ${col.type}`;

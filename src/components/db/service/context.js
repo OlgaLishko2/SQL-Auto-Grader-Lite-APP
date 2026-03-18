@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useCallback } from "react"
-import { fetchTablesDB, fetchDatasetsDB, insertDataset, insertTable, getTableSchema, generateCreateTableSQL, fetchData, selectQuery } from "./setupDatabases";
+import { fetchTablesDB, fetchDatasetsDB, insertDataset, insertTable, getTableSchema, generateCreateTableSQL, fetchData, selectQuery, getTableInTable } from "./setupDatabases";
 import { addDataToFirestore } from '../setup/setupFirebaseDb'
 // Create a Context object to hold global data
 // Creates the 'Context' object—the global storage container for your Todo data.
@@ -44,6 +44,10 @@ const AppProvider = ({ children }) => {
         }
         return { exists: false, schema }
     }, [])
+    const getTableSchemaInTable = useCallback(async (datasetName, tableName) => {
+        const schema = await getTableInTable(tableName, datasetName);
+        return schema;
+    }, [])
     const createTable = useCallback(async (dbname, tableName, columns) => {
         const data = await generateCreateTableSQL(dbname, tableName, columns)
         return data
@@ -59,8 +63,9 @@ const AppProvider = ({ children }) => {
         addTable,
         getTable,
         createTable,
-        runSelectQuery
-    }), [insertData, fetchItems, allDataset, allTables, addDataset, addTable, getTable, createTable, runSelectQuery])
+        runSelectQuery,
+        getTableSchemaInTable
+        }), [insertData, fetchItems, allDataset, allTables, addDataset, addTable, getTable, createTable, runSelectQuery,getTableSchemaInTable])
     return <Provider value={value}>{children}</Provider>
 }
 
