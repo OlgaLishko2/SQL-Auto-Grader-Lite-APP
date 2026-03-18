@@ -117,9 +117,22 @@ async function updateQuestion(question) {
   }
 }
 
-export {
-  createNewQuestion,
-  getAllQuestionAndAttempt,
-  getAllQuestionByAssignment,
-  updateQuestion,
-};
+// Get Single Question detail by question_id
+async function getSingleQuestionDetails(question_id) {
+  try {
+    const questionQuery = query(
+      dbCollection,
+      where("question_id", "==", question_id),
+    );
+    const singleQuestion = await getDocs(questionQuery);
+
+    if (singleQuestion.empty) {
+      return null;
+    }
+    const questionData = singleQuestion.docs[0].data();
+    return questionData;
+  } catch (error) {
+    console.error(`getSingleQuestionDetails: ${error}`);
+  }
+}
+export { createNewQuestion, getAllQuestionByAssignment, updateQuestion,getSingleQuestionDetails };

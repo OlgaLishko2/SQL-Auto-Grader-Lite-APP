@@ -34,7 +34,10 @@ const QuestionList = () => {
     fetchdata();
   }, []);
 
-  // First letter captial for Assignments title
+ fetchdata();
+}, []);
+ 
+// First letter captial for Question title
   const capitalizeFirstLetter = (str) => {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -111,7 +114,7 @@ const QuestionList = () => {
 
   return (
     <>
-      <div className="d-sm-flex justify-content-between mb-4">
+      <div className="d-sm-flex justify-content-between mb-0">
         <PageTitle pagetitle="Questions List" />
         <Breadcrumb
           items={[
