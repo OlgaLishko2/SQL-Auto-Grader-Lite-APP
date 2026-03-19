@@ -45,8 +45,10 @@ const SQLtest = () => {
     if (!databases[selectedDb]) { setQueryError("Database not loaded."); return; }
     const res = await runSelectQuery(selectedDb, query);
     console.log(res);
-
-    setResults(res);
+    if(res.isSuccessful)
+      setResults(res.data);
+    console.log(res.message);
+    
   };
   return (
     <div className="card shadow mb-4">
