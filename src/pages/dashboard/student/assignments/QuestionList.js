@@ -113,7 +113,7 @@ const QuestionList = () => {
 
   return (
     <>
-      <div className="d-sm-flex justify-content-between mb-0">
+      <div className="d-sm-flex align-items-center justify-content-between mb-4">
         <PageTitle pagetitle="Questions List" />
         <Breadcrumb
           items={[

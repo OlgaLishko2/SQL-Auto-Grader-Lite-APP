@@ -99,7 +99,7 @@ async function updateStudentAssignment(studentAssignment) {
 
 //Return an array of  completed assignemnts by Student
 async function getAllCompletedAssignmnetByStudent(studentId) {
-
+// console.log(studentId);
   try {
     const studentAssignmentQuery = query(
       dbCollection,
@@ -109,20 +109,22 @@ async function getAllCompletedAssignmnetByStudent(studentId) {
     );
     let assignments = [];
     const querySnapshot = await getDocs(studentAssignmentQuery);
+  
     for (const doc of querySnapshot.docs) {
       let assignmentQuery = query(
         collection(db, "assignments"),
         where("assignment_id", "==", doc.data().assignment_id),
       );
+      //  console.log( doc.data().assignment_id);
       let assignmentSnapShot = await getDocs(assignmentQuery);
       let assignment = assignmentSnapShot.docs[0]?.data();
+      
       if (assignment) {
         assignment.status = doc.data().status;
         assignment.assigned_on = doc.data().assigned_on;
         assignments.push(assignment);
       }
     }
-   
     return assignments;
     
   } catch (error) {
@@ -130,10 +132,50 @@ async function getAllCompletedAssignmnetByStudent(studentId) {
   }
 }
 
+// Get Assignment detail by Assignment id
+async function getAssignmentDetailsByAssignmentId(assignment_id) {
+
+  try {
+     const studentAssignmentQuery = query(
+      dbCollection,
+      where(
+        "assignment_id",
+        "==",
+       assignment_id,
+      ),
+    );
+    const objStudentAssignment = await getDocs(studentAssignmentQuery);
+    if (objStudentAssignment.empty) {
+      return null;
+    }
+    const students = objStudentAssignment.docs.map(docItem => ({
+      id: docItem.id,
+      ...docItem.data()
+    }));
+    const assignmentIdFromData = objStudentAssignment.docs[0].data().assignment_id;
+    //console.log(assignmentIdFromData)
+ 
+    const assignmentRef =  query(collection(db, "assignments"), 
+    where("assignment_id", "==", assignmentIdFromData));
+
+    const assignmentSnap = await getDocs(assignmentRef);
+      if (assignmentSnap.empty) {
+        return null;
+      }
+        const assignmentData = assignmentSnap.docs[0].data();
+      //console.log(assignmentData);
+    return assignmentData;
+
+    } catch (error) {
+      console.error(`getAssignmentDetailsByAssignmentId: ${error}`);
+      return [];
+    }
+}
 
 export {
   createNewStudentAssignment,
   getAllAssignmnetByStudent,
   updateStudentAssignment,
   getAllCompletedAssignmnetByStudent,
+  getAssignmentDetailsByAssignmentId
 };
