@@ -4,8 +4,6 @@ import { loadSqliteData, addDataToFirestore } from '../setup/setupFirebaseDb';
 const initDB = async (dbname) => {
     const databases = await loadSqliteData();
     return databases[dbname];
-
-
 };
 
 export const fetchDatasetsDB = async () => {
@@ -57,16 +55,17 @@ export const getTableSchema = async (tableName, dbname) => {
     }
 }
 
-
 export const getTableInTable = async (tableName, dbname) => {
     const createSQL = await getTableSchema(tableName, dbname);
-    if (!createSQL) return [];
 
+    if (!createSQL) return [];
+    // extract content inside the last parentheses block at the end of the SQL string
     const match = createSQL.match(/\((.+)\)$/s);
     if (!match) return [];
-
+    // Decimal(15,2)
     const splitCols = (str) => {
-        const cols = []; let depth = 0, cur = '';
+        const cols = [];
+        let depth = 0, cur = '';
         for (const ch of str) {
             if (ch === '(') depth++;
             else if (ch === ')') depth--;
@@ -77,12 +76,16 @@ export const getTableInTable = async (tableName, dbname) => {
         return cols;
     };
     const allCols = splitCols(match[1]).filter(Boolean);
+    console.log(allCols);
+    
     const fkCols = new Set(
         allCols
             .filter(col => col.toUpperCase().startsWith('FOREIGN KEY'))
             .map(col => { const m = col.match(/FOREIGN KEY\s*\((\w+)\)/i); return m?.[1]; })
             .filter(Boolean)
     );
+    console.log(fkCols);
+    
     return allCols.filter(col => !col.toUpperCase().startsWith('FOREIGN KEY') && !col.toUpperCase().startsWith('PRIMARY KEY')).map(col => {
         const parts = col.split(/\s+/);
         return {
@@ -114,7 +117,7 @@ export const generateCreateTableSQL = async (dbname, tableName, columns) => {
     return createSQL;
 };
 
-export const fetchData = async (dbname, tableName) => {    
+export const fetchData = async (dbname, tableName) => {
     const db = await initDB(dbname);
     try {
         // 1. Prepare the statement
@@ -124,39 +127,46 @@ export const fetchData = async (dbname, tableName) => {
         // 2. Iterate through rows and "Decode" them into objects
         while (stmt.step()) {
             const rowDoc = stmt.getAsObject();
-            
+
             // 3. Ensure a unique ID for Firestore 
             // If the table doesn't have an 'id', we use the SQLite rowid
             if (!rowDoc.id && rowDoc.rowid) {
                 rowDoc.id = rowDoc.rowid;
             }
-            
+
             rows.push(rowDoc);
         }
 
         // 4. Free memory
         stmt.free();
-        
+
         console.log(`Successfully decoded ${rows.length} rows from ${tableName}`);
         return rows;
-        
+
     } catch (error) {
         console.error(`Failed to fetch data from ${tableName}:`, error);
         return [];
     }
 };
-
-export const selectQuery = async (dbname, query) => {    
+//  if sql.js doesn’t return before timeoutMs, the timeout error is raised.
+// But because db.exec() is synchronous in sql.js, the timeout may not interrupt a blocking query; it only wins the race if the timeout can actually run.
+export const selectQuery = async (dbname, query, timeoutMs = 5000) => {
     const db = await initDB(dbname);
     if (!db) {
         console.error(`Database '${dbname}' not found`);
         return [];
     }
     try {
-        const result = db.exec(query);
-        return result; // returns [{columns: [...], values: [[...]]}]
+        // new Promise((resolve, reject)=>{})
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Query timed out")), timeoutMs)
+        );
+        // const execution = new Promise((resolve) => resolve(db.exec(query)));
+        const execution = Promise.resolve().then(() => db.exec(query));
+        const result = await Promise.race([execution, timeout]);
+        return {isSuccessful:true, data:result};
     } catch (error) {
-        console.error(`Failed to fetch data:`, error);
-        return [];
+        console.error(`Failed to fetch data:`, error.message);
+        return {isSuccessful:false, message:error.message};
     }
 };
