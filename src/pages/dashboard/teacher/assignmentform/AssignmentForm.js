@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import CreateQuestionSet from '../createquestionset/CreateQuestionSet';
-import { auth, db } from "../../../../firebase"; 
-import { createNewAssignment } from "../../../../components/model/assignments"
+import { auth } from "../../../../firebase"; 
+import { createNewAssignment } from "../../../../components/model/assignments";
 import { getCohortsByOwner } from "../../../../components/model/cohorts";
+import { sendAssignmentEmail } from "../../../../services/email"; 
+import { createNewStudentAssignment, getStudentsByCohort } from "../../../../components/model/studentAssignments"; 
 
 const AssignmentForm = ({ onDone }) => {
   const [activeTab, setActiveTab] = useState(0);
@@ -11,10 +13,10 @@ const AssignmentForm = ({ onDone }) => {
     student_class: '',
     enable_submission_notification: false, reminder_interval: 0
   });
-  //once assignment is created, id should be retirieved from firestore table
   const [assignmentId, setAssignmentId] = useState("");
   const [savedQuestionCount, setSavedQuestionCount] = useState(0);
   const [cohorts, setCohorts] = useState([]);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     getCohortsByOwner(auth.currentUser.uid).then(setCohorts);
@@ -28,10 +30,21 @@ const AssignmentForm = ({ onDone }) => {
     }));
   };
 
-  const [error, setError] = useState("");
+  const tabRequiredFields = [
+    ['title', 'description', 'total_marks', 'due_date'],
+    ['student_class'],
+  ];
+
+  const isTabComplete = (tabIndex) =>
+    tabRequiredFields[tabIndex]?.every((f) => String(formData[f]).trim() !== '') ?? true;
+
+  const tabs = ['Create Assignment', 'Assign Students', 'Add Questions'];
+
 
   const handleNext = async () => {
     setError("");
+
+ 
     if (activeTab === 0) {
       if (!auth.currentUser) {
         setError("You must be logged in to create an assignment.");
@@ -47,28 +60,61 @@ const AssignmentForm = ({ onDone }) => {
           updated_on: new Date(),
           dueDate: formData.due_date,
         };
-        console.log("Creating assignment:", assignment);
         const id = await createNewAssignment(assignment);
-        console.log("Created assignment ID:", id);
         if (!id) throw new Error("No ID returned from Firestore");
         setAssignmentId(id);
       } catch (err) {
         setError("Failed to create assignment: " + err.message);
         return;
       }
+      setActiveTab(activeTab + 1);
+      return;
     }
+
+
+    if (activeTab === 1) {
+      if (!formData.student_class) {
+        setError("Please select a student cohort.");
+        return;
+      }
+
+      try {
+       
+        let students = await getStudentsByCohort(formData.student_class); 
+
+      
+        for (const student of students) {
+       
+          await createNewStudentAssignment({
+            assignment_id: assignmentId,
+            student_user_id: student.uid,
+            assigned_on: new Date().toISOString().split("T")[0],
+            due_on: formData.due_date,
+            status: "assigned",
+          });
+
+   
+          if (formData.enable_submission_notification) {
+            await sendAssignmentEmail(
+              { fullName: student.fullName, email: student.email },
+              { title: formData.title, dueDate: formData.due_date }
+            );
+          }
+        }
+
+      } catch (err) {
+        setError("Failed to assign students or send email: " + err.message);
+        return;
+      }
+
+      setActiveTab(activeTab + 1);
+      return;
+    }
+
+    
     setActiveTab(activeTab + 1);
   };
 
-  const tabRequiredFields = [
-    ['title', 'description', 'total_marks', 'due_date'],
-    ['student_class'],
-  ];
-
-  const isTabComplete = (tabIndex) =>
-    tabRequiredFields[tabIndex]?.every((f) => String(formData[f]).trim() !== '') ?? true;
-
-  const tabs = ['Create Assignment', 'Assign Students', 'Add Questions'];
 
   return (
     <div style={{ maxWidth: 'auto', margin: '20px auto', border: '1px solid #ccc', padding: '20px' }}>
