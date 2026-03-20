@@ -30,7 +30,8 @@ import SubmissionStatusPage from "./pages/dashboard/teacher/submissionstatus/Sub
 
 
 import "./App.css";
-import AssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
+import AssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
+import AntiCheatingQuestionDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
 
 function TeacherAssignments() {
   const [creating, setCreating] = useState(false);
@@ -84,10 +85,10 @@ function App() {
                   ? <Assignments />
                   : <TeacherAssignments />
               } />
-              <Route path="assignments/:id" element={<AntiCheatingAssignmentDetail />} />
+              <Route path="assignments/:id" element={<AssignmentDetail />} />
               <Route path="questions/:assignment_id" element={<QuestionList />} />
               <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
-              <Route path="quizzes" element={<Quizzes />} />
+               <Route path="quizzes" element={<Quizzes />} />
               <Route path="results" element={<Results />} />
               <Route path="results/:assignment_id" element={<SubmittedQuestions />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}

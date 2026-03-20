@@ -20,20 +20,21 @@ export async function seedAllData() {
     const { questions: qs, ...assignmentData } = assignment;
     await setDoc(doc(db, "assignments", assignment.assignment_id), {
       ...assignmentData,
+      questions: qs,
       owner_user_id: ownerUid,
       created_on: new Date(),
       updated_on: new Date(),
     });
-    for (const q of qs) {
-      const qRef = doc(collection(db, "questions"));
-      await setDoc(qRef, {
-        ...q,
-        question_id: qRef.id,
-        assignment_id: assignment.assignment_id,
-        created_on: new Date(),
-        updated_on: new Date(),
-      });
-    }
+    // for (const q of qs) {
+    //   const qRef = doc(collection(db, "questions"));
+    //   await setDoc(qRef, {
+    //     ...q,
+    //     question_id: qRef.id,
+    //     assignment_id: assignment.assignment_id,
+    //     created_on: new Date(),
+    //     updated_on: new Date(),
+    //   });
+    // }
   }
 
   for (const [dataset, tables] of Object.entries(questions)) {
@@ -45,6 +46,8 @@ export async function seedAllData() {
           question: preset.question,
           answer: preset.answer,
           difficulty: preset.difficulty,
+          mark: preset.mark,
+          max_attempts: preset.max_attempts,
         });
       }
     }

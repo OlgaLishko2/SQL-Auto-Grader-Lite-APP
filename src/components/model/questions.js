@@ -16,16 +16,11 @@ import { db } from "../../firebase";
 const questionCollection = collection(db, "questions");
 
 function normalizeQuestion(question) {
-  const maxAttempts =
-    question.max_number_of_attempts ?? question.max_attempt_time ?? 1;
-
   return {
     ...question,
-    prompt: question.prompt ?? question.questionText ?? "",
     answer: question.answer ?? question.teacher_solution_sql ?? "",
     orderMatters: question.orderMatters ?? Boolean(question.order_matters),
     aliasStrict: question.aliasStrict ?? Boolean(question.alias_matters),
-    max_number_of_attempts: Number(maxAttempts)
   };
 }
 
@@ -63,7 +58,7 @@ async function getAllQuestionByAssignment(assignmentId) {
   }
 }
 
-async function getAllQuestionAndAttempt(assignmentId, userId) {
+async function getAllActiveAssignmnetByStudent(assignmentId, userId) {
   try {
     const questions = await getAllQuestionByAssignment(assignmentId);
 
@@ -91,7 +86,7 @@ async function getAllQuestionAndAttempt(assignmentId, userId) {
       }),
     );
   } catch (error) {
-    console.error(`getAllQuestionAndAttempt: ${error}`);
+    console.error(`getAllActiveAssignmnetByStudent: ${error}`);
     return [];
   }
 }
@@ -117,22 +112,9 @@ async function updateQuestion(question) {
   }
 }
 
-// Get Single Question detail by question_id
-async function getSingleQuestionDetails(question_id) {
-  try {
-    const questionQuery = query(
-      questionCollection,
-      where("question_id", "==", question_id),
-    );
-    const singleQuestion = await getDocs(questionQuery);
-
-    if (singleQuestion.empty) {
-      return null;
-    }
-    const questionData = singleQuestion.docs[0].data();
-    return questionData;
-  } catch (error) {
-    console.error(`getSingleQuestionDetails: ${error}`);
-  }
-}
-export { createNewQuestion, getAllQuestionByAssignment, getAllQuestionAndAttempt, updateQuestion,getSingleQuestionDetails };
+export {
+  createNewQuestion,
+  getAllActiveAssignmnetByStudent,
+  getAllQuestionByAssignment,
+  updateQuestion,
+};
