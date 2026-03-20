@@ -1,7 +1,6 @@
 import "./Dashboard.css";
 import PageTitle from './topbar/PageTitle';
 import CardDashboard from './CardDashboard';
-import SQLtest from "../../components/db/sqlTest";
 // DEV ONLY — remove these 2 lines before pushing to GitHub
 import { seedAllData, uploadDbConfig } from "../../data/devSeed";
 
@@ -32,8 +31,8 @@ const Dashboard = ({ role }) => {
             Upload Dataset Config (run once)
           </button>
         </div>
-      )} */}
-    
+      )}
+      <SQLtest />
     </>
   );
 };
