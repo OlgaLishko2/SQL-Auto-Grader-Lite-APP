@@ -26,48 +26,49 @@ async function createNewStudentAssignment(studentAssignment) {
   }
 }
 
-async function getAllCompletedAssignmnetByStudent(studentId) {
-  try {
-    const studentAssignmentQuery = query(
-      dbCollection,
-      where("student_user_id", "==", studentId),
-      where("status", "==", "submitted"),
-      orderBy("assigned_on", "desc"),
-    );
+// async function getAllCompletedAssignmnetByStudent(studentId) {
+//   try {
+//     const studentAssignmentQuery = query(
+//       dbCollection,
+//       where("student_user_id", "==", studentId),
+//       where("status", "==", "submitted"),
+//       orderBy("assigned_on", "desc"),
+//     );
 
-    let assignments = [];
-    const querySnapshot = await getDocs(studentAssignmentQuery);
+//     let assignments = [];
+//     const querySnapshot = await getDocs(studentAssignmentQuery);
 
-    for (const docSnap of querySnapshot.docs) {
-      const studentAssignmentData = docSnap.data();
+//     for (const docSnap of querySnapshot.docs) {
+//       const studentAssignmentData = docSnap.data();
 
-      const assignmentQuery = query(
-        collection(db, "assignments"),
-        where("assignment_id", "==", studentAssignmentData.assignment_id),
-      );
+//       const assignmentQuery = query(
+//         collection(db, "assignments"),
+//         where("assignment_id", "==", studentAssignmentData.assignment_id),
+//       );
 
-      const assignmentSnapShot = await getDocs(assignmentQuery);
-      const assignment = assignmentSnapShot.docs[0]?.data();
+//       const assignmentSnapShot = await getDocs(assignmentQuery);
+//       const assignment = assignmentSnapShot.docs[0]?.data();
 
-      if (assignment) {
-        assignment.status = studentAssignmentData.status;
-        assignment.assigned_on = studentAssignmentData.assigned_on;
-        assignments.push(assignment);
-      }
-    }
+//       if (assignment) {
+//         assignment.status = studentAssignmentData.status;
+//         assignment.assigned_on = studentAssignmentData.assigned_on;
+//         assignments.push(assignment);
+//       }
+//     }
 
-    return assignments;
-  } catch (error) {
-    console.error(`getAllCompletedAssignmnetByStudent: ${error}`);
-    return [];
-  }
-}
+//     return assignments;
+//   } catch (error) {
+//     console.error(`getAllCompletedAssignmnetByStudent: ${error}`);
+//     return [];
+//   }
+// }
 
 async function getAllAssignmnetByStudent(studentId) {
   try {
     const studentAssignmentQuery = query(
       dbCollection,
       where("student_user_id", "==", studentId),
+      where("status", "!=", "submitted"),
       orderBy("assigned_on", "desc"),
     );
     let assignments = [];
@@ -216,7 +217,6 @@ export {
   getAllAssignmnetByStudent,
   updateStudentAssignment,
   getAllCompletedAssignmnetByStudent,
-  getAssignmentDetailsByAssignmentId
-  getStudentsByCohort,
-  getAllCompletedAssignmnetByStudent
+  getAssignmentDetailsByAssignmentId,
+  getStudentsByCohort
 };

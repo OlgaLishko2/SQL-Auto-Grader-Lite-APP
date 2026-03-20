@@ -20,7 +20,7 @@ import QuestionList from "./pages/dashboard/student/assignments/QuestionList";
 import Quizzes from "./pages/dashboard/student/quizzes/Quizzes";
 import Results from "./pages/dashboard/student/results/Results";
 import SubmittedQuestions from "./pages/dashboard/student/results/SubmittedQuestions";
-import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
+//import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
 // teacher
 import DatabaseLoader from "./pages/dashboard/teacher/datasets/dbLoader"
 import AssignmentForm from "./pages/dashboard/teacher/assignmentform/AssignmentForm"
