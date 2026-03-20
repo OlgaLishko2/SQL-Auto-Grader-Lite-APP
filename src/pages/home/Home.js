@@ -13,7 +13,7 @@ function Home() {
         <h1>SQL Practice Platform</h1>
         <p>Learn SQL interactively in your browser using real datasets.</p>
         <button className="start-btn" onClick={() => navigate("/login")}>
-          Start Practicing
+          Start Working
         </button>
       </section>
 
@@ -24,7 +24,7 @@ function Home() {
           <div className="feature-card">
             <div className="icon">📄</div>
             <h3>Real Datasets</h3>
-            <p>Instant access to datasets: Employees, Customers, Movies.</p>
+            <p>Instant access to datasets: Employees, Departments, Customer, Orders.</p>
           </div>
           <div className="feature-card">
             <div className="icon">⌨️</div>
