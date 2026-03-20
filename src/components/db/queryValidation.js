@@ -1,4 +1,6 @@
 //Validate Select query only
+
+import { SQL_KEYWORDS } from "./common";
 export function isSelectQuery(query) {
   //check query is empty or not a string
   if (!query || typeof query !== "string") return false;
@@ -6,49 +8,6 @@ export function isSelectQuery(query) {
   const isSelectFormat = /^select\b/i.test(trimedQuery);
   return isSelectFormat;
 }
-
-const SQL_KEYWORDS = [
-  "SELECT",
-  "FROM",
-  "WHERE",
-  "JOIN",
-  "INNER",
-  "LEFT",
-  "RIGHT",
-  "FULL",
-  "OUTER",
-  "ON",
-  "GROUP",
-  "BY",
-  "HAVING",
-  "ORDER",
-  "ASC",
-  "DESC",
-  "LIMIT",
-  "OFFSET",
-  "AS",
-  "DISTINCT",
-  "UNION",
-  "ALL",
-  "AND",
-  "OR",
-  "NOT",
-  "IN",
-  "IS",
-  "NULL",
-  "BETWEEN",
-  "LIKE",
-  "CASE",
-  "WHEN",
-  "THEN",
-  "ELSE",
-  "COUNT",
-  "SUM",
-  "AVG",
-  "MIN",
-  "MAX",
-  "END",
-];
 
 export function normalizeQuery(query) {
   if (typeof query !== "string") return "";

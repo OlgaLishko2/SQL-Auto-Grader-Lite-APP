@@ -19,8 +19,6 @@ import Assignments from "./pages/dashboard/student/assignments/Assignments";
 import QuestionList from "./pages/dashboard/student/assignments/QuestionList";
 import Quizzes from "./pages/dashboard/student/quizzes/Quizzes";
 import Results from "./pages/dashboard/student/results/Results";
-import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
-// teacher
 import DatabaseLoader from "./pages/dashboard/teacher/datasets/dbLoader"
 import AssignmentForm from "./pages/dashboard/teacher/assignmentform/AssignmentForm"
 import AssignmentList from "./pages/dashboard/teacher/assignmentform/AssignmentList"
@@ -29,7 +27,8 @@ import SubmissionStatusPage from "./pages/dashboard/teacher/submissionstatus/Sub
 
 
 import "./App.css";
-import AssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
+import AssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
+import AntiCheatingQuestionDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
 
 function TeacherAssignments() {
   const [creating, setCreating] = useState(false);
@@ -83,10 +82,10 @@ function App() {
                   ? <Assignments />
                   : <TeacherAssignments />
               } />
-              <Route path="assignments/:id" element={<AntiCheatingAssignmentDetail />} />
+              <Route path="assignments/:id" element={<AssignmentDetail />} />
               <Route path="questions/:assignment_id" element={<QuestionList />} />
               <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
-              <Route path="quizzes" element={<Quizzes />} />
+               <Route path="quizzes" element={<Quizzes />} />
               <Route path="results" element={<Results />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
               {/* <Route path="datasets" element={<Datasets />} /> */}
