@@ -72,7 +72,7 @@ const columns = [
       className="btn btn-primary btn-sm"
        style={{ borderRadius: "4px", fontSize: "12px" }}
             onClick={() =>
-              navigate(`/dashboard/results/${row.assignment_id}`)
+              navigate(`/dashboard/questions/${row.assignment_id}`)
             }
     >
       View Detail
@@ -91,12 +91,12 @@ const columns = [
 
   return (
     <>
-      <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <PageTitle pagetitle="Submitted Assignments" />
+      <div className="d-sm-flex justify-content-between mb-0">
+        <PageTitle pagetitle="Submission" />
         <Breadcrumb
           items={[
             { label: "Dashboard", link: "/dashboard" },
-            { label: "Submitted Assignments", active: true },
+            { label: "Submission", active: true },
           ]}
         />
       </div>

@@ -103,7 +103,6 @@ const Assignments = () => {
 
   return (
     <>
-      <div className="d-sm-flex align-items-center justify-content-between mb-4">
       <LoadingOverlay
         isOpen={isLoading}
         message="Loading..."
