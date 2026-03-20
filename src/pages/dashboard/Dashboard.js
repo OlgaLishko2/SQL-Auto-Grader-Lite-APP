@@ -16,7 +16,7 @@ const Dashboard = ({ role }) => {
       <PageTitle pagetitle="Dashboard" />
       {role === "student" && <CardDashboard cards={studentCards} />}
       {/* DEV ONLY — remove this block before pushing to GitHub */}
-      {/* {role === "teacher" && (
+      {role === "teacher" && (
         <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
           <button
             onClick={() => seedAllData().then(() => alert("All data seeded!")).catch((e) => alert("Error: " + e.message))}
@@ -32,7 +32,7 @@ const Dashboard = ({ role }) => {
           </button>
         </div>
       )}
-      <SQLtest />
+    
     </>
   );
 };
