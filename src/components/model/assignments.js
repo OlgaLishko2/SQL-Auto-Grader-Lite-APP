@@ -2,12 +2,15 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   query,
   setDoc,
   updateDoc,
+  arrayUnion,
   where,
 } from "firebase/firestore";
 import { db } from "../../firebase";
+// import { question } from "fontawesome";
 
   // const assignment = {
   //   assignment_id: "QumeTD0jZAv0LiNBUd7M", //assignment_id will be created by firestore
@@ -74,4 +77,29 @@ async function updateAssignment(assignment) {
   }
 }
 
-export { createNewAssignment, getAllAssignmentByOwner, updateAssignment };
+async function getAssignmentsForStudent(cohortIds) {
+  try {
+    // includes assignments assigned to "all" or any of the student's cohorts
+    const targets = ["all", ...cohortIds];
+    const assignmentsQuery = query(dbCollection, where("student_class", "in", targets));
+    const querySnapshot = await getDocs(assignmentsQuery);
+    return querySnapshot.docs.map((d) => d.data());
+  } catch (error) {
+    console.error(`getAssignmentsForStudent: ${error}`);
+    return [];
+  }
+}
+
+async function addQuestionToAssignment(assignmentId, incomeQuestion) {
+  try {
+    const docSnap = await getDoc(doc(db, 'assignments', assignmentId));
+    if (!docSnap.exists()) return null;
+
+    const existing = docSnap.data().questions || [];
+    await updateDoc(docSnap.ref, { questions: [...existing, incomeQuestion] });
+  } catch (error) {
+    console.error(`addQuestionToAssignment: ${error}`);
+  }
+}
+
+export { createNewAssignment, getAllAssignmentByOwner, updateAssignment, getAssignmentsForStudent, addQuestionToAssignment };

@@ -1,10 +1,19 @@
+.container{
+  display: flex;
+  gap: 10%;
+  flex-direction: row;
+}
+
 .question-row {
   display: flex;
-  gap: 2%;
+  flex-direction: column;
+  gap: 10px;
   margin-top: 30px;
   border: 1px solid #ccc;
   padding: 20px;
-  flex-wrap: wrap;
+  border-radius: 4px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .question-col {
@@ -51,4 +60,10 @@
     margin-top: 30px;
     box-sizing: border-box;
   }
+
+  .layout-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
 }
+

@@ -1,18 +1,18 @@
 {
   "cohorts": [
     {
-      "cohort_id": "cohort_beginner",
-      "name": "Beginner Group",
+      "cohort_id": "cohort_2025",
+      "name": "Cohort 2025",
       "student_uids": []
     },
     {
-      "cohort_id": "cohort_intermediate",
-      "name": "Intermediate Group",
+      "cohort_id": "WiTech",
+      "name": "Women in Tech",
       "student_uids": []
     },
     {
-      "cohort_id": "cohort_advanced",
-      "name": "Advanced Group",
+      "cohort_id": "Alumni",
+      "name": "Alumni Student",
       "student_uids": []
     }
   ],
@@ -21,30 +21,33 @@
       "assignment_id": "assign_001",
       "title": "SQL Basics",
       "description": "Intro to SELECT queries on the Employees table.",
-      "dataset": "DatasetA",
+      "dataset": "datasetA",
       "dueDate": "2026-04-01",
-      "cohort_id": "cohort_beginner",
+      "cohort_id": "cohort_2025",
       "questions": [
         {
           "questionText": "Select all employees",
           "answer": "SELECT * FROM Employees;",
           "orderMatters": false,
           "aliasStrict": false,
-          "max_number_of_attempts": 3
+          "mark": 2,
+          "max_attempts": 4
         },
         {
           "questionText": "Get employee first and last names",
-          "answer": "SELECT first_name, last_name FROM Employees;",
+          "answer": "SELECT firstname, lastname FROM Employees;",
           "orderMatters": false,
           "aliasStrict": false,
-          "max_number_of_attempts": 3
+          "mark": 1,
+          "max_attempts": 3
         },
         {
           "questionText": "Count total employees",
           "answer": "SELECT COUNT(*) FROM Employees;",
           "orderMatters": false,
           "aliasStrict": false,
-          "max_number_of_attempts": 3
+          "mark": 2,
+          "max_attempts": 4
         }
       ]
     },
@@ -52,30 +55,33 @@
       "assignment_id": "assign_002",
       "title": "Filtering & Sorting",
       "description": "Practice WHERE, ORDER BY, and LIMIT clauses.",
-      "dataset": "DatasetA",
+      "dataset": "datasetA",
       "dueDate": "2026-04-10",
-      "cohort_id": "cohort_intermediate",
+      "cohort_id": "WiTech",
       "questions": [
         {
-          "questionText": "Get employees with salary greater than 50000",
-          "answer": "SELECT * FROM Employees WHERE salary > 50000;",
+          "questionText": "Get employees with salary greater than 80000",
+          "answer": "SELECT * FROM Employees WHERE salary > 80000;",
           "orderMatters": false,
           "aliasStrict": false,
-          "max_number_of_attempts": 3
+          "mark": 3,
+          "max_attempts": 4
         },
         {
           "questionText": "Get top 5 highest paid employees",
           "answer": "SELECT * FROM Employees ORDER BY salary DESC LIMIT 5;",
           "orderMatters": true,
           "aliasStrict": false,
-          "max_number_of_attempts": 3
+          "mark": 4,
+          "max_attempts": 4
         },
         {
-          "questionText": "Get employees hired after 2020",
-          "answer": "SELECT * FROM Employees WHERE hire_date > '2020-01-01';",
+          "questionText": "Get employees in department 3",
+          "answer": "SELECT * FROM Employees WHERE departmentId = 3;",
           "orderMatters": false,
           "aliasStrict": false,
-          "max_number_of_attempts": 3
+          "mark": 4,
+          "max_attempts": 3
         }
       ]
     },
@@ -83,30 +89,33 @@
       "assignment_id": "assign_003",
       "title": "Joins & Aggregations",
       "description": "Advanced queries joining Employees and Departments.",
-      "dataset": "DatasetA",
+      "dataset": "datasetA",
       "dueDate": "2026-04-20",
-      "cohort_id": "cohort_advanced",
+      "cohort_id": "Alumni",
       "questions": [
         {
           "questionText": "Get each employee with their department name",
-          "answer": "SELECT e.first_name, e.last_name, d.name AS department FROM Employees e INNER JOIN Departments d ON e.department_id = d.id;",
+          "answer": "SELECT e.firstname, e.lastname, d.departmentName FROM Employees e INNER JOIN Departments d ON e.departmentId = d.departmentId;",
           "orderMatters": false,
           "aliasStrict": true,
-          "max_number_of_attempts": 5
+          "mark": 4,
+          "max_attempts": 3
         },
         {
           "questionText": "Get average salary per department",
-          "answer": "SELECT d.name, AVG(e.salary) AS avg_salary FROM Employees e JOIN Departments d ON e.department_id = d.id GROUP BY d.name;",
+          "answer": "SELECT d.departmentName, AVG(e.salary) AS avg_salary FROM Employees e JOIN Departments d ON e.departmentId = d.departmentId GROUP BY d.departmentName;",
           "orderMatters": false,
           "aliasStrict": true,
-          "max_number_of_attempts": 5
+          "mark": 5,
+          "max_attempts": 4
         },
         {
           "questionText": "Get the highest paid employee in each department",
-          "answer": "SELECT d.name, e.first_name, e.last_name, e.salary FROM Employees e JOIN Departments d ON e.department_id = d.id WHERE e.salary = (SELECT MAX(salary) FROM Employees WHERE department_id = e.department_id);",
+          "answer": "SELECT d.departmentName, e.firstname, e.lastname, e.salary FROM Employees e JOIN Departments d ON e.departmentId = d.departmentId WHERE e.salary = (SELECT MAX(salary) FROM Employees WHERE departmentId = e.departmentId);",
           "orderMatters": false,
           "aliasStrict": true,
-          "max_number_of_attempts": 5
+          "mark": 9,
+          "max_attempts": 5
         }
       ]
     }
