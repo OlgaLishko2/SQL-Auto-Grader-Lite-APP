@@ -19,6 +19,9 @@ import Assignments from "./pages/dashboard/student/assignments/Assignments";
 import QuestionList from "./pages/dashboard/student/assignments/QuestionList";
 import Quizzes from "./pages/dashboard/student/quizzes/Quizzes";
 import Results from "./pages/dashboard/student/results/Results";
+import SubmittedQuestions from "./pages/dashboard/student/results/SubmittedQuestions";
+import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
+// teacher
 import DatabaseLoader from "./pages/dashboard/teacher/datasets/dbLoader"
 import AssignmentForm from "./pages/dashboard/teacher/assignmentform/AssignmentForm"
 import AssignmentList from "./pages/dashboard/teacher/assignmentform/AssignmentList"
@@ -87,6 +90,7 @@ function App() {
               <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
                <Route path="quizzes" element={<Quizzes />} />
               <Route path="results" element={<Results />} />
+              <Route path="results/:assignment_id" element={<SubmittedQuestions />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
               {/* <Route path="datasets" element={<Datasets />} /> */}
               <Route path="datasets" element={<DatabaseLoader />} />
