@@ -17,58 +17,69 @@ const AntiCheatingQuestionDetail = () => {
   const location = useLocation();
   const question = location.state?.question;
   const dataset = location.state?.dataset;
-
-  const earnedPoints = 10;
   const [sqlCode, setSqlCode] = useState("");
   const [expectedResult, setExpectedResult] = useState([]);
   const [studentResult, setStudentResult] = useState([]);
   const [isCorrect, setIsCorrect] = useState(false);
   const [error, setError] = useState("");
-  const isRunQuery = false;
-  const isSubmit = false;
+  const [isSubmit, setIsSubmmit] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     if (!dataset || !question?.answer) return;
 
     const loadExpectedResult = async () => {
       const result = await runSelectQuery(dataset, question.answer);
-      setExpectedResult(result);
+      const resultData = Array.isArray(result?.data) ? result.data[0] : null;
+      setExpectedResult(resultData || []);
     };
 
     loadExpectedResult();
   }, [dataset, question?.answer, runSelectQuery]);
 
-  async function runQuery() {
+  async function excuteQueryAndCompare() {
     if (!isSelectQuery(sqlCode)) {
       setError("Only SELECT queries are allowed.");
-      return;
+      setStudentResult([]);
+      setIsCorrect(false);
+      return false;
+    }
+
+    const result = await runSelectQuery(dataset, sqlCode);
+    const resultData = Array.isArray(result?.data) ? result.data[0] : null;
+
+    if (!result?.isSuccessful || !resultData) {
+      setError(result?.message || "Query execution failed.");
+      setStudentResult([]);
+      setIsCorrect(false);
+      return false;
     }
 
     setError("");
-    const result = await runSelectQuery(dataset, sqlCode);
-    setStudentResult(result);
+    setStudentResult(resultData);
 
     const comparationResult = compareQueryResult(
       expectedResult,
-      result,
+      resultData,
       question?.orderMatters,
       question?.aliasStrict,
     );
     setIsCorrect(comparationResult);
+    return comparationResult;
   }
 
-  function submitQuery() {
+  async function runQuery() {
+    setShowResults(true);
+    await excuteQueryAndCompare();
+    setIsSubmmit(false);
+  }
+
+  async function submitQuery() {
     const user = auth.currentUser;
     if (!user) return;
 
-    const comparationResult = compareQueryResult(
-      expectedResult,
-      studentResult,
-      question?.orderMatters,
-      question?.aliasStrict,
-    );
-
-    setIsCorrect(comparationResult);
+    setShowResults(true);
+    const comparationResult = await excuteQueryAndCompare();
 
     const attemptObj = {
       question_id: question?.question_id,
@@ -79,6 +90,7 @@ const AntiCheatingQuestionDetail = () => {
     };
 
     createAttempt(attemptObj);
+    setIsSubmmit(true);
   }
 
   const sqlKeywordCompletions = completeFromList(
@@ -159,25 +171,31 @@ const AntiCheatingQuestionDetail = () => {
 
           <div className="editor-btns">
             <button className="btn-run" onClick={runQuery}>
-              Run Query
+              Run Code
             </button>
             <button className="btn-submit" onClick={submitQuery}>
-              Submit
+              Submit Code
             </button>
           </div>
+          {showResults && (
+            <div className="result-section">
+              {isSubmit && isCorrect && (
+                <section className="points-banner">
+                  <div className="points-copy">
+                    <h3>You have earned {question.mark} points!</h3>
+                  </div>
+                </section>
+              )}
 
-          <div className="result-section">
-            <section className="points-banner hidingTag">
-              <div className="points-copy">
-                <h3>You have earned {question.mark} points!</h3>
-              </div>
-            </section>
-            {studentResult.length > 0 && (
               <div className="result-status-bar">
                 {isCorrect ? (
                   <>
                     <p className="compile-success">Congratulations!</p>
                     <p>You have passed the sample test cases.</p>
+                  </>
+                ) : error ? (
+                  <>
+                    <p className="compile-error">Runtime Error</p>
                   </>
                 ) : (
                   <>
@@ -186,96 +204,111 @@ const AntiCheatingQuestionDetail = () => {
                   </>
                 )}
               </div>
-            )}
 
-            <div className="result-status-bar">
-              <h6>Compiler Message</h6>
-              {error ? (
-                <p>{error}</p>
-              ) : (
-                <p>Run your query to view the result.</p>
+              {error && (
+                <div className="result-status-bar">
+                  <h6>Compiler Message</h6>
+                  <p>{error}</p>
+                </div>
+              )}
+
+              {showResults && !error && (
+                <>
+                  <div className="result-table">
+                    <h6>Your Output (stdout)</h6>
+                    {!studentResult?.lc ? (
+                      <span className="empty-state">
+                        ~ no response on stdout ~
+                      </span>
+                    ) : (
+                      <div className="table-placeholder">
+                        <table
+                          style={{ width: "100%", borderCollapse: "collapse" }}
+                        >
+                          <thead>
+                            <tr>
+                              {studentResult?.lc?.map((col) => (
+                                <th
+                                  key={col}
+                                  style={{
+                                    padding: "10px",
+                                    border: "1px solid #ddd",
+                                    textAlign: "left",
+                                  }}
+                                >
+                                  {col}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {studentResult?.values?.map((row, i) => (
+                              <tr key={i}>
+                                {row.map((val, j) => (
+                                  <td
+                                    key={j}
+                                    style={{
+                                      border: "1px solid #ddd",
+                                      padding: "8px",
+                                    }}
+                                  >
+                                    {val}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="result-table">
+                    <h6>Expected Output</h6>
+                    <div className="table-placeholder">
+                      <table
+                        style={{ width: "100%", borderCollapse: "collapse" }}
+                      >
+                        <thead>
+                          <tr>
+                            {expectedResult?.lc?.map((col) => (
+                              <th
+                                key={col}
+                                style={{
+                                  padding: "10px",
+                                  border: "1px solid #ddd",
+                                  textAlign: "left",
+                                }}
+                              >
+                                {col}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {expectedResult?.values?.map((row, i) => (
+                            <tr key={i}>
+                              {row.map((val, j) => (
+                                <td
+                                  key={j}
+                                  style={{
+                                    border: "1px solid #ddd",
+                                    padding: "8px",
+                                  }}
+                                >
+                                  {val}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
-
-            <div className="result-table">
-              <h6>Your Output (stdout)</h6>
-              {studentResult.length === 0 && (
-                <span className="empty-state">~ no response on stdout ~</span>
-              )}
-              <div className="table-placeholder">
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr>
-                      {studentResult[0]?.lc?.map((col) => (
-                        <th
-                          key={col}
-                          style={{
-                            padding: "10px",
-                            border: "1px solid #ddd",
-                            textAlign: "left",
-                          }}
-                        >
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {studentResult[0]?.values?.map((row, i) => (
-                      <tr key={i}>
-                        {row.map((val, j) => (
-                          <td
-                            key={j}
-                            style={{ border: "1px solid #ddd", padding: "8px" }}
-                          >
-                            {val}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="result-table">
-              <h6>Expected Output</h6>
-              <div className="table-placeholder">
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr>
-                      {expectedResult[0]?.lc?.map((col) => (
-                        <th
-                          key={col}
-                          style={{
-                            padding: "10px",
-                            border: "1px solid #ddd",
-                            textAlign: "left",
-                          }}
-                        >
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {expectedResult[0]?.values?.map((row, i) => (
-                      <tr key={i}>
-                        {row.map((val, j) => (
-                          <td
-                            key={j}
-                            style={{ border: "1px solid #ddd", padding: "8px" }}
-                          >
-                            {val}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

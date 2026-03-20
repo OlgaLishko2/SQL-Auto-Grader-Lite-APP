@@ -4,14 +4,14 @@ import DataTable from "react-data-table-component";
 import PageTitle from "../../topbar/PageTitle";
 import Breadcrumb from "../../topbar/Breadcrumb";
 
-import { auth, db } from "../../../../firebase";
-import DatabaseManager from "../../teacher/datasets/DatabaseManager";
-// import DatabaseManager from "../../../../db/DatabaseManager";
-import { getAllActiveAssignmnetByStudent } from "../../../../components/model/studentAssignments";
+import { auth } from "../../../../firebase";
+import { getAllAssignmnetByStudent } from "../../../../components/model/studentAssignments";
+import LoadingOverlay from "../LoadingOverlay";
 
 const Assignments = () => {
   const navigate = useNavigate();
   const [assignmentsdata, setAssignmentsdata] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Get data from assignments table from firebase
@@ -19,12 +19,12 @@ const Assignments = () => {
       try {
         const user = auth.currentUser;
         if (!user) return;
-        //console.log(user)
-
-        const data = await getAllActiveAssignmnetByStudent(user.uid);
+        const data = await getAllAssignmnetByStudent(user.uid);
         setAssignmentsdata(data);
       } catch (error) {
         console.error("Error:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -90,7 +90,9 @@ const Assignments = () => {
             className="btn btn-sm btn-primary"
             style={{ borderRadius: "4px", fontSize: "12px" }}
             onClick={() =>
-              navigate(`/dashboard/questions/${row.assignment_id}`, { state: { dataset: row.dataset } })
+              navigate(`/dashboard/questions/${row.assignment_id}`, {
+                state: { dataset: row.dataset },
+              })
             }
           >
             {row.status === "New" ? "Start Test" : "Continue"}
@@ -101,6 +103,11 @@ const Assignments = () => {
 
   return (
     <>
+      <LoadingOverlay
+        isOpen={isLoading}
+        message="Loading..."
+      />
+
       <div className="d-sm-flex justify-content-between mb-4">
         <PageTitle pagetitle="Assignments" />
         <Breadcrumb

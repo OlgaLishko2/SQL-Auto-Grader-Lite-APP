@@ -1,42 +1,66 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import "./AssignmentDetail.css";
 
 const AssignmentDetail = () => {
-  const { id } = useParams();
+  const { question_id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const question = location.state?.question;
   const [sqlCode, setSqlCode] = useState("SELECT * FROM City;");
 
   return (
     <div className="workspace-container">
-      {/* Left side */}
       <div className="instructions-panel">
         <div className="panel-header">
-          <button className="back-btn" onClick={() => navigate(-1)}>← Assignments</button>
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            ← Assignments
+          </button>
         </div>
         <div className="panel-content">
-          <span className="badge-problem">Problem {id}</span>
-          <h4>Query City Names</h4>
-          <p>Query the <b>NAME</b> field for all American cities in the <b>CITY</b> table with populations larger than 120,000.</p>
-          
+          <span className="badge-problem">Problem {question_id}</span>
+          <h4>{question?.questionText || "Query City Names"}</h4>
+          <p>
+            {question?.description || (
+              <>
+                Query the <b>NAME</b> field for all American cities in the{" "}
+                <b>CITY</b> table with populations larger than 120,000.
+              </>
+            )}
+          </p>
+
           <div className="table-schema">
             <h3>Table: CITY</h3>
             <table>
               <thead>
-                <tr><th>Field</th><th>Type</th></tr>
+                <tr>
+                  <th>Field</th>
+                  <th>Type</th>
+                </tr>
               </thead>
               <tbody>
-                <tr><td>ID</td><td>NUMBER</td></tr>
-                <tr><td>NAME</td><td>VARCHAR2(17)</td></tr>
-                <tr><td>COUNTRYCODE</td><td>VARCHAR2(3)</td></tr>
-                <tr><td>POPULATION</td><td>NUMBER</td></tr>
+                <tr>
+                  <td>ID</td>
+                  <td>NUMBER</td>
+                </tr>
+                <tr>
+                  <td>NAME</td>
+                  <td>VARCHAR2(17)</td>
+                </tr>
+                <tr>
+                  <td>COUNTRYCODE</td>
+                  <td>VARCHAR2(3)</td>
+                </tr>
+                <tr>
+                  <td>POPULATION</td>
+                  <td>NUMBER</td>
+                </tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      {/* Right side */}
       <div className="editor-panel">
         <div className="editor-section">
           <div className="editor-header">
@@ -46,7 +70,7 @@ const AssignmentDetail = () => {
               <button className="btn-submit">Submit</button>
             </div>
           </div>
-          <textarea 
+          <textarea
             className="code-input"
             value={sqlCode}
             onChange={(e) => setSqlCode(e.target.value)}
@@ -56,7 +80,7 @@ const AssignmentDetail = () => {
 
         <div className="result-section">
           <div className="result-status-bar alert-wrong">
-             ✖ Query is Incorrect. Your result doesn't match the expected output.
+            ✖ Query is Incorrect. Your result doesn't match the expected output.
           </div>
           <div className="results-grid">
             <div className="result-table">

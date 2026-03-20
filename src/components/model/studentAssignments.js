@@ -12,7 +12,6 @@ import { db } from "../../firebase";
 
 const dbCollection = collection(db, "student_assignments");
 
-
 async function createNewStudentAssignment(studentAssignment) {
   try {
     const newDocRef = doc(dbCollection);
@@ -33,7 +32,7 @@ async function getAllCompletedAssignmnetByStudent(studentId) {
       dbCollection,
       where("student_user_id", "==", studentId),
       where("status", "==", "submitted"),
-      orderBy("assigned_on", "desc")
+      orderBy("assigned_on", "desc"),
     );
 
     let assignments = [];
@@ -44,7 +43,7 @@ async function getAllCompletedAssignmnetByStudent(studentId) {
 
       const assignmentQuery = query(
         collection(db, "assignments"),
-        where("assignment_id", "==", studentAssignmentData.assignment_id)
+        where("assignment_id", "==", studentAssignmentData.assignment_id),
       );
 
       const assignmentSnapShot = await getDocs(assignmentQuery);
@@ -69,14 +68,14 @@ async function getAllAssignmnetByStudent(studentId) {
     const studentAssignmentQuery = query(
       dbCollection,
       where("student_user_id", "==", studentId),
-      orderBy("assigned_on", "desc")
+      orderBy("assigned_on", "desc"),
     );
     let assignments = [];
     const querySnapshot = await getDocs(studentAssignmentQuery);
     for (const doc of querySnapshot.docs) {
       let assignmentQuery = query(
         collection(db, "assignments"),
-        where("assignment_id", "==", doc.data().assignment_id)
+        where("assignment_id", "==", doc.data().assignment_id),
       );
       let assignmentSnapShot = await getDocs(assignmentQuery);
       let assignment = assignmentSnapShot.docs[0]?.data();
@@ -92,7 +91,6 @@ async function getAllAssignmnetByStudent(studentId) {
   }
 }
 
-
 async function updateStudentAssignment(studentAssignment) {
   try {
     const studentAssignmentQuery = query(
@@ -100,8 +98,8 @@ async function updateStudentAssignment(studentAssignment) {
       where(
         "student_assignment_id",
         "==",
-        studentAssignment.studentAssignmentId
-      )
+        studentAssignment.studentAssignmentId,
+      ),
     );
     const objStudentAssignment = await getDocs(studentAssignmentQuery);
 
@@ -116,18 +114,20 @@ async function updateStudentAssignment(studentAssignment) {
   }
 }
 
-
 async function getStudentsByCohort(cohortId) {
   try {
-    const usersCol = collection(db, "users"); 
+    const usersCol = collection(db, "users");
     let q;
     if (cohortId === "all") {
-      q = query(usersCol, where("role", "==", "student")); 
+      q = query(usersCol, where("role", "==", "student"));
     } else {
       q = query(usersCol, where("cohort_id", "==", cohortId));
     }
     const snapshot = await getDocs(q);
-    const students = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+    const students = snapshot.docs.map((doc) => ({
+      uid: doc.id,
+      ...doc.data(),
+    }));
     return students;
   } catch (err) {
     console.error("getStudentsByCohort:", err);
@@ -135,12 +135,10 @@ async function getStudentsByCohort(cohortId) {
   }
 }
 
-
-
 export {
   createNewStudentAssignment,
   getAllAssignmnetByStudent,
-  getAllCompletedAssignmnetByStudent,
   updateStudentAssignment,
   getStudentsByCohort,
+  getAllCompletedAssignmnetByStudent
 };
