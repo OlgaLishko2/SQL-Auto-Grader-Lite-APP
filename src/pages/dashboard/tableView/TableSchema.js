@@ -1,5 +1,7 @@
 import "./tableSchema.css"
-const TableSchema = (({info}) => (
+const TableSchema = (({info}) => {
+    if (!info || !Array.isArray(info)) return null;
+    return (
     <table style={{ marginTop: "6px", borderCollapse: "collapse", fontSize: "13px" }}>
         <thead>
             <tr style={{ backgroundColor: "#f0f0f0" }}>
@@ -21,5 +23,6 @@ const TableSchema = (({info}) => (
             ))}
         </tbody>
     </table>
-))
+    );
+})
 export default TableSchema;

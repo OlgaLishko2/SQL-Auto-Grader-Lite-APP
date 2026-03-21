@@ -25,7 +25,7 @@ export async function seedAllData() {
       updated_on: new Date(),
     });
     for (const q of qs) {
-      const qRef = doc(collection(db, "questions"));
+      const qRef = doc(collection(db, "presetQuestions"));
       await setDoc(qRef, {
         ...q,
         question_id: qRef.id,
@@ -46,6 +46,8 @@ export async function seedAllData() {
           question: preset.question,
           answer: preset.answer,
           difficulty: preset.difficulty,
+          marks: preset.question_mark,
+          max_attemps: preset.max_attemps || 1
         });
       }
     }
