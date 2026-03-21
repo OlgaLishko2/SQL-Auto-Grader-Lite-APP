@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import PageTitle from "../../topbar/PageTitle";
 import Breadcrumb from "../../topbar/Breadcrumb";
 
 import { auth, db } from "../../../../firebase";
 import { useParams } from "react-router-dom";
-import DatabaseManager from "../../teacher/datasets/DatabaseManager";
-import { getAllQuestionAndAttempt } from "../../../../components/model/questions";
+import { getAllActiveAssignmnetByStudent } from "../../../../components/model/questions";
+import LoadingOverlay from "../LoadingOverlay";
 
 const QuestionList = () => {
   const { assignment_id } = useParams();
   //console.log(id);
   const navigate = useNavigate();
+  const location = useLocation();
+  const dataset = location.state?.dataset;
   const [questiondata, setquestiondata] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     // Get data from question data by assignement id from firebase
     const fetchdata = async () => {
@@ -22,21 +24,23 @@ const QuestionList = () => {
         const user = auth.currentUser;
         if (!user) return;
         //(assignment_id, user_id)
-        const data = await getAllQuestionAndAttempt(assignment_id, user.uid);
-        console.log(data);
+        const data = await getAllActiveAssignmnetByStudent(
+          assignment_id,
+          user.uid,
+        );
         setquestiondata(data);
         // console.log(data)
       } catch (error) {
         console.error("Error:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchdata();
   }, []);
 
-
- 
-// First letter captial for Question title
+  // First letter captial for Question title
   const capitalizeFirstLetter = (str) => {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -56,7 +60,9 @@ const QuestionList = () => {
     },
     {
       name: "Marks",
-      selector: (row) => row.mark,
+      selector: (row) => {
+        return row.isSolved ? row.mark : 0;
+      },
     },
     {
       name: "Status",
@@ -91,28 +97,34 @@ const QuestionList = () => {
     },
     {
       name: "Attemption",
-      selector: (row) =>
-        `${row.attemptTime ?? 0} / ${row.max_number_of_attempts ?? 0}`,
+      selector: (row) => `${row.attemptTime ?? 0} / ${row.max_attempts ?? 0}`,
     },
     {
       name: "Action",
-      cell: (row) => (
-        <button
-          className="btn btn-sm btn-primary"
-          onClick={() =>
-            navigate(
-              `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-            )
-          }
-        >
-          View
-        </button>
-      ),
+      cell: (row) => {
+        const isAttemptLimitReached = row.attemptTime === row.max_attempts;
+        return (
+          <button
+            className={`btn btn-sm btn-primary ${isAttemptLimitReached ? "disabled" : ""}`}
+            onClick={() =>
+              navigate(
+                `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
+                { state: { question: row, dataset: dataset } },
+              )
+            }
+          >
+            Start
+          </button>
+        );
+      },
     },
   ];
 
   return (
     <>
+      <div className="d-sm-flex align-items-center justify-content-between mb-4">
+        </div>
+      <LoadingOverlay isOpen={isLoading} message="Loading..." />
       <div className="d-sm-flex justify-content-between mb-0">
         <PageTitle pagetitle="Questions List" />
         <Breadcrumb
@@ -125,7 +137,7 @@ const QuestionList = () => {
       </div>
 
       <div className="card shadow mb-4">
-        <div class="card-header">Assignment name</div>
+        <div className="card-header">Assignment name</div>
         <DataTable
           columns={columns}
           data={questiondata}
@@ -134,11 +146,13 @@ const QuestionList = () => {
           striped
           responsive
           pointerOnHover
-          onRowClicked={(row) =>
-            window.open(
-              `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-            )
-          }
+          onRowClicked={(row) => {
+            if (row.attemptTime === row.max_attempts) return;
+            navigate(
+              `/dashboard/questions/${assignment_id}/anti-cheating-question/${row.question_id}`,
+              { state: { question: row } },
+            );
+          }}
         />
       </div>
     </>

@@ -57,23 +57,6 @@ async function getAllAssignmentByOwner(ownerId) {
     console.error(`getAllAssignmentByOwner: ${error}`);
   }
 }
-//Return an array of assignment
-async function getAllQuizByOwner(ownerId) {
-  try {
-    const assignmentsQuery = query(
-      collection(db, "quizes"),
-      where("owner_user_id", "==", ownerId),
-    );
-    let assignments = [];
-    const querySnapshot = await getDocs(assignmentsQuery);
-    querySnapshot.forEach((doc) => {
-      assignments.push(doc.data());
-    });
-    return assignments;
-  } catch (error) {
-    console.error(`getAllQuizByOwner: ${error}`);
-  }
-}
 
 async function updateAssignment(assignment) {
   try {
@@ -119,6 +102,21 @@ async function addQuestionToAssignment(assignmentId, incomeQuestion) {
   }
 }
 
+async function getAllQuizByOwner(ownerId) {
+  try {
+    const assignmentsQuery = query(
+      collection(db, "quizes"),
+      where("owner_user_id", "==", ownerId),
+    );
+    let quizes = [];
+    const querySnapshot = await getDocs(assignmentsQuery);
+    querySnapshot.forEach((doc) => { quizes.push(doc.data()); });
+    return quizes;
+  } catch (error) {
+    console.error(`getAllQuizByOwner: ${error}`);
+  }
+}
+
 async function createNewQuiz(quiz) {
   try {
     const quizCollection = collection(db, "quizes");
@@ -130,4 +128,14 @@ async function createNewQuiz(quiz) {
   }
 }
 
-export { createNewAssignment, getAllAssignmentByOwner, updateAssignment, getAssignmentsForStudent, addQuestionToAssignment, getAllQuizByOwner, createNewQuiz };
+async function getStudentCohortIds(studentUid) {
+  try {
+    const snap = await getDocs(query(collection(db, "cohorts"), where("student_uids", "array-contains", studentUid)));
+    return snap.docs.map(d => d.data().cohort_id);
+  } catch (error) {
+    console.error(`getStudentCohortIds: ${error}`);
+    return [];
+  }
+}
+
+export { createNewAssignment, getAllAssignmentByOwner, updateAssignment, getAssignmentsForStudent, getStudentCohortIds, addQuestionToAssignment, getAllQuizByOwner, createNewQuiz };

@@ -18,6 +18,9 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
   const [presets, setPresets] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [savedCount, setSavedCount] = useState(0);
+  const filteredPresets = selectedTable.length > 0
+    ? presets.filter(p => selectedTable.every(t => p.answer?.toLowerCase().includes(t.toLowerCase())))
+    : presets;
 
   useEffect(() => {
     allDataset().then((data) => setDatasets(data.map((d) => d.datasetName)));
@@ -58,6 +61,8 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
         orderMatters: false,
         aliasStrict: false,
         mark: 1,
+        difficulty: "easy",
+        max_attempts: 1,
         created_on: new Date(),
         updated_on: new Date(),
       },
@@ -83,12 +88,12 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
   };
 
   return (
-    <div style={{ padding: "40px" }}>
+    <div>
       <h1>Create Question Set</h1>
-      <div className="container">
-        <div style={{ marginBottom: "30px" }}>
+      <div className='container'>
+        <div>
           <h3>Select Dataset</h3>
-          <select value={selectedDataset} onChange={handleDatasetChange}>
+          <select value={selectedDataset} onChange={handleDatasetChange} style={{ width: '100%' }}>
             <option value="" disabled>-- Choose Dataset --</option>
             {datasets.map((ds) => (
               <option key={ds} value={ds}>{ds}</option>
@@ -97,10 +102,9 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
         </div>
 
         {selectedDataset && (
-          <div style={{ marginBottom: "30px" }}>
-            <h3>Table's Shema</h3>
-            <select value={selectedTableForSchema ?? ""} onChange={(e) =>
-              setSelectedTableForSchema(e.target.value)}>
+          <div>
+            <h3>View Table Schema</h3>
+            <select value={selectedTableForSchema ?? ""} onChange={(e) => setSelectedTableForSchema(e.target.value)} style={{ width: '100%' }}>
               <option value="" disabled>-- View Table Schema --</option>
               {availableTables.map((t) => (
                 <option key={t} value={t}>{t}</option>
@@ -109,11 +113,13 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
             {selectedTableForSchema && <TableSchema info={tableSchemas[selectedTableForSchema]} />}
           </div>
         )}
+
       </div>
 
-      {/* Questions take full width; code editor is fixed overlay on right */}
-      <div className="layout-wrapper">
 
+      {/* Questions take full width; code editor is fixed overlay on right */}
+      {selectedDataset && (<>
+      <div className="layout-wrapper">
         <div className="questions-wrapper">
           <h2>Questions</h2>
           <button disabled={!selectedDataset} onClick={addQuestion}>Add Question</button>
@@ -126,31 +132,33 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
                 <button type="button" onClick={() => setQuestions(questions.filter((_, i) => i !== index))}>✕</button>
               </div>
 
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-
-                {availableTables.map((table) => (
-                  <div key={table} style={{ marginBottom: "12px" }}>
-                    <label style={{ marginRight: "15px" }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedTable.includes(table)}
-                        onChange={
-                          (e) => {
-                            const checked = e.target.checked; // ✅ comes from the event
-                            setSelectedTable((prev) =>
-                              // checked ? prev.filter((t) => t !== table) : [...prev, table]
-                              checked
-                                ? [...prev, table]                 // add if checked
-                                : prev.filter((t) => t !== table)  // remove if unchecked
-                            );
-                          }}
-                      />
-                      {" "}{table}
-                    </label>
-                  </div>
-                ))}
-
+              <div>
+                <label>Filter Questions by Table:</label>
+                <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {availableTables.map((table) => (
+                    <div key={table}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={selectedTable.includes(table)}
+                          onChange={
+                            (e) => {
+                              const checked = e.target.checked; // ✅ comes from the event
+                              setSelectedTable((prev) =>
+                                // checked ? prev.filter((t) => t !== table) : [...prev, table]
+                                checked
+                                  ? [...prev, table]                 // add if checked
+                                  : prev.filter((t) => t !== table)  // remove if unchecked
+                              );
+                            }}
+                        />
+                        {" "}{table}
+                      </label>
+                    </div>
+                  ))}
+                </div>
                 <select
+                  style={{ width: '100%' }}
                   onChange={(e) => {
                     if (!e.target.value) return;
                     const preset = JSON.parse(e.target.value);
@@ -158,20 +166,15 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
                     updateQuestion(index, "questionText", preset.question);
                     updateQuestion(index, "answer", preset.answer);
                     updateQuestion(index, "mark", preset.mark);
+                    updateQuestion(index, "max_attempts", preset.max_attempts || 1);
+                    updateQuestion(index, "difficulty", preset.difficulty || "easy");
                     updateQuestion(index, "presetId", preset.id);
                   }}
                 >
-                  
-                  <option value="">-- Select Preset Question --</option>
-                  {(q.filterTable
-                    ? presets.filter((p) => p.tableName === q.filterTable)
-                    : selectedTable.length > 0
-                      ? presets.filter((p) => selectedTable.includes(p.tableName))
-                      : presets
-                  ).map((preset) => (
-                    <option key={preset.id} value={JSON.stringify(preset)}>
-                      {preset.question}
-                    </option>
+
+                  <option value="">-- Select Preset Question (optional) --</option>
+                  {filteredPresets.map(p => (
+                    <option key={p.id} value={JSON.stringify(p)}>{p.question}</option>
                   ))}
                 </select>
               </div>
@@ -180,29 +183,28 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
                 placeholder="Write new question..."
                 value={q.questionText}
                 onChange={(e) => updateQuestion(index, "questionText", e.target.value)}
-                style={{ height: "80px", marginTop: "10px" }}
+                style={{ height: "80px" }}
               />
 
               <textarea
                 placeholder="Answer..."
                 value={q.answer}
                 onChange={(e) => updateQuestion(index, "answer", e.target.value)}
-                style={{ height: "80px", marginTop: "8px" }}
+                style={{ height: "80px" }}
               />
-
-              <label>
-                <input type="checkbox"
-                  checked={q.orderMatters}
-                  onChange={(e) => updateQuestion(index, "orderMatters", e.target.checked)} />
-                {" "}Order Matters
-              </label>
-              <label>
-                <input
-                  type="checkbox" checked={q.aliasStrict}
-                  onChange={(e) => updateQuestion(index, "aliasStrict", e.target.checked)} />
-                {" "}Alias Strict
-              </label>
-              <div className="container">
+              <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <label>
+                  <input type="checkbox"
+                    checked={q.orderMatters}
+                    onChange={(e) => updateQuestion(index, "orderMatters", e.target.checked)} />
+                  {" "}Order Matters
+                </label>
+                <label>
+                  <input
+                    type="checkbox" checked={q.aliasStrict}
+                    onChange={(e) => updateQuestion(index, "aliasStrict", e.target.checked)} />
+                  {" "}Alias Strict
+                </label>
                 <label>
                   Question Marks:
                   <input type="Number" min="0" value={q.mark}
@@ -210,37 +212,6 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
                     style={{ width: "50px", marginLeft: "6px" }} />
                 </label>
               </div>
-              {/* <button
-                onClick={() => {
-                  const tableName = selectedTable.join("_");
-                  if (q.presetId)
-                    updatePresetQuestion(q.presetId, {
-                      datasetName: selectedDataset,
-                      // tableName: q.table || tableName,
-                      question: q.questionText,
-                      answer: q.answer,
-                      mark: q.mark,
-                      difficulty:q.difficulty,
-                      max_attempts:q.max_attempts
-                    }).then(() => alert("Preset updated to Firebase!"))
-                  else {
-                    addPresetQuestion({
-                      datasetName: selectedDataset,
-                      // tableName: q.table || tableName,
-                      question: q.questionText,
-                      answer: q.answer,
-                      mark: q.mark,
-                      difficulty:q.difficulty,
-                      max_attempts:q.max_attempts
-                    }).then(() => alert("Preset added to Firebase!"))
-
-
-                  }
-                }
-                }
-              >
-                Save as Preset
-              </button> */}
             </div>
           ))}
 
@@ -255,11 +226,8 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
             </div>
           )}
         </div>
-
-
-
       </div>
-      <CodeEditor selectedDataset={selectedDataset} />
+      <CodeEditor selectedDataset={selectedDataset} /></>)}
     </div>
   );
 }
