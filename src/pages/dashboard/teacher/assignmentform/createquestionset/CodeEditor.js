@@ -1,14 +1,19 @@
-import {useState} from 'react'
+import { useState } from 'react'
 import { useAppContext } from "../../../../../components/db/service/context";
 
-export const CodeEditor = ({selectedDataset}) => {
+export const CodeEditor = ({ selectedDataset }) => {
     const { runSelectQuery } = useAppContext();
     const [studentQuery, setStudentQuery] = useState("");
-      const [queryResult, setQueryResult] = useState("");
+    const [queryResult, setQueryResult] = useState("");
     const executeQuery = async (query) => {
         const result = await runSelectQuery(selectedDataset, query);
-        const values = result[0]?.values ?? [];
-        setQueryResult(values.map((row) => row.join(", ")).join("\n"));
+        if (result.isSuccessful) {
+            const values = result.data[0]?.values ?? [];
+            setQueryResult(values.map((row) => row.join(", ")).join("\n"));
+        }
+        else {
+            setQueryResult(result.message);
+        }
     };
     return (
         <div className="code-editor">
