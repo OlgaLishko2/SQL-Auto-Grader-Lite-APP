@@ -32,6 +32,8 @@ const QuizForm = ({ onDone }) => {
     difficulty: 'easy',
     max_attempts: 1,
     mark: 1,
+    orderMatters: false,
+    aliasStrict: false,
     student_class: '',
   });
 
@@ -41,8 +43,8 @@ const QuizForm = ({ onDone }) => {
   }, [allDataset]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
   const handleDatasetChange = (e) => {
@@ -85,6 +87,8 @@ const QuizForm = ({ onDone }) => {
       difficulty: preset?.difficulty || 'easy',
       max_attempts: preset?.max_attempts || 1,
       mark: preset?.mark || 1,
+      orderMatters: preset?.orderMatters || false,
+      aliasStrict: preset?.aliasStrict || false,
     }));
   };
 
@@ -109,6 +113,8 @@ const QuizForm = ({ onDone }) => {
           difficulty: formData.difficulty,
           max_attempts: Number(formData.max_attempts),
           mark: Number(formData.mark),
+          orderMatters: formData.orderMatters,
+          aliasStrict: formData.aliasStrict,
         },
         created_on: new Date(),
         updated_on: new Date(),
@@ -225,6 +231,16 @@ const QuizForm = ({ onDone }) => {
             <label>Mark</label><br />
             <input type="number" name="mark" min="0" value={formData.mark}
               onChange={handleChange} style={{ width: '80px', padding: '6px' }} />
+          </div>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <label>
+              <input type="checkbox" name="orderMatters" checked={formData.orderMatters} onChange={handleChange} />
+              {' '}Order Matters
+            </label>
+            <label>
+              <input type="checkbox" name="aliasStrict" checked={formData.aliasStrict} onChange={handleChange} />
+              {' '}Alias Strict
+            </label>
           </div>
         </div>
 

@@ -50,6 +50,8 @@ const toggleQuiz = (assignment) => {
                   <span>Difficulty: <strong>{a.question.difficulty || "easy"}</strong></span>
                   <span>Max Attempts: <strong>{a.question.max_attempts || 1}</strong></span>
                   <span>Mark: <strong>{a.question.mark || 1}</strong></span>
+                  <span>Order Matters: <strong>{a.question.orderMatters ? "Yes" : "No"}</strong></span>
+                  <span>Alias Strict: <strong>{a.question.aliasStrict ? "Yes" : "No"}</strong></span>
                 </div>
               </div>
             </div>

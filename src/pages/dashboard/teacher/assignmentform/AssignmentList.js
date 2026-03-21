@@ -16,9 +16,9 @@ function AssignmentList({ onCreate }) {
       // setQuestions(sorted.questions)
     });
   }, []);
-const toggleAssignment = (assignment) => {
-  setExpanded(expanded === assignment.assignment_id ? null : assignment.assignment_id);
-}
+  const toggleAssignment = (assignment) => {
+    setExpanded(expanded === assignment.assignment_id ? null : assignment.assignment_id);
+  }
   // const toggleAssignment = async (assignment) => {
   //   if (expanded === assignment.assignment_id) {
   //     setExpanded(null);
@@ -82,39 +82,11 @@ const toggleAssignment = (assignment) => {
                     style={{ width: "100%", height: "60px", boxSizing: "border-box", marginTop: "6px" }}
                   />
                   <div style={{ marginTop: "8px", display: "flex", gap: "16px", alignItems: "center" }}>
-                    <label>
-                      <input type="checkbox" checked={!!q.orderMatters} 
-                      // onChange={(e) => handleFieldChange(i, "orderMatters", e.target.checked)} 
-                      />
-                      {" "}Order Matters
-                    </label>
-                    <label>
-                      <input type="checkbox" checked={!!q.aliasStrict} 
-                      // onChange={(e) => handleFieldChange(i, "aliasStrict", e.target.checked)}
-                      />
-                      {" "}Alias Strict
-                    </label>
-                    <label>
-                      Max Attempts:{" "}
-                      <input
-                        type="number"
-                        value={q.max_number_of_attempts || 1}
-                        // onChange={(e) => handleFieldChange(i, "max_number_of_attempts", e.target.value)}
-                        style={{ width: "50px" }}
-                      />
-                    </label>
-                    <label>
-                      Difficulty:{" "}
-                      <select
-                        value={q.difficulty || "easy"}
-                        // onChange={(e) => handleFieldChange(i, "difficulty", e.target.value)}
-                      >
-                        <option value="easy">Easy</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="hard">Hard</option>
-                      </select>
-                    </label>
-                    {/* <button onClick={() => saveQuestion(q)}>Save</button> */}
+                    <span>Order Matters: <strong>{q.orderMatters ? "Yes" : "No"}</strong></span>
+                    <span>Alias Strict: <strong>{q.aliasStrict ? "Yes" : "No"}</strong></span>
+                    <span>Difficulty: <strong>{q.difficulty || "easy"}</strong></span>
+                    <span>Max Attempts: <strong>{q.max_attempts || 1}</strong></span>
+                    <span>Mark: <strong>{q.mark || 1}</strong></span>
                   </div>
                 </div>
               ))}
