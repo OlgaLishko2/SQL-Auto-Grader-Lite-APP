@@ -113,13 +113,13 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
             {selectedTableForSchema && <TableSchema info={tableSchemas[selectedTableForSchema]} />}
           </div>
         )}
-        
+
       </div>
-      
+
 
       {/* Questions take full width; code editor is fixed overlay on right */}
+      {selectedDataset && (<>
       <div className="layout-wrapper">
-
         <div className="questions-wrapper">
           <h2>Questions</h2>
           <button disabled={!selectedDataset} onClick={addQuestion}>Add Question</button>
@@ -134,31 +134,31 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
 
               <div>
                 <label>Filter Questions by Table:</label>
-                <div  style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems:'center' }}>
-                {availableTables.map((table) => (
-                  <div key={table}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={selectedTable.includes(table)}
-                        onChange={
-                          (e) => {
-                            const checked = e.target.checked; // ✅ comes from the event
-                            setSelectedTable((prev) =>
-                              // checked ? prev.filter((t) => t !== table) : [...prev, table]
-                              checked
-                                ? [...prev, table]                 // add if checked
-                                : prev.filter((t) => t !== table)  // remove if unchecked
-                            );
-                          }}
-                      />
-                      {" "}{table}
-                    </label>
-                  </div>
-                ))}
-</div>
+                <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {availableTables.map((table) => (
+                    <div key={table}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={selectedTable.includes(table)}
+                          onChange={
+                            (e) => {
+                              const checked = e.target.checked; // ✅ comes from the event
+                              setSelectedTable((prev) =>
+                                // checked ? prev.filter((t) => t !== table) : [...prev, table]
+                                checked
+                                  ? [...prev, table]                 // add if checked
+                                  : prev.filter((t) => t !== table)  // remove if unchecked
+                              );
+                            }}
+                        />
+                        {" "}{table}
+                      </label>
+                    </div>
+                  ))}
+                </div>
                 <select
-                style={{width:'100%'}}
+                  style={{ width: '100%' }}
                   onChange={(e) => {
                     if (!e.target.value) return;
                     const preset = JSON.parse(e.target.value);
@@ -171,11 +171,11 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
                     updateQuestion(index, "presetId", preset.id);
                   }}
                 >
-                  
+
                   <option value="">-- Select Preset Question (optional) --</option>
                   {filteredPresets.map(p => (
-                  <option key={p.id} value={JSON.stringify(p)}>{p.question}</option>
-                ))}
+                    <option key={p.id} value={JSON.stringify(p)}>{p.question}</option>
+                  ))}
                 </select>
               </div>
 
@@ -183,28 +183,28 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
                 placeholder="Write new question..."
                 value={q.questionText}
                 onChange={(e) => updateQuestion(index, "questionText", e.target.value)}
-                style={{ height: "80px"}}
+                style={{ height: "80px" }}
               />
 
               <textarea
                 placeholder="Answer..."
                 value={q.answer}
                 onChange={(e) => updateQuestion(index, "answer", e.target.value)}
-                style={{ height: "80px"}}
+                style={{ height: "80px" }}
               />
-              <div  style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems:'center' }}>
-              <label>
-                <input type="checkbox"
-                  checked={q.orderMatters}
-                  onChange={(e) => updateQuestion(index, "orderMatters", e.target.checked)} />
-                {" "}Order Matters
-              </label>
-              <label>
-                <input
-                  type="checkbox" checked={q.aliasStrict}
-                  onChange={(e) => updateQuestion(index, "aliasStrict", e.target.checked)} />
-                {" "}Alias Strict
-              </label>
+              <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <label>
+                  <input type="checkbox"
+                    checked={q.orderMatters}
+                    onChange={(e) => updateQuestion(index, "orderMatters", e.target.checked)} />
+                  {" "}Order Matters
+                </label>
+                <label>
+                  <input
+                    type="checkbox" checked={q.aliasStrict}
+                    onChange={(e) => updateQuestion(index, "aliasStrict", e.target.checked)} />
+                  {" "}Alias Strict
+                </label>
                 <label>
                   Question Marks:
                   <input type="Number" min="0" value={q.mark}
@@ -226,11 +226,8 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
             </div>
           )}
         </div>
-
-
-
       </div>
-      <CodeEditor selectedDataset={selectedDataset} />
+      <CodeEditor selectedDataset={selectedDataset} /></>)}
     </div>
   );
 }

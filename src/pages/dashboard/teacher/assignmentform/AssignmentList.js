@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { auth } from "../../../../firebase";
 import { getAllAssignmentByOwner } from "../../../../components/model/assignments";
 import { getAllQuestionByAssignment, updateQuestion } from "../../../../components/model/questions";
+import { sendReminderEmail } from "../../../../components/services/email";
+import { getAllStudents, getCohortsByOwner } from "../../../../components/model/cohorts";
 
 function AssignmentList({ onCreate }) {
   const [assignments, setAssignments] = useState([]);
@@ -53,18 +55,32 @@ function AssignmentList({ onCreate }) {
       {assignments.length === 0 && <p>No assignments found.</p>}
 
       {assignments.map((a) => (
-        <div key={a.assignment_id} style={{ border: "1px solid #ccc", marginTop: "16px", borderRadius: "4px" }}>
+        <div key={a.assignment_id} style={{ border: `1px solid ${a.reminder_interval ? "#f59e0b" : "#ccc"}`, marginTop: "16px", borderRadius: "4px", backgroundColor: a.reminder_interval ? "#fffbeb" : "white" }}>
           <div
             onClick={() => toggleAssignment(a)}
-            style={{ padding: "14px 20px", cursor: "pointer", display: "flex", justifyContent: "space-between", backgroundColor: "#f9f9f9" }}
+            style={{ padding: "14px 20px", cursor: "pointer", display: "flex", justifyContent: "space-between", backgroundColor: a.reminder_interval ? "#fef3c7" : "#f9f9f9" }}
           >
-            <strong>{a.title}</strong>
+            <strong>{a.title}</strong> {a.reminder_interval && <span title="Reminder enabled">🔔</span>}
             <span style={{ color: "#888" }}>Due: {a.dueDate} {expanded === a.assignment_id ? "▲" : "▼"}</span>
           </div>
 
           {expanded === a.assignment_id && (
             <div style={{ padding: "16px 20px" }}>
               <p style={{ margin: "0 0 12px" }}>{a.description}</p>
+              <div style={{ display: "flex", gap: "16px", marginBottom: "12px", alignItems: "center" }}>
+                <span>Submission Notification: <strong>{a.enable_submission_notification ? "Yes" : "No"}</strong></span>
+                <span>Reminder: <strong>{a.reminder_interval ? "Yes" : "No"}</strong></span>
+                {a.reminder_interval && (
+                  <button onClick={async () => {
+                    const allStudentsList = await getAllStudents();
+                    const cohorts = await getCohortsByOwner(auth.currentUser.uid);
+                    const cohort = cohorts.find(c => c.cohort_id === a.student_class);
+                    const cohortStudents = allStudentsList.filter(s => cohort?.student_uids?.includes(s.uid));
+                    await Promise.all(cohortStudents.map(s => sendReminderEmail(s, a.title, a.dueDate, a.assignment_id)));
+                    alert("Reminder emails sent!");
+                  }}>Send Reminder</button>
+                )}
+              </div>
               <h4>Questions</h4>
               {(a.questions || []).length === 0 && <p>No questions.</p>}
               {(a.questions || []).map((q, i) => (

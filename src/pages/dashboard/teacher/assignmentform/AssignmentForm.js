@@ -146,6 +146,8 @@ const AssignmentForm = ({ onDone }) => {
                     questions: formData.questions,
                     student_class: formData.student_class,
                     dueDate: formData.due_date,
+                    enable_submission_notification: formData.enable_submission_notification,
+                    reminder_interval: formData.reminder_interval,
                     created_on: new Date(),
                     updated_on: new Date(),
                   });
