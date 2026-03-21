@@ -1,8 +1,11 @@
-.container{
+.container {
   display: flex;
   gap: 10%;
   flex-direction: row;
+  flex-wrap: wrap;
 }
+
+
 
 .question-row {
   display: flex;
@@ -13,7 +16,6 @@
   padding: 20px;
   border-radius: 4px;
   box-sizing: border-box;
-  width: 100%;
 }
 
 .question-col {
@@ -28,7 +30,8 @@
 }
 
 .questions-wrapper {
-  padding-right: 380px;
+  width:800px;
+  max-width: 100%;
 }
 
 .code-editor {
@@ -62,6 +65,7 @@
   }
 
   .layout-wrapper {
+    padding-top: 40px;
     display: flex;
     flex-direction: column;
   }
