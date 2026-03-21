@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import "./DatabaseManager.css";
 import { useAppContext } from '../../../../components/db/service/context';
+import "./DatabaseManager.css";
 
 
 function DatabaseManager() {
-  const { allDataset, allTables, addDataset, addTable, getTable, createTable, fetchItems, insertData } = useAppContext()
+  const { allDataset, allTables, addDataset, addTable, getTable, createTable, fetchItems, insertData, runSelectQuery } = useAppContext()
   const [datasets, setDatasets] = useState([]);
   const [tables, setTables] = useState([]);
   const [datasetStore, setDatasetStore] = useState([]);
@@ -78,8 +78,13 @@ function DatabaseManager() {
       return;
     }
     try {
-      await insertData(selectedDataset, insertSQL);
-      setInsertResult({ success: true, message: 'Row inserted successfully!' });
+      const result = await runSelectQuery(selectedDataset, insertSQL)
+      if (result.isSuccessful) {
+        await insertData(selectedDataset, insertSQL);
+        setInsertResult({ success: true, message: 'Row inserted successfully!' });
+      }else{
+        setInsertResult({ success: false, message: `Error: ${result.message}` });
+      }
       setInsertSQL('');
     } catch (e) {
       setInsertResult({ success: false, message: `Error: ${e.message}` });
@@ -128,7 +133,11 @@ function DatabaseManager() {
   };
 
   return (
-    <div className='container'>
+    <div className='container' style={{
+      display: 'box', flexDirection: 'column',
+      flexWrap: 'nowrap',       /* Prevents items from jumping to new columns */
+      alignItems: 'stretch'
+    }}>
       <div style={{ display: 'flex', gap: '10%', marginBottom: '30px' }}>
         <section>
           <h2>Dataset</h2>
@@ -149,7 +158,7 @@ function DatabaseManager() {
           <div className='inlineForm'>
             <input
               value={newDatasetName}
-              onChange={(e) => setNewDatasetName(e.target.value)}
+              onChange={(e) => setNewDatasetName((e.target.value).trim().replace(/\s+/g, ''))}
               placeholder="New dataset name"
             />
             <button onClick={insertDataset}>Create Dataset</button>
@@ -194,7 +203,7 @@ function DatabaseManager() {
             <div className='inlineForm'>
               <input
                 value={newTableName}
-                onChange={(e) => setNewTableName(e.target.value)}
+                onChange={(e) => setNewTableName((e.target.value).trim().replace(/\s+/g, ''))}
                 placeholder="New table name"
               />
               <button onClick={insertTable}>Create New Table</button>
@@ -351,7 +360,7 @@ function DatabaseManager() {
               />
               <button onClick={handleInsertSubmit}>Submit</button>
               {insertResult && (
-                <p style={{ color: insertResult.success ? 'green' : 'red', marginTop: '-30px' }}>
+                <p style={{ color: insertResult.success ? 'green' : 'red' }}>
                   {insertResult.message}
                 </p>
               )}

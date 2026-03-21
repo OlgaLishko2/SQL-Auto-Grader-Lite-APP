@@ -6,7 +6,7 @@ import TableSchema from '../../../tableView/TableSchema'
 import { CodeEditor } from "./CodeEditor";
 import './CreateQuestionSet.css'
 
-function CreateQuestionSet({ onAddQuestions }) {
+function CreateQuestionSet({ onAddQuestions, setDb }) {
   const { allTables, allDataset, getTableSchemaInTable } = useAppContext();
 
   const [selectedDataset, setSelectedDataset] = useState("");
@@ -42,6 +42,7 @@ function CreateQuestionSet({ onAddQuestions }) {
 
   const handleDatasetChange = (e) => {
     setSelectedDataset(e.target.value);
+    setDb(e.target.value)
     setSelectedTable([]);
     setPresets([]);
     setQuestions([]);
@@ -51,7 +52,6 @@ function CreateQuestionSet({ onAddQuestions }) {
     setQuestions([
       ...questions,
       {
-        question_id: crypto.randomUUID(),
         table: "",
         questionText: "",
         answer: "",
@@ -100,7 +100,7 @@ function CreateQuestionSet({ onAddQuestions }) {
 
         {selectedDataset && (
           <div style={{ marginBottom: "30px" }}>
-            <h3>Select Tables</h3>
+            <h3>Table's Shema</h3>
             <select value={selectedTableForSchema ?? ""} onChange={(e) =>
               setSelectedTableForSchema(e.target.value)}>
               <option value="" disabled>-- View Table Schema --</option>
@@ -165,6 +165,7 @@ function CreateQuestionSet({ onAddQuestions }) {
                     updateQuestion(index, "presetId", preset.id);
                   }}
                 >
+                  
                   <option value="">-- Select Preset Question --</option>
                   {(q.filterTable
                     ? presets.filter((p) => p.tableName === q.filterTable)

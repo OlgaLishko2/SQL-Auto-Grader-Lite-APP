@@ -21,6 +21,7 @@ const teacherNavItems = [
   { name: 'Datasets',    address: '/dashboard/datasets',    icon: 'fa-database' },
   { name: 'Cohorts',     address: '/dashboard/cohorts',     icon: 'fa-users' },
   { name: 'Assignments', address: '/dashboard/assignments', icon: 'fa-book' },
+  { name: 'Quizes', address: '/dashboard/quizes', icon: 'fa-book' },
   { name: 'Submission Status', address: '/dashboard/submissionstatus', icon: 'fa-check' },
   { name: 'Profile',     address: '/dashboard/profile',     icon: 'fa-user' },
 ];

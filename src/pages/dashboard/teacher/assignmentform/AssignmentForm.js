@@ -13,6 +13,7 @@ const AssignmentForm = ({ onDone }) => {
 
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
+  const [db, setDb] = useState("")
   const [formData, setFormData] = useState({
     title: '', total_marks: '', due_date: '', description: '',
     student_class: '', questions: [],
@@ -88,7 +89,7 @@ const AssignmentForm = ({ onDone }) => {
         )}
 
         {activeTab === 1 && (
-          <CreateQuestionSet onAddQuestions={(qs) => setFormData(prev => ({ ...prev, questions: qs }))} />
+          <CreateQuestionSet onAddQuestions={(qs) => setFormData(prev => ({ ...prev, questions: qs }))} setDb={setDb}/>
         )}
 
         {activeTab === 2 && (
@@ -141,7 +142,7 @@ const AssignmentForm = ({ onDone }) => {
                     title: formData.title,
                     description: formData.description,
                     owner_user_id: auth.currentUser.uid,
-                    dataset: "DatasetA",
+                    dataset: db,
                     questions: formData.questions,
                     student_class: formData.student_class,
                     dueDate: formData.due_date,
