@@ -57,23 +57,6 @@ async function getAllAssignmentByOwner(ownerId) {
     console.error(`getAllAssignmentByOwner: ${error}`);
   }
 }
-//Return an array of assignment
-async function getAllQuizByOwner(ownerId) {
-  try {
-    const assignmentsQuery = query(
-      collection(db, "quizes"),
-      where("owner_user_id", "==", ownerId),
-    );
-    let assignments = [];
-    const querySnapshot = await getDocs(assignmentsQuery);
-    querySnapshot.forEach((doc) => {
-      assignments.push(doc.data());
-    });
-    return assignments;
-  } catch (error) {
-    console.error(`getAllQuizByOwner: ${error}`);
-  }
-}
 
 async function updateAssignment(assignment) {
   try {
@@ -119,15 +102,4 @@ async function addQuestionToAssignment(assignmentId, incomeQuestion) {
   }
 }
 
-async function createNewQuiz(quiz) {
-  try {
-    const quizCollection = collection(db, "quizes");
-    const newDocRef = doc(quizCollection);
-    await setDoc(newDocRef, { ...quiz, quiz_id: newDocRef.id });
-    return newDocRef.id;
-  } catch (error) {
-    console.error(`createNewQuiz: ${error}`);
-  }
-}
-
-export { createNewAssignment, getAllAssignmentByOwner, updateAssignment, getAssignmentsForStudent, addQuestionToAssignment, getAllQuizByOwner, createNewQuiz };
+export { createNewAssignment, getAllAssignmentByOwner, updateAssignment, getAssignmentsForStudent, addQuestionToAssignment };
