@@ -63,6 +63,7 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
         mark: 1,
         created_on: new Date(),
         updated_on: new Date(),
+        collapsed: false, 
       },
     ]);
   };
@@ -78,6 +79,14 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
 
     onAddQuestions(questions);
     setSavedCount(questions.length);
+  };
+
+  const toggleQuestionCollapse = (index) => {
+    setQuestions((prev) =>
+      prev.map((q, i) =>
+        i === index ? { ...q, collapsed: !q.collapsed } : q
+      )
+    );
   };
 
   return (

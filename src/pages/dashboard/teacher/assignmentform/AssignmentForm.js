@@ -7,6 +7,7 @@ import { getCohortsByOwner } from "../../../../components/model/cohorts";
 import { CreateAssignment } from './createquestionset/CreateAssignment';
 import { sendAssignmentEmail } from "../../../../components/services/email";
 import { getAllStudents } from "../../../../components/model/cohorts";
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 // import { question } from 'fontawesome';
 
 const AssignmentForm = ({ onDone }) => {
@@ -20,6 +21,7 @@ const AssignmentForm = ({ onDone }) => {
     enable_submission_notification: false, reminder_interval: false
   });
   const [cohorts, setCohorts] = useState([]);
+  const [assignmentId, setAssignmentId] = useState("");
 
   useEffect(() => {
     getCohortsByOwner(auth.currentUser.uid).then(setCohorts);
@@ -45,6 +47,56 @@ const AssignmentForm = ({ onDone }) => {
     }
     setActiveTab(activeTab + 1);
   };
+  /* Publish function */
+    const handlePublish = async () => {
+      if (!assignmentId) {
+        alert("Assignment ID missing. Please create the assignment first.");
+        return;
+      }
+
+      if (!formData.student_class) {
+        alert("Please select a cohort before publishing.");
+        return;
+      }
+
+      try {
+        // 1. Fetch students in the selected cohort
+        const studentsRef = collection(db, "users");
+        const q = query(studentsRef, where("cohort_id", "==", formData.student_class));
+        const snap = await getDocs(q);
+
+        const students = snap.docs.map(doc => ({
+          uid: doc.id,
+          ...doc.data()
+        }));
+
+        if (students.length === 0) {
+          alert("No students found in this cohort.");
+          return;
+        }
+
+        // 2. Create student_assignments entries
+        const promises = students.map(student =>
+          addDoc(collection(db, "student_assignments"), {
+            assignment_id: assignmentId,
+            student_user_id: student.uid,
+            status: "assigned",
+            assigned_on: new Date(),
+            submissionDate: null,
+            due_on: formData.due_date
+          })
+        );
+
+        await Promise.all(promises);
+
+        alert("Assignment published successfully!");
+        onDone(); // go back to assignment list
+
+      } catch (err) {
+        console.error("Publish error:", err);
+        alert("Failed to publish assignment: " + err.message);
+      }
+    };
 
   const tabRequiredFields = [
     ['title', 'description', 'due_date'],
@@ -128,6 +180,7 @@ const AssignmentForm = ({ onDone }) => {
           )}
           {error && <span style={{ marginLeft: "12px", color: "red" }}>{error}</span>}
           {activeTab === 2 && (
+          <div>
             <button
               type="button"
               disabled={!isTabComplete(2)}
@@ -151,6 +204,7 @@ const AssignmentForm = ({ onDone }) => {
                     created_on: new Date(),
                     updated_on: new Date(),
                   });
+                  setAssignmentId(id);
                   const cohort = cohorts.find((c) => c.cohort_id === formData.student_class);
                   if (cohort?.student_uids?.length) {
                     const allStudents = await getAllStudents();
@@ -167,6 +221,8 @@ const AssignmentForm = ({ onDone }) => {
             >
               Create Assignments
             </button>
+            <button type="button" onClick={handlePublish}>Publish Assignments</button>
+          </div>
           )}
         </div>
       </div>

@@ -3,6 +3,8 @@ import { auth } from "../../../../firebase";
 import { getAllAssignmentByOwner } from "../../../../components/model/assignments";
 import { sendReminderEmail } from "../../../../components/services/email";
 import { getAllStudents, getCohortsByOwner } from "../../../../components/model/cohorts";
+import CollapsiblePanel from "../assignmentform/collapsiblepanel/CollapsiblePanel";
+
 
 function AssignmentList({ onCreate }) {
   const [assignments, setAssignments] = useState([]);
@@ -18,6 +20,8 @@ function AssignmentList({ onCreate }) {
       // setQuestions(sorted.questions)
     });
   }, []);
+  const [collapsedQuestions, setCollapsedQuestions] = useState({});
+  const toggleQuestion = (id) => setCollapsedQuestions(prev => ({ ...prev, [id]: !prev[id] }));
   const toggleAssignment = (assignment) => {
     setExpanded(expanded === assignment.assignment_id ? null : assignment.assignment_id);
   }
@@ -61,7 +65,20 @@ function AssignmentList({ onCreate }) {
               <h4>Questions</h4>
               {(a.questions || []).length === 0 && <p>No questions.</p>}
               {(a.questions || []).map((q, i) => (
-                <div key={q.question_id} style={{ border: "1px solid #eee", padding: "12px", marginTop: "10px" }}>
+                <CollapsiblePanel
+                  key={q.question_id}
+                  title={`Question ${i + 1}`}
+                  preview={
+                    q.questionText
+                      ? (q.questionText.length > 80
+                          ? q.questionText.substring(0, 80) + "…"
+                          : q.questionText)
+                      : "(no question text)"
+                  }
+                  isCollapsed={!collapsedQuestions[q.question_id]}
+                  onToggle={() => toggleQuestion(q.question_id)}
+                >
+                <div style={{ border: "1px solid #eee", padding: "12px", marginTop: "10px" }}>
                   <label>Question Text</label>
                   <textarea
                     value={q.questionText || ""}
@@ -82,6 +99,7 @@ function AssignmentList({ onCreate }) {
                     <span>Mark: <strong>{q.mark || 1}</strong></span>
                   </div>
                 </div>
+                </CollapsiblePanel>
               ))}
             </div>
           )}
