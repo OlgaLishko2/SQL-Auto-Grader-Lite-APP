@@ -1,5 +1,5 @@
 import DataTable from "react-data-table-component";
-import PageTitle from '../../topbar/PageTitle';
+import PageTitle from '../topbar/PageTitle';
 
 /**
  * Column configuration for the Quizzes DataTable

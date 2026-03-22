@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAppContext } from '../../../../components/db/service/context';
 import "./DatabaseManager.css";
 
@@ -253,7 +253,7 @@ function DatabaseManager() {
                       <input
                         className='tableInput'
                         value={col.name}
-                        onChange={(e) => updateColumn(i, 'name', e.target.value)}
+                        onChange={(e) => updateColumn(i, 'name', (e.target.value).trim().replace(/\s+/g, ''))}
                         placeholder="column_name"
                       />
                     </td>

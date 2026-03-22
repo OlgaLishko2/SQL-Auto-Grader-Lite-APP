@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { auth } from "../../../../firebase";
 import { getAllAssignmentByOwner } from "../../../../components/model/assignments";
-import { getAllQuestionByAssignment, updateQuestion } from "../../../../components/model/questions";
 import { sendReminderEmail } from "../../../../components/services/email";
 import { getAllStudents, getCohortsByOwner } from "../../../../components/model/cohorts";
 
 function AssignmentList({ onCreate }) {
   const [assignments, setAssignments] = useState([]);
   const [expanded, setExpanded] = useState(null);
-  const [questions, setQuestions] = useState([]);
-  const [editing, setEditing] = useState(null); // { qIndex, field, value }
 
   useEffect(() => {
     getAllAssignmentByOwner(auth.currentUser.uid).then((data) => {
-      const sorted = [...data].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+      const today = new Date();
+     const sorted = [...data]
+        .filter(a => new Date(a.dueDate) >= today)
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
       setAssignments(sorted);
       // setQuestions(sorted.questions)
     });
@@ -21,29 +21,6 @@ function AssignmentList({ onCreate }) {
   const toggleAssignment = (assignment) => {
     setExpanded(expanded === assignment.assignment_id ? null : assignment.assignment_id);
   }
-  // const toggleAssignment = async (assignment) => {
-  //   if (expanded === assignment.assignment_id) {
-  //     setExpanded(null);
-  //     setQuestions([]);
-  //     return;
-  //   }
-  //   setExpanded(assignment.assignment_id);
-  //   const qs = await getAllQuestionByAssignment(assignment.assignment_id);
-  //   // setQuestions(qs);
-  // };
-
-  // const handleFieldChange = (index, field, value) => {
-  //   const updated = [...questions];
-  //   updated[index] = { ...updated[index], [field]: value };
-  //   // setQuestions(updated);
-  //   setEditing({ qIndex: index, field });
-  // };
-
-  // const saveQuestion = async (q) => {
-  //   // await updateQuestion(q);
-  //   // setEditing(null);
-  //   // alert("Question saved!");
-  // };
 
   return (
     <div style={{ padding: "20px" }}>

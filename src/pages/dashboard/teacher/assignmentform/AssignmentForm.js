@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CreateQuestionSet from './createquestionset/CreateQuestionSet';
-import { auth, db } from "../../../../firebase";
-import { createNewAssignment, updateAssignment } from "../../../../components/model/assignments"
+import { auth } from "../../../../firebase";
+import { createNewAssignment } from "../../../../components/model/assignments"
 import { getCohortsByOwner } from "../../../../components/model/cohorts";
 import { CreateAssignment } from './createquestionset/CreateAssignment';
 import { sendAssignmentEmail } from "../../../../components/services/email";

@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAppContext } from "../../../../../components/db/service/context";
-import { addQuestionToAssignment } from "../../../../../components/model/assignments";
 import { getPresetQuestions } from '../../../../../components/model/presetQuestions';
 import TableSchema from '../../../tableView/TableSchema'
 import { CodeEditor } from "./CodeEditor";
-import './CreateQuestionSet.css'
-import { question } from "fontawesome";
+import './CreateQuestionSet.css';
 
 function CreateQuestionSet({ onAddQuestions, setDb }) {
   const { allTables, allDataset, getTableSchemaInTable } = useAppContext();

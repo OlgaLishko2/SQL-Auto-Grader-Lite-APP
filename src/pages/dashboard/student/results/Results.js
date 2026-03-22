@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import DataTable from "react-data-table-component";
-import PageTitle from "../../topbar/PageTitle";
-import Breadcrumb from "../../topbar/Breadcrumb";
+import PageTitle from "../topbar/PageTitle";
+import Breadcrumb from "../topbar/Breadcrumb";
 
 
 import { auth, db } from "../../../../firebase";

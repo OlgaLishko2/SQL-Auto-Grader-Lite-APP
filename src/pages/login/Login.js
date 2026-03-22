@@ -39,7 +39,7 @@ if (!user.emailVerified) {
 
         // console.log("User role:", userRole);
 
-        navigate('/dashboard')
+         navigate('/dashboard', { replace: true })
         
         // if (userRole === "teacher") {
         //   navigate("/teacher-dashboard");
