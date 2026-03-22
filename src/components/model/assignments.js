@@ -105,13 +105,13 @@ async function addQuestionToAssignment(assignmentId, incomeQuestion) {
 async function getAllQuizByOwner(ownerId) {
   try {
     const assignmentsQuery = query(
-      collection(db, "quizes"),
+      collection(db, "quizzes"),
       where("owner_user_id", "==", ownerId),
     );
-    let quizes = [];
+    let quizzes = [];
     const querySnapshot = await getDocs(assignmentsQuery);
-    querySnapshot.forEach((doc) => { quizes.push(doc.data()); });
-    return quizes;
+    querySnapshot.forEach((doc) => { quizzes.push(doc.data()); });
+    return quizzes;
   } catch (error) {
     console.error(`getAllQuizByOwner: ${error}`);
   }
@@ -119,7 +119,7 @@ async function getAllQuizByOwner(ownerId) {
 
 async function createNewQuiz(quiz) {
   try {
-    const quizCollection = collection(db, "quizes");
+    const quizCollection = collection(db, "quizzes");
     const newDocRef = doc(quizCollection);
     await setDoc(newDocRef, { ...quiz, quiz_id: newDocRef.id });
     return newDocRef.id;

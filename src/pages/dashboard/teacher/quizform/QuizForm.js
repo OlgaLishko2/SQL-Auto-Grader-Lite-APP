@@ -24,6 +24,7 @@ const QuizForm = ({ onDone }) => {
 
   const [formData, setFormData] = useState({
     title: '',
+    tables: '',
     dataset: '',
     selectedPreset: null,
     questionText: '',
@@ -100,22 +101,20 @@ const QuizForm = ({ onDone }) => {
     try {
       const id = await createNewQuiz({
         title: formData.title,
-        due_date: new Date(),
         owner_user_id: auth.currentUser.uid,
         dataset: formData.dataset,
         student_class: formData.student_class,
-        question: {
-          ...(formData.selectedPreset || {}),
-          questionText: formData.questionText,
-          answer: formData.answer,
-          difficulty: formData.difficulty,
-          max_attempts: Number(formData.max_attempts),
-          mark: Number(formData.mark),
-          orderMatters: formData.orderMatters,
-          aliasStrict: formData.aliasStrict,
-        },
+        questionText: formData.questionText,
+        answer: formData.answer,
+        difficulty: formData.difficulty,
+        max_attempts: Number(formData.max_attempts),
+        mark: Number(formData.mark),
+        tables: availableTables.filter((t) =>
+          formData.answer.toLowerCase().includes(t.toLowerCase())
+        ),
+        orderMatters: formData.orderMatters,
+        aliasStrict: formData.aliasStrict,
         created_on: new Date(),
-        updated_on: new Date(),
       });
       const cohort = cohorts.find((c) => c.cohort_id === formData.student_class);
       if (cohort?.student_uids?.length) {
@@ -142,7 +141,7 @@ const QuizForm = ({ onDone }) => {
         <div>
           <label>Title</label><br />
           <input name="title" value={formData.title} onChange={handleChange}
-            placeholder="Quiz title" style={{maxWidth: '800px', width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+            placeholder="Quiz title" style={{ maxWidth: '800px', width: '100%', padding: '8px', boxSizing: 'border-box' }} />
         </div>
 
         <div>
@@ -181,7 +180,7 @@ const QuizForm = ({ onDone }) => {
 
             <div>
               <label>Preset Question (optional)</label><br />
-              <select onChange={handlePresetChange} style={{  maxWidth: '800px', width: '100%'}}>
+              <select onChange={handlePresetChange} style={{ maxWidth: '800px', width: '100%' }}>
                 <option value="">-- Select a Preset or type below --</option>
                 {filteredPresets.map(p => (
                   <option key={p.id} value={JSON.stringify(p)}>{p.question}</option>
@@ -193,7 +192,7 @@ const QuizForm = ({ onDone }) => {
               <label>Question Text</label><br />
               <textarea name="questionText" value={formData.questionText} onChange={handleChange}
                 placeholder="Type your question here..."
-                style={{  maxWidth: '800px', width: '100%', height: '80px', padding: '8px', boxSizing: 'border-box', marginTop: '4px' }} />
+                style={{ maxWidth: '800px', width: '100%', height: '80px', padding: '8px', boxSizing: 'border-box', marginTop: '4px' }} />
             </div>
 
             <div>
@@ -203,57 +202,57 @@ const QuizForm = ({ onDone }) => {
                 style={{ maxWidth: '800px', width: '100%', height: '80px', padding: '8px', boxSizing: 'border-box', marginTop: '4px' }} />
             </div>
 
-            <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems:'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1px'}}>
-                <label style={{ marginTop:'10px' }}>Difficulty: </label><br />
-                <select name="difficulty" 
-                value={formData.difficulty} 
-                onChange={handleChange} 
-                style={{ width: '80px' }}>
+            <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1px' }}>
+                <label style={{ marginTop: '10px' }}>Difficulty: </label><br />
+                <select name="difficulty"
+                  value={formData.difficulty}
+                  onChange={handleChange}
+                  style={{ width: '80px' }}>
                   <option value="easy">Easy</option>
                   <option value="medium">Medium</option>
                   <option value="hard">Hard</option>
                 </select>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1px' }}>
-                <label style={{ marginTop:'10px' }}>Max Attempts: </label><br />
+                <label style={{ marginTop: '10px' }}>Max Attempts: </label><br />
                 <input type="number" name="max_attempts" min="1" value={formData.max_attempts}
-                  onChange={handleChange} style={{ width: '80px', height:'80%' }} />
+                  onChange={handleChange} style={{ width: '80px', height: '80%' }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1px' }}>
-                <label style={{ marginTop:'10px' }}>Mark: </label><br />
+                <label style={{ marginTop: '10px' }}>Mark: </label><br />
                 <input type="number" name="mark" min="0" value={formData.mark}
-                  onChange={handleChange} style={{ width: '80px' , height:'80%'}} />
+                  onChange={handleChange} style={{ width: '80px', height: '80%' }} />
               </div>
-              
+
             </div>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <label>
-                  <input type="checkbox" name="orderMatters" checked={formData.orderMatters} onChange={handleChange} />
-                  {' '}Order Matters
-                </label>
-                <label>
-                  <input type="checkbox" name="aliasStrict" checked={formData.aliasStrict} onChange={handleChange} />
-                  {' '}Alias Strict
-                </label>
-              </div>
+              <label>
+                <input type="checkbox" name="orderMatters" checked={formData.orderMatters} onChange={handleChange} />
+                {' '}Order Matters
+              </label>
+              <label>
+                <input type="checkbox" name="aliasStrict" checked={formData.aliasStrict} onChange={handleChange} />
+                {' '}Alias Strict
+              </label>
+            </div>
             <div>
-          <label>Assign to Cohort</label><br />
-          {cohorts.length === 0 ? (
-            <p style={{ color: 'red' }}>
-              No cohorts found.{' '}
-              <span onClick={() => navigate('/dashboard/cohorts')}
-                style={{ color: 'blue', cursor: 'pointer', textDecoration: 'underline' }}>
-                Create a cohort first
-              </span>
-            </p>
-          ) : (
-            <select name="student_class" value={formData.student_class} onChange={handleChange}>
-              <option value="">-- Select Cohort --</option>
-              {cohorts.map(c => <option key={c.cohort_id} value={c.cohort_id}>{c.name}</option>)}
-            </select>
-          )}
-        </div>
+              <label>Assign to Cohort</label><br />
+              {cohorts.length === 0 ? (
+                <p style={{ color: 'red' }}>
+                  No cohorts found.{' '}
+                  <span onClick={() => navigate('/dashboard/cohorts')}
+                    style={{ color: 'blue', cursor: 'pointer', textDecoration: 'underline' }}>
+                    Create a cohort first
+                  </span>
+                </p>
+              ) : (
+                <select name="student_class" value={formData.student_class} onChange={handleChange}>
+                  <option value="">-- Select Cohort --</option>
+                  {cohorts.map(c => <option key={c.cohort_id} value={c.cohort_id}>{c.name}</option>)}
+                </select>
+              )}
+            </div>
           </>
         )}
 
