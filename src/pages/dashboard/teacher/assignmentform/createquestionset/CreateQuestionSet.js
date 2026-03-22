@@ -4,7 +4,8 @@ import { addQuestionToAssignment } from "../../../../../components/model/assignm
 import { getPresetQuestions } from '../../../../../components/model/presetQuestions';
 import TableSchema from '../../../tableView/TableSchema'
 import { CodeEditor } from "./CodeEditor";
-import './CreateQuestionSet.css'
+import './CreateQuestionSet.css';
+import CollapsiblePanel from '../collapsiblepanel/CollapsiblePanel';
 
 function CreateQuestionSet({ onAddQuestions, setDb }) {
   const { allTables, allDataset, getTableSchemaInTable } = useAppContext();
@@ -65,6 +66,7 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
         max_attempts: 1,
         created_on: new Date(),
         updated_on: new Date(),
+        collapsed: false, 
       },
     ]);
   };
@@ -80,11 +82,24 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
 
     const updatedQuestions = questions.map((q) => {
       const matchedTable = availableTables.find((t) => q.questionText.toLowerCase().includes(t.toLowerCase()));
-      return { ...q, table: matchedTable || q.table };
+      return { 
+        ...q, 
+        table: matchedTable || q.table,
+        collapsed: true, 
+      };
     });
 
     onAddQuestions(updatedQuestions);
+    setQuestions(updatedQuestions);
     setSavedCount(updatedQuestions.length);
+  };
+
+  const toggleQuestionCollapse = (index) => {
+    setQuestions((prev) =>
+      prev.map((q, i) =>
+        i === index ? { ...q, collapsed: !q.collapsed } : q
+      )
+    );
   };
 
   return (
@@ -126,11 +141,29 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
           {savedCount > 0 && <span style={{ marginLeft: "12px", color: "green" }}>✓ {savedCount} question(s) saved</span>}
 
           {questions.map((q, index) => (
-            <div key={index} className="question-row">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h4 style={{ margin: 0 }}>Question {index + 1}</h4>
-                <button type="button" onClick={() => setQuestions(questions.filter((_, i) => i !== index))}>✕</button>
-              </div>
+            <CollapsiblePanel
+              key={index}
+              title={`Question ${index + 1}`}
+              preview={
+                q.questionText
+                  ? (q.questionText.length > 80
+                      ? q.questionText.substring(0, 80) + "…"
+                      : q.questionText)
+                  : "(no question text yet)"
+              }
+              isCollapsed={q.collapsed ?? false}   // default to false if undefined
+              onToggle={() => toggleQuestionCollapse(index)}              
+            >
+              <div className="question-row">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <h4 style={{ margin: 0 }}>Question {index + 1}</h4>
+                  <button
+                    type="button"
+                    onClick={() => setQuestions(questions.filter((_, i) => i !== index))}
+                  >
+                    ✕
+                  </button>
+                </div>
 
               <div>
                 <label>Filter Questions by Table:</label>
@@ -213,6 +246,7 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
                 </label>
               </div>
             </div>
+            </CollapsiblePanel>
           ))}
 
           {questions.length > 0 && (
