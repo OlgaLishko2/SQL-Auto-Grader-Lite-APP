@@ -11,6 +11,7 @@ const LeftMenu = ({ name, navItems }) => {
         isOpen ? "" : "collapsed toggled"}`} id="accordionSidebar">
       <a className="sidebar-brand d-flex align-items-center justify-content-center" >
         <div className="sidebar-brand-text mx-3"> {isOpen ? name : name.charAt(0)}</div>
+        <span className="d-md-none">{name.charAt(0)}</span>
       </a>
 
       <hr className="sidebar-divider my-0"/>

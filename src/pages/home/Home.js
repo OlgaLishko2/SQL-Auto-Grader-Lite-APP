@@ -1,8 +1,22 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { auth, db } from "../../firebase";
+import { doc, getDoc } from "firebase/firestore";
 import "./Home.css";
 
 function Home() {
   const navigate = useNavigate();
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      if (auth.currentUser) {
+        const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+        if (snap.exists()) setUserRole(snap.data().role);
+      }
+    };
+    fetchRole();
+  }, []);
 
   return (
     <div className="home-container">
@@ -12,7 +26,7 @@ function Home() {
       <section className="hero">
         <h1>SQL Practice Platform</h1>
         <p>Learn SQL interactively in your browser using real datasets.</p>
-        <button className="start-btn" onClick={() => navigate("/login")}>
+        <button className="start-btn" onClick={() => userRole? navigate("dashboard"):navigate("/login")}>
           Start Practicing
         </button>
       </section>

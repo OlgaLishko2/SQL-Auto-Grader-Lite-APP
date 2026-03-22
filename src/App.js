@@ -39,7 +39,7 @@ function TeacherAssignments() {
     ? <AssignmentForm onDone={() => setCreating(false)} />
     : <AssignmentList onCreate={() => setCreating(true)} />;
 }
-function TeacherQuizes() {
+function TeacherQuizzes() {
   const [creating, setCreating] = useState(false);
   return creating
     ? <QuizForm onDone={() => setCreating(false)} />
@@ -94,10 +94,10 @@ function App() {
               <Route path="assignments/:id" element={<AntiCheatingAssignmentDetail />} />
               <Route path="questions/:assignment_id" element={<QuestionList />} />
               <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
-              <Route path="quizes" element={
+              <Route path="quizzes" element={
                 role === "student"
                   ? <Quizzes />
-                  : <TeacherQuizes />
+                  : <TeacherQuizzes />
               } />
               <Route path="results" element={<Results />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
