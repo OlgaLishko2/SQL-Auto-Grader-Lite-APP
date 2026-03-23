@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   query,
   setDoc,
   updateDoc,
@@ -211,6 +212,36 @@ async function getStudentsByCohort(cohortId) {
   }
 }
 
+async function getStudentAssignmentsWithDetails() {
+  try {
+    const snap = await getDocs(collection(db, "student_assignments"));
+    const assignments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const userIds = [...new Set(assignments.map(a => a.student_user_id))];
+    const assignmentIds = [...new Set(assignments.map(a => a.assignment_id))];
+
+    const [userSnaps, assignmentSnaps] = await Promise.all([
+      Promise.all(userIds.map(uid => getDoc(doc(db, "users", uid)))),
+      Promise.all(assignmentIds.map(id => getDoc(doc(db, "assignments", id)))),
+    ]);
+
+    const userMap = {};
+    userSnaps.forEach((s, i) => { if (s.exists()) userMap[userIds[i]] = s.data(); });
+
+    const assignmentMap = {};
+    assignmentSnaps.forEach((s, i) => { if (s.exists()) assignmentMap[assignmentIds[i]] = s.data(); });
+
+    return assignments.map(a => ({
+      ...a,
+      studentName: userMap[a.student_user_id]?.fullName || "Unknown",
+      assignmentTitle: assignmentMap[a.assignment_id]?.title || "Assignment",
+    }));
+  } catch (error) {
+    console.error(`getStudentAssignmentsWithDetails: ${error}`);
+    return [];
+  }
+}
+
 export {
   createNewStudentAssignment,
   getAllAssignmnetByStudent,
@@ -218,5 +249,6 @@ export {
   // getAllCompletedAssignmnetByStudent,
   getAssignmentDetailsByAssignmentId,
   getStudentsByCohort,
-  getAllCompletedAssignmnetByStudent
+  getAllCompletedAssignmnetByStudent,
+  getStudentAssignmentsWithDetails
 };

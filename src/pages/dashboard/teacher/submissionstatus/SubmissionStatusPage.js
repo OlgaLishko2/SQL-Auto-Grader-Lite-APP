@@ -15,7 +15,7 @@ function SubmissionStatusPage() {
       {(selectedStudentId !== "") ? (
         <StudentAssignmentPage
           studentId={selectedStudentId}
-          onBack={() => setSelectedStudentId(null)}
+          onBack={() => setSelectedStudentId("")}
         />
       ) : (
         <>

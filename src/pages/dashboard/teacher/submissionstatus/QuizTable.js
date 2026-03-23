@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, getDoc, doc } from "firebase/firestore";
-import { db } from "../../../../firebase";
+import { getQuizSubmissionsWithDetails } from "../../../../components/model/quizzes";
 
 export default function QuizTable({ onSelectStudent }) {
   const [data, setData] = useState([]);
@@ -25,28 +24,8 @@ export default function QuizTable({ onSelectStudent }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const snap = await getDocs(collection(db, "student_quizzes"));
-      const submissions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      const userIds = [...new Set(submissions.map(s => s.student_user_id))];
-      const quizIds = [...new Set(submissions.map(s => s.quiz_id))];
-
-      const [userSnaps, quizSnaps] = await Promise.all([
-        Promise.all(userIds.map(uid => getDoc(doc(db, "users", uid)))),
-        Promise.all(quizIds.map(id => getDoc(doc(db, "quizzes", id)))),
-      ]);
-
-      const userMap = {};
-      userSnaps.forEach((s, i) => { if (s.exists()) userMap[userIds[i]] = s.data(); });
-
-      const quizMap = {};
-      quizSnaps.forEach((s, i) => { if (s.exists()) quizMap[quizIds[i]] = s.data(); });
-
-      setData(submissions.map(s => ({
-        ...s,
-        studentName: userMap[s.student_user_id]?.fullName || "Unknown",
-        quizTitle: quizMap[s.quiz_id]?.title || "Quiz",
-      })));
+      const data = await getQuizSubmissionsWithDetails();
+      setData(data);
     };
     fetchData();
   }, []);
