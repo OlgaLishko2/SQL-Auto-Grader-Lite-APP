@@ -3,6 +3,7 @@ import {
   doc,
   getCountFromServer,
   getDocs,
+  getDoc,
   query,
   setDoc,
   where,
@@ -110,9 +111,32 @@ async function getBestAttemptByUserQuestion(userId, questionId) {
   return attempts.reduce(pickBetterAttempt, null);
 }
 
+async function getStudentInfo(studentId) {
+  try {
+    const snap = await getDoc(doc(db, "users", studentId));
+    return snap.exists() ? snap.data() : null;
+  } catch (error) {
+    console.error(`getStudentInfo: ${error}`);
+    return null;
+  }
+}
+
+async function getAttemptsByStudent(studentId) {
+  try {
+    const q = query(dbCollection, where("student_user_id", "==", studentId));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error(`getAttemptsByStudent: ${error}`);
+    return [];
+  }
+}
+
 export {
   countAttempt,
   createAttempt,
   getBestAttemptByUserQuestion,
   getAttemptByUserQuestion,
+  getStudentInfo,
+  getAttemptsByStudent,
 };

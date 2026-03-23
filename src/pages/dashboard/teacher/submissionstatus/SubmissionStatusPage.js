@@ -12,10 +12,10 @@ function SubmissionStatusPage() {
       <h2>Submission Status</h2>
 
       {/* If a student is selected, show the StudentAssignmentPage */}
-      {(selectedStudentId != "") ? (
+      {(selectedStudentId !== "") ? (
         <StudentAssignmentPage
           studentId={selectedStudentId}
-          onBack={() => setSelectedStudentId(null)}
+          onBack={() => setSelectedStudentId("")}
         />
       ) : (
         <>
