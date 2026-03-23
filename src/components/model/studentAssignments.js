@@ -199,7 +199,10 @@ async function getStudentsByCohort(cohortId) {
       q = query(usersCol, where("role", "==", "student"));
     } else {
       //q = query(usersCol, where("cohort_id", "==", cohortId));
-      q = query(cohortCol, where("cohort_id", "==", cohortId));
+      q = query(usersCol, 
+        where("role", "==", "student"), 
+        where("cohort_id", "==", cohortId)
+      );
     }
     const snapshot = await getDocs(q);
     const students = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
