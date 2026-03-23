@@ -25,6 +25,8 @@ import SubmittedQuestions from "./pages/dashboard/student/results/SubmittedQuest
 import DatabaseLoader from "./pages/dashboard/teacher/datasets/dbLoader"
 import AssignmentForm from "./pages/dashboard/teacher/assignmentform/AssignmentForm"
 import AssignmentList from "./pages/dashboard/teacher/assignmentform/AssignmentList"
+import QuizForm from "./pages/dashboard/teacher/quizform/QuizForm"
+import QuizList from "./pages/dashboard/teacher/quizform/QuizList"
 import CohortManager from "./pages/dashboard/teacher/cohorts/CohortManager"
 import SubmissionStatusPage from "./pages/dashboard/teacher/submissionstatus/SubmissionStatusPage";
 
@@ -38,6 +40,12 @@ function TeacherAssignments() {
   return creating
     ? <AssignmentForm onDone={() => setCreating(false)} />
     : <AssignmentList onCreate={() => setCreating(true)} />;
+}
+function TeacherQuizzes() {
+  const [creating, setCreating] = useState(false);
+  return creating
+    ? <QuizForm onDone={() => setCreating(false)} />
+    : <QuizList onCreate={() => setCreating(true)} />;
 }
 
 function App() {
@@ -88,7 +96,7 @@ function App() {
               <Route path="assignments/:id" element={<AssignmentDetail />} />
               <Route path="questions/:assignment_id" element={<QuestionList />} />
               <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
-               <Route path="quizzes" element={<Quizzes />} />
+              <Route path="quizzes" element={<Quizzes />} />
               <Route path="results" element={<Results />} />
               <Route path="results/:assignment_id" element={<SubmittedQuestions />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}

@@ -122,8 +122,7 @@ const QuestionList = () => {
 
   return (
     <>
-      <LoadingOverlay isOpen={isLoading} message="Loading..." />
-      <div className="d-sm-flex align-items-center justify-content-between mb-4">
+      <div className="d-sm-flex justify-content-between mb-0">
         <PageTitle pagetitle="Questions List" />
         <Breadcrumb
           items={[
@@ -144,13 +143,11 @@ const QuestionList = () => {
           striped
           responsive
           pointerOnHover
-          onRowClicked={(row) => {
-            if (row.attemptTime >= row.max_attempts) return;
-            navigate(
+          onRowClicked={(row) =>
+            window.open(
               `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-              { state: { question: row, dataset: dataset } },
-            );
-          }}
+            )
+          }
         />
       </div>
     </>

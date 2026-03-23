@@ -102,4 +102,40 @@ async function addQuestionToAssignment(assignmentId, incomeQuestion) {
   }
 }
 
-export { createNewAssignment, getAllAssignmentByOwner, updateAssignment, getAssignmentsForStudent, addQuestionToAssignment };
+async function getAllQuizByOwner(ownerId) {
+  try {
+    const assignmentsQuery = query(
+      collection(db, "quizzes"),
+      where("owner_user_id", "==", ownerId),
+    );
+    let quizzes = [];
+    const querySnapshot = await getDocs(assignmentsQuery);
+    querySnapshot.forEach((doc) => { quizzes.push(doc.data()); });
+    return quizzes;
+  } catch (error) {
+    console.error(`getAllQuizByOwner: ${error}`);
+  }
+}
+
+async function createNewQuiz(quiz) {
+  try {
+    const quizCollection = collection(db, "quizzes");
+    const newDocRef = doc(quizCollection);
+    await setDoc(newDocRef, { ...quiz, quiz_id: newDocRef.id });
+    return newDocRef.id;
+  } catch (error) {
+    console.error(`createNewQuiz: ${error}`);
+  }
+}
+
+async function getStudentCohortIds(studentUid) {
+  try {
+    const snap = await getDocs(query(collection(db, "cohorts"), where("student_uids", "array-contains", studentUid)));
+    return snap.docs.map(d => d.data().cohort_id);
+  } catch (error) {
+    console.error(`getStudentCohortIds: ${error}`);
+    return [];
+  }
+}
+
+export { createNewAssignment, getAllAssignmentByOwner, updateAssignment, getAssignmentsForStudent, getStudentCohortIds, addQuestionToAssignment, getAllQuizByOwner, createNewQuiz };

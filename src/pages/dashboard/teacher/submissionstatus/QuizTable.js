@@ -4,7 +4,7 @@ import { db } from "../../../../firebase";
 
 export default function QuizTable() {
   const [data, setData] = useState([]);
-
+  
   useEffect(() => {
     const fetchData = async () => {
       const snap = await getDocs(collection(db, "student_quizzes"));
