@@ -4,33 +4,64 @@ import Home from "./components/home/Home";
 import Register from "./components/register/Register";
 import Login from "./components/login/Login";
 import About from "./components/about/About";
-import TeacherDashboard from "./components/teacherDashboard/TeacherDashboard";
 import "./App.css";
+import AssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
+import AntiCheatingQuestionDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
+
+function TeacherAssignments() {
+  const [creating, setCreating] = useState(false);
+  return creating
+    ? <AssignmentForm onDone={() => setCreating(false)} />
+    : <AssignmentList onCreate={() => setCreating(true)} />;
+}
+function TeacherQuizzes() {
+  const [creating, setCreating] = useState(false);
+  return creating
+    ? <QuizForm onDone={() => setCreating(false)} />
+    : <QuizList onCreate={() => setCreating(true)} />;
+}
 
 function App() {
+  const [role, setRole] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (userDoc.exists()) {
+          setRole(userDoc.data().role);
+        }
+      } else {
+        setRole(null);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) return null;
+
+  const ProtectedRoute = ({ children }) => {
+    if (!role) return <Navigate to="/login" />;
+    return children;
+  };
+
   return (
     <Router>
       <div className="app-wrapper">
-        <nav className="navbar">
-          <div className="nav-container">
-            <Link to="/" className="logo">🌐 SQL</Link>
-            <div className="nav-links">
-              <Link to="/" className="nav-item">Home</Link>
-              <Link to="/about" className="nav-item">About</Link>
-              <Link to="/login" className="login-button">Login</Link>
-            </div>
-          </div>
-        </nav>
+        <NavBar/>
 
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/about" element={<About />} />
           </Routes>
         </main>
+        <Footer/>
       </div>
     </Router>
   );
