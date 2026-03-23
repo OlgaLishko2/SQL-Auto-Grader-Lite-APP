@@ -38,9 +38,6 @@ export default function AssignmentTable({ onSelectStudent }) {
     };
     fetchData();
   }, []);
-  
-  
-
 
   return (
       <div style={{ marginBottom: "20px" }}>

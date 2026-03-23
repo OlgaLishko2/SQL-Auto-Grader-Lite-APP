@@ -21,6 +21,7 @@ async function createNewStudentAssignment(studentAssignment) {
       ...studentAssignment,
       student_assignment_id: studentAssignmentId,
     });
+    console.log("Assignment created in student_assignments with id: ", studentAssignmentId);
     return studentAssignmentId;
   } catch (error) {
     console.error(`createNewStudentAssignment: ${error}`);
@@ -69,7 +70,7 @@ async function getAllAssignmnetByStudent(studentId) {
     const studentAssignmentQuery = query(
       dbCollection,
       where("student_user_id", "==", studentId),
-      orderBy("assigned_on", "desc"),
+      orderBy("assigned_on", "desc")
     );
     let assignments = [];
     const querySnapshot = await getDocs(studentAssignmentQuery);
@@ -193,18 +194,19 @@ async function getAssignmentDetailsByAssignmentId(assignment_id) {
 
 async function getStudentsByCohort(cohortId) {
   try {
-    const usersCol = collection(db, "users");
+    const usersCol = collection(db, "users"); 
     let q;
     if (cohortId === "all") {
       q = query(usersCol, where("role", "==", "student"));
     } else {
-      q = query(usersCol, where("cohort_id", "==", cohortId));
+      //q = query(usersCol, where("cohort_id", "==", cohortId));
+      q = query(usersCol, 
+        where("role", "==", "student"), 
+        where("cohort_id", "==", cohortId)
+      );
     }
     const snapshot = await getDocs(q);
-    const students = snapshot.docs.map((doc) => ({
-      uid: doc.id,
-      ...doc.data(),
-    }));
+    const students = snapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
     return students;
   } catch (err) {
     console.error("getStudentsByCohort:", err);
@@ -273,13 +275,49 @@ async function publishAssignmentToStudents(assignmentId, cohortId, dueDate) {
 }
 
 
+async function isAssignmentPublished(assignmentId) {
+  try {
+    const snap = await getDocs(query(dbCollection, where("assignment_id", "==", assignmentId)));
+    return !snap.empty;
+  } catch (e) {
+    console.error("isAssignmentPublished:", e);
+    return false;
+  }
+}
+
+async function getDashboardDataForTeacher(teacherId) {
+  try {
+    const assignmentsSnap = await getDocs(query(collection(db, "assignments"), where("owner_user_id", "==", teacherId)));
+    const assignments = assignmentsSnap.docs.map(d => ({ assignment_id: d.id, ...d.data() }));
+
+    if (!assignments.length) return { assignments: [], studentAssignments: [], studentsCount: 0, needsGrading: [] };
+
+    const assignmentIds = assignments.map(a => a.assignment_id);
+    let studentAssignments = [];
+    for (let i = 0; i < assignmentIds.length; i += 10) {
+      const snap = await getDocs(query(dbCollection, where("assignment_id", "in", assignmentIds.slice(i, i + 10))));
+      studentAssignments.push(...snap.docs.map(d => d.data()));
+    }
+
+    const studentsCount = new Set(studentAssignments.map(sa => sa.student_user_id)).size;
+    const needsGrading = studentAssignments.filter(sa => sa.status === "submitted");
+
+    return { assignments, studentAssignments, studentsCount, needsGrading };
+  } catch (e) {
+    console.error("getDashboardDataForTeacher:", e);
+    return { assignments: [], studentAssignments: [], studentsCount: 0, needsGrading: [] };
+  }
+}
+
 export {
   createNewStudentAssignment,
   getAllAssignmnetByStudent,
+  getAllCompletedAssignmnetByStudent,
   updateStudentAssignment,
   getAssignmentDetailsByAssignmentId,
   getStudentsByCohort,
-  getAllCompletedAssignmnetByStudent,
   getStudentAssignmentsWithDetails,
   publishAssignmentToStudents,
+  isAssignmentPublished,
+  getDashboardDataForTeacher,
 };

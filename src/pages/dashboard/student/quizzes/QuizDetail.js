@@ -26,9 +26,8 @@ const QuizDetail = () => {
   useEffect(() => {
     if (!quiz?.dataset || !quiz?.answer) return;
     fetchItems(quiz.dataset, quiz.answer).then(result => {
-      const rows = result.data;
-    
-    // 1. Extract Column Names (the keys from the first object)
+      const rows = result?.data;
+      if (!rows || rows.length === 0) return;
     const columns = Object.keys(rows[0]);
     
     // 2. Extract Values (convert each object into an array of its values)
@@ -56,10 +55,8 @@ const QuizDetail = () => {
       return false;
     }
     const result = await fetchItems(quiz.dataset, sqlCode);
-    if (result?.isSuccessful && result.data.length > 0) {
+    if (result?.isSuccessful && result.data?.length > 0) {
     const rows = result.data;
-    
-    // 1. Extract Column Names (the keys from the first object)
     const columns = Object.keys(rows[0]);
     
     // 2. Extract Values (convert each object into an array of its values)
@@ -72,10 +69,11 @@ const QuizDetail = () => {
     };
 
     setError("");
-    // Put it in an array since your JSX uses studentResult[0]
     setStudentResult([formattedData]); 
+
+    console.log(expectedResult);
     
-    // Note: Use formattedData directly here for comparison if needed
+    console.log(expectedResult.length);
     const correct = compareQueryResult(expectedResult,  [formattedData], quiz?.orderMatters, quiz?.aliasStrict);
     setIsCorrect(correct);
     return correct;

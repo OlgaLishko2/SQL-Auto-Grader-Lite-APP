@@ -119,9 +119,6 @@ const QuestionList = () => {
 
   return (
     <>
-      <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        </div>
-      <LoadingOverlay isOpen={isLoading} message="Loading..." />
       <div className="d-sm-flex justify-content-between mb-0">
         <PageTitle pagetitle="Questions List" />
         <Breadcrumb
@@ -143,13 +140,11 @@ const QuestionList = () => {
           striped
           responsive
           pointerOnHover
-          onRowClicked={(row) => {
-            if (row.attemptTime === row.max_attempts) return;
-            navigate(
-              `/dashboard/questions/${assignment_id}/anti-cheating-question/${row.question_id}`,
-              { state: { question: row } },
-            );
-          }}
+          onRowClicked={(row) =>
+            window.open(
+              `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
+            )
+          }
         />
       </div>
     </>

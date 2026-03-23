@@ -18,7 +18,7 @@ export const sendAssignmentEmail = async (student, assignmentTitle, assignmentDu
     email: student.email,
     title: assignmentTitle,
     date: assignmentDueDate,
-    link: `${window.location.origin}/dashboard/assignments/${assignmentId}`,
+    link: `${window.location.origin}/dashboard/assingment/${assignmentId}`,
       },
       "5FzJhHSACG7-28zpP"
     );

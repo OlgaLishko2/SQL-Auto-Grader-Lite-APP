@@ -3,8 +3,10 @@
   "version": "1.1.0",
   "private": true,
   "dependencies": {
+    "@codemirror/lang-sql": "^6.10.0",
     "@craco/craco": "^7.1.0",
     "@emailjs/browser": "^4.4.1",
+    "@uiw/react-codemirror": "^4.25.8",
     "firebase": "^12.9.0",
     "fontawesome": "^5.6.3",
     "jquery": "^4.0.0",

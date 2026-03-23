@@ -1,4 +1,3 @@
-
 const PageTitle = ({pagetitle}) => {
     return(
         <div className="d-sm-flex align-items-center justify-content-between mb-4">

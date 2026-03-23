@@ -37,13 +37,10 @@ function convertRowValueToString(row) {
 
 function getResultSet(result) {
   if (!result || result.length === 0) return null;
-  console.log(result);
-  
   const columns = result[0]?.["lc"];
   const values = result[0]?.["values"];
-  if (columns.length !== 0 || values.length !== 0) {
-    return { columns, values };
-  }
+  if (!columns || !values) return null;
+  return { columns, values };
 }
 
 function compareRowsAsMultiset(teacherRows, studentRows) {

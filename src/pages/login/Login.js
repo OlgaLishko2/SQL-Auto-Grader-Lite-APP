@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase"; 
 import { signInWithEmailAndPassword, sendEmailVerification} from "firebase/auth";
@@ -8,10 +8,13 @@ import "../register/Register.css";
 
 function Login() {
   const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (userSession.uid) navigate("/dashboard", { replace: true });
+  }, []);
 
 
   const handleLogin = async (e) => {
