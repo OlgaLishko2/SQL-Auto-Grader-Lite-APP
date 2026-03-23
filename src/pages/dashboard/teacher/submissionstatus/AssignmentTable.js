@@ -39,10 +39,22 @@ export default function AssignmentTable({ onSelectStudent }) {
       const assignments  = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
       // 2. Extract all unique student_user_ids
-      const userIds = [...new Set(assignments.map(a => a.student_user_id))];
+      //const userIds = [...new Set(assignments.map(a => a.student_user_id))];
+      const userIds = [...new Set(        
+        assignments
+          .flatMap(a =>
+            Array.isArray(a.student_user_id)
+              ? a.student_user_id
+              : [a.student_user_id]
+          )
+          .filter(id => typeof id === "string")
+      )];
 
       // 3. Extract unique assignment IDs
       const assignmentIds = [...new Set(assignments.map(a => a.assignment_id))];
+
+      console.log("assignment IDs:", assignments.map(a => a.assignment_id));
+      console.log("student_user_ids:", assignments.map(a => a.student_user_id));
 
       // 4. Fetch all user documents in parallel
       const userPromises = userIds.map(uid => getDoc(doc(db, "users", uid)));
@@ -71,11 +83,21 @@ export default function AssignmentTable({ onSelectStudent }) {
       });
 
       // 5. Merge user names into assignments
-      const merged = assignments.map(a => ({
+      const merged = assignments.map(a => {
+      const userIds = Array.isArray(a.student_user_id)
+        ? a.student_user_id
+        : [a.student_user_id]; // convert single ID → array
+
+      return {
         ...a,
-        studentName: userMap[a.student_user_id]?.fullName || "Unknown",
+        userIds, // store normalized array
+        studentName: userIds
+          .map(id => userMap[id]?.fullName || "Unknown")
+          .join(", "), // combine names
         assignmentTitle: assignmentMap[a.assignment_id]?.title || "Assignment"
-      }));
+      };
+    });
+
 
       setData(merged);
     };
