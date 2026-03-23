@@ -20,6 +20,7 @@ async function createNewStudentAssignment(studentAssignment) {
       ...studentAssignment,
       student_assignment_id: studentAssignmentId,
     });
+    console.log("Assignment created in student_assignments with id: ", studentAssignmentId);
     return studentAssignmentId;
   } catch (error) {
     console.error(`createNewStudentAssignment: ${error}`);
@@ -193,17 +194,24 @@ async function getAssignmentDetailsByAssignmentId(assignment_id) {
 async function getStudentsByCohort(cohortId) {
   try {
     const usersCol = collection(db, "users");
+    const cohortCol = collection(db, "cohorts");
     let q;
     if (cohortId === "all") {
       q = query(usersCol, where("role", "==", "student"));
     } else {
-      q = query(usersCol, where("cohort_id", "==", cohortId));
+      //q = query(usersCol, where("cohort_id", "==", cohortId));
+      q = query(cohortCol, where("cohort_id", "==", cohortId));
     }
     const snapshot = await getDocs(q);
+    console.log("cohortId, snapshot: ", cohortId, snapshot);
+
     const students = snapshot.docs.map((doc) => ({
       uid: doc.id,
       ...doc.data(),
     }));
+
+    console.log("returning value of students: ", students);
+
     return students;
   } catch (err) {
     console.error("getStudentsByCohort:", err);
