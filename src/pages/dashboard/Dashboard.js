@@ -32,7 +32,7 @@ const Dashboard = ({ role }) => {
           </button>
         </div>
       )}
-      <SQLtest />
+      {/* <SQLtest /> */}
     </>
   );
 };
