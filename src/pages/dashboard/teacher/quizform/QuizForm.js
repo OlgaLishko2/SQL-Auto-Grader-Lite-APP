@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from "../../../../firebase";
-import { createNewQuiz } from "../../../../components/model/assignments";
+import { createNewQuiz } from "../../../../components/model/quizzes";
 import { getCohortsByOwner, getAllStudents } from "../../../../components/model/cohorts";
 import { getPresetQuestions } from "../../../../components/model/presetQuestions";
 import { useAppContext } from "../../../../components/db/service/context";
 import { sendQuizEmail } from "../../../../components/services/email";
 import TableSchema from "../../tableView/TableSchema";
 import { CodeEditor } from '../assignmentform/createquestionset/CodeEditor';
+import userSession from "../../../../services/UserSession";
 
 const QuizForm = ({ onDone }) => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ const QuizForm = ({ onDone }) => {
 
   useEffect(() => {
     allDataset().then((data) => setDatasets(data.map((d) => d.datasetName)));
-    getCohortsByOwner(auth.currentUser.uid).then(setCohorts);
+    getCohortsByOwner(userSession.uid).then(setCohorts);
   }, [allDataset]);
 
   const handleChange = (e) => {
@@ -101,7 +101,7 @@ const QuizForm = ({ onDone }) => {
     try {
       const id = await createNewQuiz({
         title: formData.title,
-        owner_user_id: auth.currentUser.uid,
+        owner_user_id: userSession.uid,
         dataset: formData.dataset,
         student_class: formData.student_class,
         questionText: formData.questionText,

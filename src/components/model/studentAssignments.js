@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDocs,
+  getDoc,
   query,
   setDoc,
   updateDoc,
@@ -213,10 +214,110 @@ async function getStudentsByCohort(cohortId) {
   }
 }
 
+async function getStudentAssignmentsWithDetails() {
+  try {
+    const snap = await getDocs(collection(db, "student_assignments"));
+    const assignments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const userIds = [...new Set(assignments.map(a => a.student_user_id))];
+    const assignmentIds = [...new Set(assignments.map(a => a.assignment_id))];
+
+    const [userSnaps, assignmentSnaps] = await Promise.all([
+      Promise.all(userIds.map(uid => getDoc(doc(db, "users", uid)))),
+      Promise.all(assignmentIds.map(id => getDoc(doc(db, "assignments", id)))),
+    ]);
+
+    const userMap = {};
+    userSnaps.forEach((s, i) => { if (s.exists()) userMap[userIds[i]] = s.data(); });
+
+    const assignmentMap = {};
+    assignmentSnaps.forEach((s, i) => { if (s.exists()) assignmentMap[assignmentIds[i]] = s.data(); });
+
+    return assignments.map(a => ({
+      ...a,
+      studentName: userMap[a.student_user_id]?.fullName || "Unknown",
+      assignmentTitle: assignmentMap[a.assignment_id]?.title || "Assignment",
+    }));
+  } catch (error) {
+    console.error(`getStudentAssignmentsWithDetails: ${error}`);
+    return [];
+  }
+}
+
+
+async function publishAssignmentToStudents(assignmentId, cohortId, dueDate) {
+  try {
+    const cohortSnap = await getDocs(query(collection(db, "cohorts"), where("cohort_id", "==", cohortId)));
+    if (cohortSnap.empty) return { success: false, message: "Cohort not found." };
+
+    const studentUids = cohortSnap.docs[0].data().student_uids || [];
+    if (!studentUids.length) return { success: false, message: "No students in this cohort." };
+
+    await Promise.all(
+      studentUids.map((uid) => {
+        const ref = doc(dbCollection);
+        return setDoc(ref, {
+          student_assignment_id: ref.id,
+          assignment_id: assignmentId,
+          student_user_id: uid,
+          status: "assigned",
+          assigned_on: new Date(),
+          submissionDate: null,
+          due_on: dueDate,
+        });
+      })
+    );
+    return { success: true };
+  } catch (err) {
+    console.error("publishAssignmentToStudents:", err);
+    return { success: false, message: err.message };
+  }
+}
+
+
+async function isAssignmentPublished(assignmentId) {
+  try {
+    const snap = await getDocs(query(dbCollection, where("assignment_id", "==", assignmentId)));
+    return !snap.empty;
+  } catch (e) {
+    console.error("isAssignmentPublished:", e);
+    return false;
+  }
+}
+
+async function getDashboardDataForTeacher(teacherId) {
+  try {
+    const assignmentsSnap = await getDocs(query(collection(db, "assignments"), where("owner_user_id", "==", teacherId)));
+    const assignments = assignmentsSnap.docs.map(d => ({ assignment_id: d.id, ...d.data() }));
+
+    if (!assignments.length) return { assignments: [], studentAssignments: [], studentsCount: 0, needsGrading: [] };
+
+    const assignmentIds = assignments.map(a => a.assignment_id);
+    let studentAssignments = [];
+    for (let i = 0; i < assignmentIds.length; i += 10) {
+      const snap = await getDocs(query(dbCollection, where("assignment_id", "in", assignmentIds.slice(i, i + 10))));
+      studentAssignments.push(...snap.docs.map(d => d.data()));
+    }
+
+    const studentsCount = new Set(studentAssignments.map(sa => sa.student_user_id)).size;
+    const needsGrading = studentAssignments.filter(sa => sa.status === "submitted");
+
+    return { assignments, studentAssignments, studentsCount, needsGrading };
+  } catch (e) {
+    console.error("getDashboardDataForTeacher:", e);
+    return { assignments: [], studentAssignments: [], studentsCount: 0, needsGrading: [] };
+  }
+}
+
 export {
   createNewStudentAssignment,
   getAllAssignmnetByStudent,
   getAllCompletedAssignmnetByStudent,
   updateStudentAssignment,
+  getAssignmentDetailsByAssignmentId,
   getStudentsByCohort,
+  getStudentAssignmentsWithDetails,
+  publishAssignmentToStudents,
+  isAssignmentPublished,
+  getDashboardDataForTeacher,
 };

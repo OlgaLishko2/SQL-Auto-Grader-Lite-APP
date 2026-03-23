@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { auth } from "../../../../firebase";
 import { getAllStudents, getCohortsByOwner, createCohort, updateCohort } from "../../../../components/model/cohorts";
+import userSession from "../../../../services/UserSession";
 
 function CohortManager() {
   const [students, setStudents] = useState([]);
@@ -11,7 +11,7 @@ function CohortManager() {
 
   useEffect(() => {
     getAllStudents().then(setStudents);
-    getCohortsByOwner(auth.currentUser.uid).then(setCohorts);
+    getCohortsByOwner(userSession.uid).then(setCohorts);
   }, []);
 
   const toggleStudent = (uid) =>
@@ -35,7 +35,7 @@ function CohortManager() {
 
   const handleCreate = async () => {
     if (!name.trim() || selected.length === 0) return alert("Enter a name and select at least one student.");
-    const id = await createCohort({ name, owner_user_id: auth.currentUser.uid, student_uids: selected, created_on: new Date() });
+    const id = await createCohort({ name, owner_user_id: userSession.uid, student_uids: selected, created_on: new Date() });
     setCohorts((prev) => [...prev, { cohort_id: id, name, student_uids: selected }]);
     closePanel();
     alert(`Cohort "${name}" created!`);

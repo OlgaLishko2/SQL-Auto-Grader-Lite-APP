@@ -1,147 +1,91 @@
-import "./Dashboard.css";
 import { useEffect, useState } from "react";
-import CardDashboard from './CardDashboard'; 
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db, auth } from "../../firebase";
-
-
-const studentCards = [
-  { label: "Assignments (Total)", value: 40, color: "primary", icon: "fa-clipboard-list" },
-  { label: "Result (Percentage)", value: "80%", color: "success", icon: "fa-percent" },
-  { label: "Total Quizzes", value: 18, color: "warning", icon: "fa-comments" },
-];
+import "./Dashboard.css";
+import PageTitle from './student/topbar/PageTitle';
+import CardDashboard from './CardDashboard';
+import userSession from "../../services/UserSession";
+import { getDashboardDataForTeacher } from "../../components/model/studentAssignments";
+import { getAllAssignmnetByStudent } from "../../components/model/studentAssignments";
+import { getAllQuizByOwner } from "../../components/model/quizzes";
+import { getQuizzesForStudent } from "../../components/model/quizzes";
+// DEV ONLY — remove these 2 lines before pushing to GitHub
+import { seedAllData, uploadDbConfig } from "../../data/devSeed";
 
 const Dashboard = ({ role }) => {
-  const [studentsCount, setStudentsCount] = useState(0);
-  const [assignments, setAssignments] = useState([]);
-  const [studentAssignments, setStudentAssignments] = useState([]);
-  const [needsGrading, setNeedsGrading] = useState([]);
+  const [teacherData, setTeacherData] = useState(null);
+  const [studentCards, setStudentCards] = useState([
+    { label: "Assignments (Total)", value: "...", color: "primary", icon: "fa-clipboard-list" },
+    { label: "Total Quizzes",       value: "...", color: "warning", icon: "fa-comments" },
+  ]);
 
   useEffect(() => {
-    if (role === "teacher") loadTeacherData();
-  }, [role]);
-
-  const loadTeacherData = async () => {
-    try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) return;
-
-      const teacherId = currentUser.uid;
-
-  
-      const assignmentsRef = collection(db, "assignments");
-      const qAssignments = query(assignmentsRef, where("owner_user_id", "==", teacherId));
-      const assignmentsSnap = await getDocs(qAssignments);
-      const assignmentsData = assignmentsSnap.docs.map(doc => ({
-        assignment_id: doc.id,
-        ...doc.data(),
-      }));
-      setAssignments(assignmentsData);
-
-      if (assignmentsData.length === 0) return;
-
-      
-      const assignmentIds = assignmentsData.map(a => a.assignment_id);
-      const studentAssignmentsRef = collection(db, "student_assignments");
-
-      let studentAssignmentsData = [];
-
-    
-      for (let i = 0; i < assignmentIds.length; i += 10) {
-        const batch = assignmentIds.slice(i, i + 10);
-        const q = query(studentAssignmentsRef, where("assignment_id", "in", batch));
-        const snap = await getDocs(q);
-        studentAssignmentsData.push(...snap.docs.map(doc => ({ ...doc.data() })));
-      }
-
-      setStudentAssignments(studentAssignmentsData);
-
-   
-      const uniqueStudents = new Set(studentAssignmentsData.map(sa => sa.student_user_id));
-      setStudentsCount(uniqueStudents.size);
-
-    
-      const submitted = studentAssignmentsData.filter(sa => sa.status === "submitted");
-      setNeedsGrading(submitted);
-
-    } catch (error) {
-      console.error("Dashboard error:", error);
+    if (role === "teacher") {
+      getDashboardDataForTeacher(userSession.uid).then(setTeacherData);
+    } else if (role === "student") {
+      Promise.all([
+        getAllAssignmnetByStudent(userSession.uid),
+        getQuizzesForStudent(userSession.uid),
+      ]).then(([assignments, quizzes]) => {
+        setStudentCards([
+          { label: "Assignments (Total)", value: assignments?.length ?? 0, color: "primary", icon: "fa-clipboard-list" },
+          { label: "Total Quizzes",       value: quizzes?.length ?? 0,     color: "warning", icon: "fa-comments" },
+        ]);
+      });
     }
-  };
-
+  }, [role]);
 
   if (role === "student") {
     return (
-      <div className="dashboard">
-        <h2 className="dashboard-title">Student Dashboard</h2>
+      <>
+        <PageTitle pagetitle="Dashboard" />
         <CardDashboard cards={studentCards} />
-      </div>
+      </>
     );
   }
 
- 
+  // Teacher dashboard
   return (
-    <div className="dashboard">
-      <h2 className="dashboard-title">Teacher Dashboard</h2>
+    <>
+      <PageTitle pagetitle="Dashboard" />
 
-      {/* Cards */}
-      <div className="cards">
-        <div className="card">
-          <p className="blue">Students</p>
-          <h3>{studentsCount}</h3>
-        </div>
-        <div className="card">
-          <p className="green">Assignments</p>
-          <h3>{assignments.length}</h3>
-        </div>
-        <div className="card">
-          <p className="cyan">Needs Grading</p>
-          <h3>{needsGrading.length}</h3>
-        </div>
+      {/* DEV ONLY — remove this block before pushing to GitHub */}
+      <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+        <button onClick={() => seedAllData().then(() => alert("All data seeded!")).catch(e => alert("Error: " + e.message))}
+          style={{ padding: "8px 16px" }}>Seed Sample Data (run once)</button>
+        <button onClick={() => uploadDbConfig().then(() => alert("Dataset config uploaded!")).catch(e => alert("Error: " + e.message))}
+          style={{ padding: "8px 16px" }}>Upload Dataset Config (run once)</button>
       </div>
 
-      {/* Needs Grading */}
-      <div className="needs-grading">
-        <h4>Needs Grading ({needsGrading.length})</h4>
-        {needsGrading.length > 0 ? (
-          <ul>
-            {needsGrading.map((a, i) => (
-              <li key={i}>{a.student_user_id} — {a.assignment_id}</li>
-            ))}
-          </ul>
-        ) : (
-          <p>No assignments waiting for grading.</p>
-        )}
-      </div>
+      {teacherData && (
+        <>
+          <CardDashboard cards={[
+            { label: "Students",      value: teacherData.studentsCount,       color: "primary", icon: "fa-users" },
+            { label: "Assignments",   value: teacherData.assignments.length,  color: "success", icon: "fa-clipboard-list" },
+            { label: "Needs Grading", value: teacherData.needsGrading.length, color: "warning", icon: "fa-pen" },
+          ]} />
 
-      {/* Recent Assignments */}
-      <div className="table-container">
-        <h4 className="table-title">Recent Assignments</h4>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Assignment</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {assignments.map((a, index) => {
-              const allForAssignment = studentAssignments.filter(sa => sa.assignment_id === a.assignment_id);
-              const submittedCount = allForAssignment.filter(sa => sa.status === "submitted").length;
-              const totalStudents = allForAssignment.length;
-              const percent = totalStudents ? Math.round((submittedCount / totalStudents) * 100) : 0;
-
-              return (
-                <tr key={index}>
-                  <td>{a.title || a.description}</td>
-                  <td>{submittedCount}/{totalStudents} ({percent}%)</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          <div className="card shadow mb-4">
+            <div className="card-header"><h6>Recent Assignments</h6></div>
+            <table className="table table-bordered" style={{ margin: 0 }}>
+              <thead><tr><th>Assignment</th><th>Submitted / Total</th></tr></thead>
+              <tbody>
+                {teacherData.assignments.map((a, i) => {
+                  const all = teacherData.studentAssignments.filter(sa => sa.assignment_id === a.assignment_id);
+                  const submitted = all.filter(sa => sa.status === "submitted").length;
+                  const percent = all.length ? Math.round((submitted / all.length) * 100) : 0;
+                  return (
+                    <tr key={i}>
+                      <td>{a.title}</td>
+                      <td>{submitted}/{all.length} ({percent}%)</td>
+                    </tr>
+                  );
+                })}
+                {teacherData.assignments.length === 0 && <tr><td colSpan="2">No assignments yet.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </>
   );
 };
 
