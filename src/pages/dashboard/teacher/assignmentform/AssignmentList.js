@@ -83,7 +83,7 @@ async function publishAssignmentToStudents(assignment) {
   }
   // Send emails
   await Promise.all(
-    students.map((s) =>
+    all_users.map((s) =>
       sendAssignmentEmail(s, title, dueDate, assignment_id)
     )
   );
@@ -153,7 +153,7 @@ function AssignmentList({ onCreate }) {
           >
             <strong>{a.title}</strong>
 
-            {/* 🔥 Publish button or Published label */}
+            {/* Publish button or Published label */}
             {!a.published ? (
               <button
                 onClick={async (e) => {
@@ -180,7 +180,7 @@ function AssignmentList({ onCreate }) {
             <div style={{ padding: "16px 20px" }}>
               <p style={{ margin: "0 0 12px" }}>{a.description}</p>
 
-              {/* 🔥 RESTORED REMINDER + NOTIFICATION BLOCK */}
+              {/* RESTORED REMINDER + NOTIFICATION BLOCK */}
               <div style={{ display: "flex", gap: "16px", marginBottom: "12px", alignItems: "center" }}>
                 <span>Submission Notification: <strong>{a.enable_submission_notification ? "Yes" : "No"}</strong></span>
                 <span>Reminder: <strong>{a.reminder_interval ? "Yes" : "No"}</strong></span>
