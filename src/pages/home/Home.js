@@ -17,7 +17,20 @@ function Home() {
     };
     fetchRole();
   }, []);
+const handleStart = () => {
+  if (!auth.currentUser) {
+    navigate("/login");
+    return;
+  }
 
+  if (userRole === "teacher") {
+    navigate("/dashboard");
+  } else if (userRole === "student") {
+    navigate("/dashboard");
+  } else {
+    navigate("/login");
+  }
+};
   return (
     <div className="home-container">
     
@@ -26,9 +39,9 @@ function Home() {
       <section className="hero">
         <h1>SQL Practice Platform</h1>
         <p>Learn SQL interactively in your browser using real datasets.</p>
-        <button className="start-btn" onClick={() => navigate("/login")}>
-          Start Practicing
-        </button>
+<button className="start-btn" onClick={handleStart}>
+  Start Working
+</button>
       </section>
 
      
