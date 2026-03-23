@@ -1,5 +1,5 @@
 import React from "react";
-import userSession from "../../services/UserSession";
+import userSession from "../../components/services/UserSession";
 import "./Profile.css";
 
 const Profile = () => {

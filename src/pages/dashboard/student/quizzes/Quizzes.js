@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import PageTitle from "../topbar/PageTitle";
-import userSession from "../../../../services/UserSession";
+import userSession from "../../../../components/services/UserSession";
 import { getQuizzesForStudent } from "../../../../components/model/quizzes";
 import LoadingOverlay from "../LoadingOverlay";
 

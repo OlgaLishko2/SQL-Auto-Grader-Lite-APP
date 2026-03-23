@@ -7,7 +7,7 @@ import { useAppContext } from "../../../../components/db/service/context";
 import { sendQuizEmail } from "../../../../components/services/email";
 import TableSchema from "../../tableView/TableSchema";
 import { CodeEditor } from '../assignmentform/createquestionset/CodeEditor';
-import userSession from "../../../../services/UserSession";
+import userSession from "../../../../components/services/UserSession";
 
 const QuizForm = ({ onDone }) => {
   const navigate = useNavigate();

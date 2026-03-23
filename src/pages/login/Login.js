@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase"; 
 import { signInWithEmailAndPassword, sendEmailVerification} from "firebase/auth";
 import { getUser } from "../../components/model/users";
-import userSession from "../../services/UserSession";
+import userSession from "../../components/services/UserSession";
 import "../register/Register.css"; 
 
 function Login() {

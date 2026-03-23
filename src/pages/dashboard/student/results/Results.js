@@ -6,7 +6,7 @@ import PageTitle from "../topbar/PageTitle";
 import Breadcrumb from "../topbar/Breadcrumb";
 
 
-import userSession from "../../../../services/UserSession";
+import userSession from "../../../../components/services/UserSession";
 import { getAllCompletedAssignmnetByStudent } from "../../../../components/model/studentAssignments";
 
 

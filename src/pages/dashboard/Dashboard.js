@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./Dashboard.css";
 import PageTitle from './student/topbar/PageTitle';
 import CardDashboard from './CardDashboard';
-import userSession from "../../services/UserSession";
+import userSession from "../../components/services/UserSession";
 import { getDashboardDataForTeacher } from "../../components/model/studentAssignments";
 import { getAllAssignmnetByStudent } from "../../components/model/studentAssignments";
 import { getAllQuizByOwner } from "../../components/model/quizzes";
@@ -48,12 +48,12 @@ const Dashboard = ({ role }) => {
       <PageTitle pagetitle="Dashboard" />
 
       {/* DEV ONLY — remove this block before pushing to GitHub */}
-      <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+      {/* <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
         <button onClick={() => seedAllData().then(() => alert("All data seeded!")).catch(e => alert("Error: " + e.message))}
           style={{ padding: "8px 16px" }}>Seed Sample Data (run once)</button>
         <button onClick={() => uploadDbConfig().then(() => alert("Dataset config uploaded!")).catch(e => alert("Error: " + e.message))}
           style={{ padding: "8px 16px" }}>Upload Dataset Config (run once)</button>
-      </div>
+      </div> */}
 
       {teacherData && (
         <>

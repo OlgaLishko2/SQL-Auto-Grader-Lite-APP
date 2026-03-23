@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { auth } from "../../firebase";
 import { signOut } from "firebase/auth";
-import userSession from "../../services/UserSession";
+import userSession from "../services/UserSession";
 import "../../App.css"
 
 function NavBar() {

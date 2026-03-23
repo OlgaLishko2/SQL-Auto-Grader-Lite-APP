@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { getUser } from "./components/model/users";
-import userSession from "./services/UserSession";
+import userSession from "./components/services/UserSession";
 
 import Home from "./pages/home/Home";
 import Register from "./pages/register/Register";

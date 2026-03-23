@@ -1,6 +1,6 @@
 import { Outlet, Navigate } from 'react-router-dom';
 import { auth } from "../../../firebase";
-import userSession from "../../../services/UserSession";
+import userSession from "../../../components/services/UserSession";
 import "../Dashboard.css";
 import LeftMenu from '../leftmenu/LeftMenu';
 

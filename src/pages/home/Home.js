@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import userSession from "../../services/UserSession";
+import userSession from "../../components/services/UserSession";
 import "./Home.css";
 
 function Home() {
