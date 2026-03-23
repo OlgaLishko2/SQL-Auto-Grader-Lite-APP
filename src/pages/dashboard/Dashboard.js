@@ -71,7 +71,12 @@ const Dashboard = ({ role }) => {
 
 
   if (role === "student") {
-    return <CardDashboard cards={studentCards} />;
+    return (
+      <div className="dashboard">
+        <h2 className="dashboard-title">Student Dashboard</h2>
+        <CardDashboard cards={studentCards} />
+      </div>
+    );
   }
 
  
