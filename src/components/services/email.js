@@ -44,7 +44,7 @@ export const sendQuizEmail = async (student, assignmentTitle, assignmentId) => {
     name: student.fullName,
     email: student.email,
     title: assignmentTitle,
-    link: `${window.location.origin}/dashboard/quizes/${assignmentId}`,
+    link: `${window.location.origin}/dashboard/quizzes/${assignmentId}`,
       },
       "5FzJhHSACG7-28zpP"
     );

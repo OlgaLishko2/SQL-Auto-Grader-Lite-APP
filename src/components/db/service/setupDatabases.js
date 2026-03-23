@@ -34,7 +34,7 @@ export const getTableSchema = async (tableName, dbname) => {
     try {
         // Debug: show all tables
         const allTables = db.exec(`SELECT name FROM sqlite_master WHERE type='table'`);
-        console.log('All tables in database:', allTables);
+        // console.log('All tables in database:', allTables);
 
         if (allTables.length === 0) {
 
@@ -42,9 +42,7 @@ export const getTableSchema = async (tableName, dbname) => {
             console.warn('No tables found in database, checking localStorage...');
             const schemaKey = `schema_${dbname}`
             const existingSchema = JSON.parse(localStorage.getItem(schemaKey) || '{}');
-            console.log('in if loop', existingSchema);
-            console.log('Table schema:', existingSchema['Users']);
-            console.log('Table schema:', existingSchema[tableName].createSQL);
+            // console.log('Table schema:', existingSchema[tableName].createSQL);
             return existingSchema['Users']?.createSQL || null;
         }
         const result = db.exec(`SELECT sql FROM sqlite_master WHERE type='table' AND name='${tableName}'`);
@@ -76,7 +74,7 @@ export const getTableInTable = async (tableName, dbname) => {
         return cols;
     };
     const allCols = splitCols(match[1]).filter(Boolean);
-    console.log(allCols);
+    // console.log(allCols);
     
     const fkCols = new Set(
         allCols
@@ -117,11 +115,15 @@ export const generateCreateTableSQL = async (dbname, tableName, columns) => {
     return createSQL;
 };
 
-export const fetchData = async (dbname, tableName) => {
+export const fetchData = async (dbname, query) => {
     const db = await initDB(dbname);
-    try {
+    if (!db) {
+        console.error(`Database '${dbname}' not found`);
+        return [];
+    }
+   try {
         // 1. Prepare the statement
-        const stmt = db.prepare(`SELECT * FROM ${tableName}`);
+        const stmt = db.prepare(query);
         const rows = [];
 
         // 2. Iterate through rows and "Decode" them into objects
@@ -140,12 +142,12 @@ export const fetchData = async (dbname, tableName) => {
         // 4. Free memory
         stmt.free();
 
-        console.log(`Successfully decoded ${rows.length} rows from ${tableName}`);
-        return rows;
+        console.log(`Successfully decoded ${rows.length} rows`);
+        return {isSuccessful:true, data:rows};
 
     } catch (error) {
-        console.error(`Failed to fetch data from ${tableName}:`, error);
-        return [];
+        console.error(`Failed to fetch data:`, error);
+        return {isSuccessful:false, message:error.message};
     }
 };
 //  if sql.js doesn’t return before timeoutMs, the timeout error is raised.

@@ -18,6 +18,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Assignments from "./pages/dashboard/student/assignments/Assignments";
 import QuestionList from "./pages/dashboard/student/assignments/QuestionList";
 import Quizzes from "./pages/dashboard/student/quizzes/Quizzes";
+import QuizDetail from "./pages/dashboard/student/quizzes/QuizDetail";
 import Results from "./pages/dashboard/student/results/Results";
 import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
 // teacher
@@ -99,6 +100,7 @@ function App() {
                   ? <Quizzes />
                   : <TeacherQuizzes />
               } />
+              <Route path="quizzes/:quiz_id" element={<QuizDetail />} />
               <Route path="results" element={<Results />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
               {/* <Route path="datasets" element={<Datasets />} /> */}

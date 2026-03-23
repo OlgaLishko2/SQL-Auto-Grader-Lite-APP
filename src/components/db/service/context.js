@@ -26,8 +26,8 @@ const AppProvider = ({ children }) => {
         await insertTable(name, db_name)
     }, [])
 
-    const fetchItems = useCallback(async (dbname, table) => {
-        const result = await fetchData(dbname, table)
+    const fetchItems = useCallback(async (dbname, query) => {
+        const result = await fetchData(dbname, query)
         return result
     }, [])
     const insertData = useCallback(async (db, query) => {

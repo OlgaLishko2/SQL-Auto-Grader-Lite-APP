@@ -91,8 +91,8 @@ function DatabaseManager() {
     }
   };
   const fetchData = async () => {
-    const result = await fetchItems(selectedDataset, selectedTable)
-    setDatas(result)
+    const result = await fetchItems(selectedDataset, `SELECT * FROM ${selectedTable}`)
+    setDatas(result.data)
   }
 
   const addColumn = () => {
