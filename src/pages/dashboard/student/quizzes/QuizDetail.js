@@ -76,7 +76,7 @@ const QuizDetail = () => {
     setStudentResult([formattedData]); 
     
     // Note: Use formattedData directly here for comparison if needed
-    const correct = compareQueryResult(expectedResult,  studentResult, quiz?.orderMatters, quiz?.aliasStrict);
+    const correct = compareQueryResult(expectedResult,  [formattedData], quiz?.orderMatters, quiz?.aliasStrict);
     setIsCorrect(correct);
     return correct;
 } else {

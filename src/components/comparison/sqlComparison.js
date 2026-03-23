@@ -1,5 +1,5 @@
 export function compareQueryResult(teacherQuery, studentQuery, isOrder = false, isAlias = false) {
-  if (!teacherQuery || !studentQuery) return false;
+  if (!teacherQuery || !studentQuery) return false;  
   //get all columns in the result -> convert them to lower case and sort()
   const teacherResult = getResultSet(teacherQuery);
   const studentResult = getResultSet(studentQuery);

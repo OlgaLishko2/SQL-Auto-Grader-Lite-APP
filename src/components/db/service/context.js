@@ -26,14 +26,14 @@ const AppProvider = ({ children }) => {
         await insertTable(name, db_name)
     }, [])
 
-    const fetchItems = useCallback(async (dbname, query) => {
+    const fetchItems = useCallback(async (dbname, query) => {//column, values
         const result = await fetchData(dbname, query)
         return result
     }, [])
     const insertData = useCallback(async (db, query) => {
         await addDataToFirestore(db, [query])
     }, [])
-    const runSelectQuery = useCallback(async (dbname, query) => {
+    const runSelectQuery = useCallback(async (dbname, query) => {//{1: name:'tham', lastname:'nt',...}
         const result = await selectQuery(dbname, query)        
         return result
     }, [])
