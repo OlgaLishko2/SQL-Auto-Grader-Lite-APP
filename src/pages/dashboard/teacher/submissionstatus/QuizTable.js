@@ -56,7 +56,6 @@ export default function QuizTable({ onSelectStudent }) {
             <th>Submission Date</th>
             <th>Status</th>
             <th>Mark</th>
-            <th>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -67,15 +66,6 @@ export default function QuizTable({ onSelectStudent }) {
               <td>{item.submissionDate}</td>
               <td>{item.status}</td>
               <td>{item.mark ?? "-"}</td>
-              <td>
-                {item.status === "submitted" ? (
-                  <button onClick={() => onSelectStudent(item.student_user_id)}>
-                    Check & Grade
-                  </button>
-                ) : (
-                  <span>{item.status}</span>
-                )}
-              </td>
             </tr>
           ))}
           {filteredData.length === 0 && (

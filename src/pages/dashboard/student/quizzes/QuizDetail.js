@@ -4,7 +4,7 @@ import { auth } from "../../../../firebase";
 import { useAppContext } from "../../../../components/db/service/context";
 import { isSelectQuery } from "../../../../components/db/queryValidation";
 import { compareQueryResult } from "../../../../components/comparison/sqlComparison";
-import { submitStudentQuiz } from "./studentQuizModel";
+import { submitStudentQuiz } from "../../../../components/model/quizzes";
 import "../assignments/AssignmentDetail.css";
 import TableSchema from "../../tableView/TableSchema";
 
@@ -76,7 +76,7 @@ const QuizDetail = () => {
     setStudentResult([formattedData]); 
     
     // Note: Use formattedData directly here for comparison if needed
-    const correct = compareQueryResult(expectedResult,  studentResult, quiz?.orderMatters, quiz?.aliasStrict);
+    const correct = compareQueryResult(expectedResult,  [formattedData], quiz?.orderMatters, quiz?.aliasStrict);
     setIsCorrect(correct);
     return correct;
 } else {
@@ -128,7 +128,8 @@ const QuizDetail = () => {
           <div className="panel-content">
             <span className="badge-problem">{quiz.title}</span>
             <p>{quiz.questionText}</p>
-            <p><strong>Difficulty:</strong> {quiz.difficulty} | <strong>Mark:</strong> {quiz.mark} | <strong>Attempts:</strong> {attemptsLeft}</p>
+            <p><strong>Difficulty:</strong> {quiz.difficulty} | <strong>Mark:</strong> {quiz.mark} | 
+            <strong>Attempts:</strong> {attemptsLeft} / {quiz.max_attempts}</p>
             <p><strong>Order MAtters: </strong>{quiz.orderMatters?"Yes":"No"} | <strong>Alias Strict: </strong>{quiz.aliasStrict?"Yes":"No"}</p>
             {Object.entries(tableSchemas).map(([table, schema]) => (
               <>

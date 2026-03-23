@@ -1,22 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { auth, db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import userSession from "../../services/UserSession";
 import "./Home.css";
 
 function Home() {
   const navigate = useNavigate();
-  const [userRole, setUserRole] = useState(null);
-
-  useEffect(() => {
-    const fetchRole = async () => {
-      if (auth.currentUser) {
-        const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
-        if (snap.exists()) setUserRole(snap.data().role);
-      }
-    };
-    fetchRole();
-  }, []);
+  const userRole = userSession.role;
 
   return (
     <div className="home-container">

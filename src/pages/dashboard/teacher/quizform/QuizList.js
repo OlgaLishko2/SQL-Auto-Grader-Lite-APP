@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { auth } from "../../../../firebase";
-import { getAllQuizByOwner } from "../../../../components/model/assignments";
+import { getAllQuizByOwner } from "../../../../components/model/quizzes";
 import CollapsiblePanel from "../assignmentform/collapsiblepanel/CollapsiblePanel";
+import userSession from "../../../../services/UserSession";
 
 function QuizList({ onCreate }) {
   const [quizzes, setQuizzes] = useState([]);
@@ -9,7 +9,7 @@ function QuizList({ onCreate }) {
   const toggleQuiz = (id) => setExpanded(prev => prev === id ? null : id);
 
   useEffect(() => {
-    getAllQuizByOwner(auth.currentUser.uid).then((data) => {
+    getAllQuizByOwner(userSession.uid).then((data) => {
       console.log("quizzes:", data);
       const sorted = [...data].sort((a, b) => new Date(b.created_on) - new Date(a.created_on));
       setQuizzes(sorted);

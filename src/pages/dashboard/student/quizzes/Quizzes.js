@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import PageTitle from "../topbar/PageTitle";
-import { auth } from "../../../../firebase";
-import { getQuizzesForStudent } from "./studentQuizModel";
+import userSession from "../../../../services/UserSession";
+import { getQuizzesForStudent } from "../../../../components/model/quizzes";
 import LoadingOverlay from "../LoadingOverlay";
 
 const Quizzes = () => {
@@ -13,9 +13,7 @@ const Quizzes = () => {
 
   useEffect(() => {
     const fetch = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      const quizzes = await getQuizzesForStudent(user.uid);
+      const quizzes = await getQuizzesForStudent(userSession.uid);
       setData(quizzes);
       setIsLoading(false);
     };

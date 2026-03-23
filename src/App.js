@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { auth, db } from "./firebase";
+import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { getUser } from "./components/model/users";
+import userSession from "./services/UserSession";
 
 import Home from "./pages/home/Home";
 import Register from "./pages/register/Register";
@@ -55,11 +56,13 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          setRole(userDoc.data().role);
+        if (!userSession.role) {
+          const userData = await getUser(currentUser.uid);
+          if (userData) userSession.set(userData);
         }
+        setRole(userSession.role);
       } else {
+        userSession.clear();
         setRole(null);
       }
       setLoading(false);

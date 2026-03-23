@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CreateQuestionSet from './createquestionset/CreateQuestionSet';
-import { auth } from "../../../../firebase";
 import { createNewAssignment } from "../../../../components/model/assignments"
-import { getCohortsByOwner } from "../../../../components/model/cohorts";
+import { getCohortsByOwner, getAllStudents } from "../../../../components/model/cohorts";
 import { CreateAssignment } from './createquestionset/CreateAssignment';
 import { sendAssignmentEmail } from "../../../../components/services/email";
-import { getAllStudents } from "../../../../components/model/cohorts";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import { publishAssignmentToStudents } from "../../../../components/model/studentAssignments";
+import userSession from "../../../../services/UserSession";
 // import { question } from 'fontawesome';
 
 const AssignmentForm = ({ onDone }) => {
@@ -24,7 +23,7 @@ const AssignmentForm = ({ onDone }) => {
   const [assignmentId, setAssignmentId] = useState("");
 
   useEffect(() => {
-    getCohortsByOwner(auth.currentUser.uid).then(setCohorts);
+    getCohortsByOwner(userSession.uid).then(setCohorts);
   }, []);
 
   const handleChange = (e) => {
@@ -40,7 +39,7 @@ const AssignmentForm = ({ onDone }) => {
   const handleNext = async () => {
     setError("");
     if (activeTab === 0) {
-      if (!auth.currentUser) {
+      if (!userSession.uid) {
         setError("You must be logged in to create an assignment.");
         return;
       }
@@ -48,55 +47,23 @@ const AssignmentForm = ({ onDone }) => {
     setActiveTab(activeTab + 1);
   };
   /* Publish function */
-    const handlePublish = async () => {
-      if (!assignmentId) {
-        alert("Assignment ID missing. Please create the assignment first.");
-        return;
-      }
-
-      if (!formData.student_class) {
-        alert("Please select a cohort before publishing.");
-        return;
-      }
-
-      try {
-        // 1. Fetch students in the selected cohort
-        const studentsRef = collection(db, "users");
-        const q = query(studentsRef, where("cohort_id", "==", formData.student_class));
-        const snap = await getDocs(q);
-
-        const students = snap.docs.map(doc => ({
-          uid: doc.id,
-          ...doc.data()
-        }));
-
-        if (students.length === 0) {
-          alert("No students found in this cohort.");
-          return;
-        }
-
-        // 2. Create student_assignments entries
-        const promises = students.map(student =>
-          addDoc(collection(db, "student_assignments"), {
-            assignment_id: assignmentId,
-            student_user_id: student.uid,
-            status: "assigned",
-            assigned_on: new Date(),
-            submissionDate: null,
-            due_on: formData.due_date
-          })
-        );
-
-        await Promise.all(promises);
-
-        alert("Assignment published successfully!");
-        onDone(); // go back to assignment list
-
-      } catch (err) {
-        console.error("Publish error:", err);
-        alert("Failed to publish assignment: " + err.message);
-      }
-    };
+  const handlePublish = async () => {
+    if (!assignmentId) {
+      alert("Assignment ID missing. Please create the assignment first.");
+      return;
+    }
+    if (!formData.student_class) {
+      alert("Please select a cohort before publishing.");
+      return;
+    }
+    const result = await publishAssignmentToStudents(assignmentId, formData.student_class, formData.due_date);
+    if (result.success) {
+      alert("Assignment published successfully!");
+      onDone();
+    } else {
+      alert("Failed to publish: " + result.message);
+    }
+  };
 
   const tabRequiredFields = [
     ['title', 'description', 'due_date'],
@@ -194,7 +161,7 @@ const AssignmentForm = ({ onDone }) => {
                   const id = await createNewAssignment({
                     title: formData.title,
                     description: formData.description,
-                    owner_user_id: auth.currentUser.uid,
+                    owner_user_id: userSession.uid,
                     dataset: db,
                     questions: formData.questions,
                     student_class: formData.student_class,

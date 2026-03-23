@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../firebase"; 
+import { auth } from "../../firebase"; 
 import { signInWithEmailAndPassword, sendEmailVerification} from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { getUser } from "../../components/model/users";
+import userSession from "../../services/UserSession";
 import "../register/Register.css"; 
 
 function Login() {
@@ -31,15 +32,10 @@ if (!user.emailVerified) {
       }
 
 
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-
-      if (userDoc.exists()) {
-        // const userData = userDoc.data();
-        // const userRole = userData.role;
-
-        // console.log("User role:", userRole);
-
-         navigate('/dashboard', { replace: true })
+    const userData = await getUser(user.uid);
+      if (userData) {
+        userSession.set(userData);
+        navigate('/dashboard', { replace: true })
         
         // if (userRole === "teacher") {
         //   navigate("/teacher-dashboard");

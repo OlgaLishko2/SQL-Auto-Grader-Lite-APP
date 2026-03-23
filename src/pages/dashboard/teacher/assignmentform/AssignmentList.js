@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { auth } from "../../../../firebase";
 import { getAllAssignmentByOwner } from "../../../../components/model/assignments";
 import { sendReminderEmail } from "../../../../components/services/email";
 import { getAllStudents, getCohortsByOwner } from "../../../../components/model/cohorts";
 import CollapsiblePanel from "../assignmentform/collapsiblepanel/CollapsiblePanel";
+import userSession from "../../../../services/UserSession";
 
 
 function AssignmentList({ onCreate }) {
@@ -11,7 +11,7 @@ function AssignmentList({ onCreate }) {
   const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
-    getAllAssignmentByOwner(auth.currentUser.uid).then((data) => {
+    getAllAssignmentByOwner(userSession.uid).then((data) => {
       const today = new Date();
      const sorted = [...data]
         .filter(a => new Date(a.dueDate) >= today)
@@ -54,7 +54,7 @@ function AssignmentList({ onCreate }) {
                 {a.reminder_interval && (
                   <button onClick={async () => {
                     const allStudentsList = await getAllStudents();
-                    const cohorts = await getCohortsByOwner(auth.currentUser.uid);
+                    const cohorts = await getCohortsByOwner(userSession.uid);
                     const cohort = cohorts.find(c => c.cohort_id === a.student_class);
                     const cohortStudents = allStudentsList.filter(s => cohort?.student_uids?.includes(s.uid));
                     await Promise.all(cohortStudents.map(s => sendReminderEmail(s, a.title, a.dueDate, a.assignment_id)));

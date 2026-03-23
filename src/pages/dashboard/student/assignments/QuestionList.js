@@ -4,7 +4,7 @@ import DataTable from "react-data-table-component";
 import PageTitle from "../topbar/PageTitle";
 import Breadcrumb from "../topbar/Breadcrumb";
 
-import { auth, db } from "../../../../firebase";
+import userSession from "../../../../services/UserSession";
 import { useParams } from "react-router-dom";
 import { getAllActiveAssignmnetByStudent } from "../../../../components/model/questions";
 import LoadingOverlay from "../LoadingOverlay";
@@ -21,12 +21,9 @@ const QuestionList = () => {
     // Get data from question data by assignement id from firebase
     const fetchdata = async () => {
       try {
-        const user = auth.currentUser;
-        if (!user) return;
-        //(assignment_id, user_id)
         const data = await getAllActiveAssignmnetByStudent(
           assignment_id,
-          user.uid,
+          userSession.uid,
         );
         setquestiondata(data);
         // console.log(data)

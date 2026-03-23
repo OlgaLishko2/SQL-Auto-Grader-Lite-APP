@@ -1,10 +1,7 @@
 import { Outlet, Navigate } from 'react-router-dom';
-import { useState, useEffect } from "react";
-import { auth, db } from "../../../firebase";
-import { doc, getDoc } from "firebase/firestore";
-
+import { auth } from "../../../firebase";
+import userSession from "../../../services/UserSession";
 import "../Dashboard.css";
-
 import LeftMenu from '../leftmenu/LeftMenu';
 
 const studentNavItems = [
@@ -26,21 +23,7 @@ const teacherNavItems = [
 ];
 
 const Layout = () => {
-  const [userName, setUserName] = useState("");
-  const [userRole, setUserRole] = useState(null);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (auth.currentUser) {
-        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-        if (userDoc.exists()) {
-          setUserName(userDoc.data().fullName);
-          setUserRole(userDoc.data().role);
-        }
-      }
-    };
-    fetchUserData();
-  }, []);
+  const userRole = userSession.role;
 
   if (!auth.currentUser) return <Navigate to="/login" />;
 

@@ -242,13 +242,44 @@ async function getStudentAssignmentsWithDetails() {
   }
 }
 
+
+async function publishAssignmentToStudents(assignmentId, cohortId, dueDate) {
+  try {
+    const cohortSnap = await getDocs(query(collection(db, "cohorts"), where("cohort_id", "==", cohortId)));
+    if (cohortSnap.empty) return { success: false, message: "Cohort not found." };
+
+    const studentUids = cohortSnap.docs[0].data().student_uids || [];
+    if (!studentUids.length) return { success: false, message: "No students in this cohort." };
+
+    await Promise.all(
+      studentUids.map((uid) => {
+        const ref = doc(dbCollection);
+        return setDoc(ref, {
+          student_assignment_id: ref.id,
+          assignment_id: assignmentId,
+          student_user_id: uid,
+          status: "assigned",
+          assigned_on: new Date(),
+          submissionDate: null,
+          due_on: dueDate,
+        });
+      })
+    );
+    return { success: true };
+  } catch (err) {
+    console.error("publishAssignmentToStudents:", err);
+    return { success: false, message: err.message };
+  }
+}
+
+
 export {
   createNewStudentAssignment,
   getAllAssignmnetByStudent,
   updateStudentAssignment,
-  // getAllCompletedAssignmnetByStudent,
   getAssignmentDetailsByAssignmentId,
   getStudentsByCohort,
   getAllCompletedAssignmnetByStudent,
-  getStudentAssignmentsWithDetails
+  getStudentAssignmentsWithDetails,
+  publishAssignmentToStudents,
 };
