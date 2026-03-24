@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createNewQuiz } from "../../../../components/model/quizzes";
+import { createNewQuiz, getAllQuizByOwner } from "../../../../components/model/quizzes";
 import { getCohortsByOwner, getAllStudents } from "../../../../components/model/cohorts";
 import { getPresetQuestions } from "../../../../components/model/presetQuestions";
 import { useAppContext } from "../../../../components/db/service/context";
@@ -11,7 +11,7 @@ import userSession from "../../../../components/services/UserSession";
 
 const QuizForm = ({ onDone }) => {
   const navigate = useNavigate();
-  const { allDataset, allTables, getTableSchemaInTable } = useAppContext();
+  const { allDataset, allTables, getTableSchemaInTable, runSelectQuery} = useAppContext();
 
   const [datasets, setDatasets] = useState([]);
   const [availableTables, setAvailableTables] = useState([]);
@@ -40,6 +40,15 @@ const QuizForm = ({ onDone }) => {
   useEffect(() => {
     allDataset().then((data) => setDatasets(data.map((d) => d.datasetName)));
     getCohortsByOwner(userSession.uid).then(setCohorts);
+    getAllQuizByOwner(userSession.uid).then(quizzes => {
+      const today = new Date();
+      const todayStr = today.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+      const todayCount = quizzes.filter(q => {
+        const d = new Date(q.created_on?.seconds ? q.created_on.seconds * 1000 : q.created_on);
+        return d.toLocaleDateString("en-US", { month: "long", day: "numeric" }) === todayStr;
+      }).length;
+      setFormData(prev => ({ ...prev, title: `${todayStr}-${todayCount + 1}` }));
+    });
   }, [allDataset]);
 
   const handleChange = (e) => {
@@ -99,6 +108,10 @@ const QuizForm = ({ onDone }) => {
     if (!formData.student_class) return setError("Please select a cohort.");
 
     try {
+      const validation = await runSelectQuery(formData.dataset, formData.answer)
+      if (!validation?.isSuccessful) return setError(`Invalid answer SQL: ${validation?.message || "query failed"}.`);
+      if (!validation.data?.length || validation.data[0]?.values?.length === 0) return setError("Answer SQL returns no rows, please select another question.");
+
       const id = await createNewQuiz({
         title: formData.title,
         owner_user_id: userSession.uid,
@@ -139,9 +152,7 @@ const QuizForm = ({ onDone }) => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div>
-          <label>Title</label><br />
-          <input name="title" value={formData.title} onChange={handleChange}
-            placeholder="Quiz title" style={{ maxWidth: '800px', width: '100%', padding: '8px', boxSizing: 'border-box' }} />
+          <label>Title: <strong>{formData.title}</strong></label>
         </div>
 
         <div>

@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { auth } from "../../../../firebase";
 import { useAppContext } from "../../../../components/db/service/context";
 import { isSelectQuery } from "../../../../components/db/queryValidation";
 import { compareQueryResult } from "../../../../components/comparison/sqlComparison";
+import { normalizeQuery } from "../../../../components/db/queryValidation";
 import { submitStudentQuiz, getStudentQuizSubmission } from "../../../../components/model/quizzes";
 import "../assignments/AssignmentDetail.css";
 import TableSchema from "../../tableView/TableSchema";
+import userSession from "../../../../components/services/UserSession";
 
 const QuizDetail = () => {
   const { runSelectQuery, getTableSchemaInTable, fetchItems } = useAppContext();
@@ -27,9 +28,9 @@ const QuizDetail = () => {
 
   useEffect(() => {
     if (quiz?.status !== "Completed") return;
-    const user = auth.currentUser;
+    const user = userSession.uid();
     if (!user) return;
-    getStudentQuizSubmission(quiz.quiz_id, user.uid).then(sub => {
+    getStudentQuizSubmission(quiz.quiz_id, user).then(sub => {
       if (sub?.submitted_sql) {
         setSqlCode(sub.submitted_sql);
         setViewSql(sub.submitted_sql);
@@ -39,7 +40,8 @@ const QuizDetail = () => {
 
   useEffect(() => {
     if (!viewSql || expectedResult.length === 0) return;
-    fetchItems(quiz.dataset, viewSql).then(result => {
+    const normalizedquery = normalizeQuery(viewSql)
+    fetchItems(quiz.dataset, normalizedquery).then(result => {
       if (result?.isSuccessful && result.data?.length > 0) {
         const columns = Object.keys(result.data[0]);
         const values = result.data.map(row => Object.values(row));
@@ -53,7 +55,10 @@ const QuizDetail = () => {
 
   useEffect(() => {
     if (!quiz?.dataset || !quiz?.answer) return;
-    fetchItems(quiz.dataset, quiz.answer).then(result => {
+    const normalizedquery = normalizeQuery(quiz?.answer)
+    console.log(normalizedquery);
+    
+    fetchItems(quiz.dataset, normalizedquery).then(result => {
       const rows = result?.data;
       if (!rows || rows.length === 0) return;
       const columns = Object.keys(rows[0]);
@@ -125,7 +130,7 @@ const QuizDetail = () => {
   };
 
   const submitQuery = async () => {
-    const user = auth.currentUser;
+    const user = userSession.uid
     if (!user || submitted) return;
     setShowResults(true);
     const correct = await executeAndCompare();
@@ -135,7 +140,7 @@ const QuizDetail = () => {
     setEarnedMark(calculatedMark);
     await submitStudentQuiz({
       quiz_id: quiz.quiz_id,
-      student_user_id: user.uid,
+      student_user_id: user,
       submitted_sql: sqlCode,
       is_correct: correct,
       mark: calculatedMark,

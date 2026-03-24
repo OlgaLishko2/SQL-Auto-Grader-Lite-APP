@@ -25,7 +25,7 @@ const Dashboard = ({ role }) => {
         setStudentCards([
           { label: "Assignments (Total)", value: assignments?.length ?? 0, color: "primary", icon: "fa-clipboard-list" },
           { label: "Result (Percentage)", value: "80%", color: "success", icon: "fa-percent" },
-          { label: "Total Quizzes",       value: quizzes?.length ?? 0,     color: "warning", icon: "fa-comments" },
+          { label: "Total Quizzes", value: quizzes?.length ?? 0, color: "warning", icon: "fa-comments" },
         ]);
       });
     }
@@ -34,11 +34,11 @@ const Dashboard = ({ role }) => {
   if (role === "student") {
     return (
 
-        <div className="dashboard">
+      <div className="dashboard">
         <h2 className="dashboard-title">Student Dashboard</h2>
         <CardDashboard cards={studentCards} />
       </div>
- 
+
     );
   }
 
@@ -48,7 +48,21 @@ const Dashboard = ({ role }) => {
   return (
     <div className="dashboard">
       <h2 className="dashboard-title">Teacher Dashboard</h2>
-
+      {/* fetching data */}
+      {/* <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+          <button
+            onClick={() => seedAllData().then(() => alert("All data seeded!")).catch((e) => alert("Error: " + e.message))}
+            style={{ padding: "8px 16px" }}
+          >
+            Seed Sample Data (run once)
+          </button>
+          <button
+            onClick={() => uploadDbConfig().then(() => alert("Dataset config uploaded!")).catch((e) => alert("Error: " + e.message))}
+            style={{ padding: "8px 16px" }}
+          >
+            Upload Dataset Config (run once)
+          </button>
+        </div> */}
       {/* Cards */}
       <div className="cards">
         <div className="card">
