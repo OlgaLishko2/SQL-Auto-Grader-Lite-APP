@@ -11,7 +11,7 @@ import { isSelectQuery, normalizeQuery } from "../../../../components/db/queryVa
 import { createAttempt } from "../../../../components/model/questionAttempts";
 import { compareQueryResult } from "../../../../components/comparison/sqlComparison";
 import LoadingOverlay from "../LoadingOverlay";
-import userSession from "../../../../services/UserSession";
+import userSession from "../../../../components/services/UserSession";
 
 const AntiCheatingQuestionDetail = () => {
   const { runSelectQuery } = useAppContext();

@@ -6,7 +6,7 @@ import { getCohortsByOwner, getAllStudents } from "../../../../components/model/
 import { CreateAssignment } from './createquestionset/CreateAssignment';
 import { sendAssignmentEmail } from "../../../../components/services/email";
 import { publishAssignmentToStudents } from "../../../../components/model/studentAssignments";
-import userSession from "../../../../services/UserSession";
+import userSession from "../../../../components/services/UserSession";
 
 const AssignmentForm = ({ onDone }) => {
   const navigate = useNavigate();

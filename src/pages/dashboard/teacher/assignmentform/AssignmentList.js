@@ -4,7 +4,7 @@ import { sendReminderEmail } from "../../../../components/services/email";
 import { getAllStudents, getCohortsByOwner } from "../../../../components/model/cohorts";
 import { publishAssignmentToStudents, isAssignmentPublished } from "../../../../components/model/studentAssignments";
 import CollapsiblePanel from "../assignmentform/collapsiblepanel/CollapsiblePanel";
-import userSession from "../../../../services/UserSession";
+import userSession from "../../../../components/services/UserSession";
 
 function AssignmentList({ onCreate }) {
   const [assignments, setAssignments] = useState([]);

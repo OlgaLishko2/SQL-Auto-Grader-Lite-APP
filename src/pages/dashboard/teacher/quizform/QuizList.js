@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAllQuizByOwner } from "../../../../components/model/quizzes";
 import CollapsiblePanel from "../assignmentform/collapsiblepanel/CollapsiblePanel";
-import userSession from "../../../../services/UserSession";
+import userSession from "../../../../components/services/UserSession";
 
 function QuizList({ onCreate }) {
   const [quizzes, setQuizzes] = useState([]);

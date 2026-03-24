@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getAllStudents, getCohortsByOwner, createCohort, updateCohort } from "../../../../components/model/cohorts";
-import userSession from "../../../../services/UserSession";
+import userSession from "../../../../components/services/UserSession";
 
 function CohortManager() {
   const [students, setStudents] = useState([]);

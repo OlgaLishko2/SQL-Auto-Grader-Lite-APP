@@ -4,7 +4,7 @@ import DataTable from "react-data-table-component";
 import PageTitle from "../topbar/PageTitle";
 import Breadcrumb from "../topbar/Breadcrumb";
 
-import userSession from "../../../../services/UserSession";
+import userSession from "../../../../components/services/UserSession";
 import { useParams } from "react-router-dom";
 import { getAllActiveAssignmnetByStudent } from "../../../../components/model/questions";
 import LoadingOverlay from "../LoadingOverlay";
