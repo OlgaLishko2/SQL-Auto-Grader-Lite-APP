@@ -6,8 +6,8 @@ import { getDashboardDataForTeacher } from "../../components/model/studentAssign
 import { getAllAssignmnetByStudent } from "../../components/model/studentAssignments";
 import { getQuizzesForStudent } from "../../components/model/quizzes";
 import { useNavigate } from "react-router-dom";
-// DEV ONLY — remove these 2 lines before pushing to GitHub
-import { seedAllData, uploadDbConfig } from "../../data/devSeed";
+import { collection, getDocs } from "firebase/firestore"; 
+import { db } from "../../firebase"; 
 
 const Dashboard = ({ role }) => {
   const [teacherData, setTeacherData] = useState(null);
@@ -16,7 +16,22 @@ const Dashboard = ({ role }) => {
 
   useEffect(() => {
     if (role === "teacher") {
-      getDashboardDataForTeacher(userSession.uid).then(setTeacherData);
+      const loadTeacherData = async () => {
+        try {
+    
+          const data = await getDashboardDataForTeacher(userSession.uid);
+
+      
+          const usersSnap = await getDocs(collection(db, "users"));
+          const usersData = usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+
+   
+          setTeacherData({ ...data, users: usersData });
+        } catch (error) {
+          console.error("Error loading teacher data:", error);
+        }
+      };
+      loadTeacherData();
     } else if (role === "student") {
       Promise.all([
         getAllAssignmnetByStudent(userSession.uid),
@@ -40,7 +55,6 @@ const Dashboard = ({ role }) => {
     );
   }
 
-  // Teacher dashboard
   if (!teacherData) return <p>Loading...</p>;
 
   return (
@@ -68,14 +82,26 @@ const Dashboard = ({ role }) => {
         <h4>Needs Grading ({teacherData.needsGrading.length})</h4>
         {teacherData.needsGrading.length > 0 ? (
           <ul>
-            {teacherData.needsGrading.map((a, i) => (
-              <li key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span>{a.student_user_id} — {a.assignment_id}</span>
-                <button className="grade-button" onClick={() => navigate("/dashboard/submissionstatus")}>
-                  Grade
-                </button>
-              </li>
-            ))}
+            {teacherData.needsGrading.map((a, i) => {
+             
+              const studentIds = Array.isArray(a.student_user_id) ? a.student_user_id : [a.student_user_id];
+
+              const studentNames = studentIds.map(uid => {
+                const student = teacherData.users.find(u => u.uid === uid);
+                return student ? student.fullName || student.email : "Unknown Student";
+              });
+
+              const assignmentTitle = teacherData.assignments.find(asg => asg.assignment_id === a.assignment_id)?.title || a.assignment_id;
+
+              return (
+                <li key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>{studentNames.join(", ")} — {assignmentTitle}</span>
+                  <button className="grade-button" onClick={() => navigate(`/grade/${a.student_assignment_id}`)}>
+                    Grade
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p>No assignments waiting for grading.</p>
