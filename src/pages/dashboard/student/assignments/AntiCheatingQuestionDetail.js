@@ -17,6 +17,7 @@ const AntiCheatingQuestionDetail = () => {
   const { runSelectQuery } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
+  const assignment_id = location.state?.assignment_id;
   const question = location.state?.question;
   const dataset = location.state?.dataset;
   const [sqlCode, setSqlCode] = useState("");
@@ -137,8 +138,8 @@ const AntiCheatingQuestionDetail = () => {
         <div className="workspace-content">
           <div className="instructions-panel">
             <div className="panel-header">
-              <button className="back-btn" onClick={() => navigate(-1)}>
-                Back to Assignments
+              <button className="back-btn" onClick={() => navigate(`/dashboard/questions/${assignment_id}`)}>
+                Back to Assignment
               </button>
             </div>
 

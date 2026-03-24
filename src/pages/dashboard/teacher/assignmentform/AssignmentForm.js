@@ -64,17 +64,20 @@ const AssignmentForm = ({ onDone }) => {
     updated_on: new Date(),
   });
 
+  const sendEmailsToStudents = async (id) => {
+    const cohort = cohorts.find(c => c.cohort_id === formData.student_class);
+    if (!cohort?.student_uids?.length) return;
+    const allStudents = await getAllStudents();
+    const cohortStudents = allStudents.filter(s => cohort.student_uids.includes(s.uid));
+    await Promise.all(cohortStudents.map(s => sendAssignmentEmail(s, formData.title, formData.due_date, id)));
+  };
+
   const handleSave = async () => {
     if (formData.questions.length === 0) { alert("The assignment needs at least one question."); return; }
     try {
       const id = await createNewAssignment(buildAssignmentPayload());
       setAssignmentId(id);
-      const cohort = cohorts.find(c => c.cohort_id === formData.student_class);
-      if (cohort?.student_uids?.length) {
-        const allStudents = await getAllStudents();
-        const cohortStudents = allStudents.filter(s => cohort.student_uids.includes(s.uid));
-        await Promise.all(cohortStudents.map(s => sendAssignmentEmail(s, formData.title, formData.due_date, id)));
-      }
+      await sendEmailsToStudents(id);
       alert("Assignment saved.");
     } catch (err) {
       setError("Failed to save: " + err.message);
@@ -91,8 +94,11 @@ const AssignmentForm = ({ onDone }) => {
         setAssignmentId(id);
       }
       const result = await publishAssignmentToStudents(id, formData.student_class, formData.due_date);
-      if (result.success) { alert("Assignment published!"); onDone(); }
-      else alert("Failed to publish: " + result.message);
+      if (result.success) {
+        await sendEmailsToStudents(id);
+        alert("Assignment published!");
+        onDone();
+      } else alert("Failed to publish: " + result.message);
     } catch (err) {
       setError("Failed to publish: " + err.message);
     }

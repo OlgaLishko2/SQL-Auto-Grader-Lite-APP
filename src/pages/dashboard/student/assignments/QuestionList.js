@@ -9,6 +9,8 @@ import { useParams } from "react-router-dom";
 import { getAllActiveAssignmnetByStudent } from "../../../../components/model/questions";
 import LoadingOverlay from "../LoadingOverlay";
 import { updateStudentAssignment } from "../../../../components/model/studentAssignments";
+import { getUser } from "../../../../components/model/users";
+import { sendSubmissionNotificationEmail } from "../../../../components/services/email";
 
 const QuestionList = () => {
   const { assignment_id } = useParams();
@@ -44,8 +46,12 @@ const QuestionList = () => {
     await updateStudentAssignment({
       student_user_id: userSession.uid,
       assignment_id: assignmentId,
-      status: "completed",
+      status: "submitted",
     });
+    if (assignment?.enable_submission_notification && assignment?.owner_user_id) {
+      const teacher = await getUser(assignment.owner_user_id);
+      await sendSubmissionNotificationEmail(teacher, userSession.fullName, assignment.title);
+    }
     navigate("/dashboard/assignments");
   }
 
@@ -116,7 +122,7 @@ const QuestionList = () => {
             onClick={() =>
               navigate(
                 `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-                { state: { question: row, dataset: dataset } },
+                { state: { question: row, dataset: dataset, assignment_id } },
               )
             }
           >
@@ -181,7 +187,7 @@ const QuestionList = () => {
             if (!isAttemptLimitReached) {
               navigate(
                 `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-                { state: { question: row, dataset: dataset } },
+                { state: { question: row, dataset: dataset, assignment_id } },
               );
             }
           }}

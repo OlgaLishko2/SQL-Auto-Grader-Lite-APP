@@ -62,6 +62,7 @@ function AssignmentList({ onCreate }) {
             >
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <strong>{a.title}</strong>
+                {needsReminder && (
                 <button
                   onClick={async (e) => {
                     e.stopPropagation();
@@ -79,6 +80,7 @@ function AssignmentList({ onCreate }) {
                 >
                   🔔 Send Reminder
                 </button>
+                )}
               </div>
 
               {!a.published ? (

@@ -10,7 +10,7 @@ import TableSchema from "../../tableView/TableSchema";
 import userSession from "../../../../components/services/UserSession";
 
 const QuizDetail = () => {
-  const { runSelectQuery, getTableSchemaInTable, fetchItems } = useAppContext();
+  const { getTableSchemaInTable, fetchItems } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
   const quiz = location.state?.quiz;
@@ -28,7 +28,7 @@ const QuizDetail = () => {
 
   useEffect(() => {
     if (quiz?.status !== "Completed") return;
-    const user = userSession.uid();
+    const user = userSession.uid;
     if (!user) return;
     getStudentQuizSubmission(quiz.quiz_id, user).then(sub => {
       if (sub?.submitted_sql) {

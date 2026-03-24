@@ -7,7 +7,7 @@ import './CreateQuestionSet.css';
 import CollapsiblePanel from '../collapsiblepanel/CollapsiblePanel';
 
 function CreateQuestionSet({ onAddQuestions, setDb }) {
-  const { allTables, allDataset, getTableSchemaInTable } = useAppContext();
+  const { allTables, allDataset, getTableSchemaInTable, runSelectQuery } = useAppContext();
 
   const [selectedDataset, setSelectedDataset] = useState("");
   const [datasets, setDatasets] = useState([]);
@@ -65,9 +65,16 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
     setQuestions(updated);
   };
 
-  const saveQuestions = () => {
+  const saveQuestions = async () => {
     const invalid = questions.filter((q) => !q.questionText.trim() || !q.answer.trim());
     if (invalid.length > 0) return alert("Every question needs text and an answer.");
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      const result = await runSelectQuery(selectedDataset, q.answer);
+      if (!result?.isSuccessful || !result.data?.length) {
+        return alert(`Question ${i + 1} has an invalid answer SQL — it failed or returned no rows.`);
+      }
+    }
     const updatedQuestions = questions.map((q) => {
       const matchedTable = availableTables.find((t) => q.questionText.toLowerCase().includes(t.toLowerCase()));
       return { ...q, table: matchedTable || q.table, collapsed: true };
