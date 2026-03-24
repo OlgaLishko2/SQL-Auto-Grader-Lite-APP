@@ -91,11 +91,49 @@ export async function getQuizSubmissionsWithDetails() {
     const quizMap = {};
     quizSnaps.forEach((s, i) => { if (s.exists()) quizMap[quizIds[i]] = s.data(); });
 
-    return submissions.map(s => ({
+    const submitted = submissions.map(s => ({
       ...s,
       studentName: userMap[s.student_user_id]?.fullName || "Unknown",
       quizTitle: quizMap[s.quiz_id]?.title || "Quiz",
     }));
+
+    // Find all quizzes and their assigned cohorts, then add not-submitted students
+    const allQuizzesSnap = await getDocs(quizzesCol);
+    const allQuizzes = allQuizzesSnap.docs.map(d => d.data());
+    const cohortIds = [...new Set(allQuizzes.map(q => q.student_class).filter(Boolean))];
+    if (!cohortIds.length) return submitted;
+
+    const cohortSnaps = await getDocs(query(collection(db, "cohorts"), where("cohort_id", "in", cohortIds)));
+    const cohortMap = {};
+    cohortSnaps.docs.forEach(d => { const c = d.data(); cohortMap[c.cohort_id] = c.student_uids || []; });
+
+    const allStudentIds = [...new Set(Object.values(cohortMap).flat())];
+    const studentSnaps = await Promise.all(allStudentIds.map(uid => getDoc(doc(db, "users", uid))));
+    const studentMap = {};
+    studentSnaps.forEach((s, i) => { if (s.exists()) studentMap[allStudentIds[i]] = s.data(); });
+
+    const submissionMap2 = {};
+    submissions.forEach(s => { submissionMap2[`${s.quiz_id}_${s.student_user_id}`] = s; });
+
+    const result = [];
+    allQuizzes.forEach(q => {
+      const students = cohortMap[q.student_class] || [];
+      students.forEach(uid => {
+        const sub = submissionMap2[`${q.quiz_id}_${uid}`];
+        result.push({
+          id: `${q.quiz_id}_${uid}`,
+          quiz_id: q.quiz_id,
+          student_user_id: uid,
+          studentName: studentMap[uid]?.fullName || "Unknown",
+          quizTitle: q.title || "Quiz",
+          status: sub ? "Submitted" : "Assigned",
+          submissionDate: sub?.submissionDate || "-",
+          mark: sub?.mark ?? "-",
+        });
+      });
+    });
+
+    return result;
   } catch (e) {
     console.error("getQuizSubmissionsWithDetails:", e);
     return [];

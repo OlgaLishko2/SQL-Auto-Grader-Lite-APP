@@ -38,7 +38,7 @@ function SubmissionStatusPage() {
           {activeTab === "assignments" ? (
             <AssignmentTable onSelectStudent={setSelectedStudentId} />
           ) : (
-            <QuizTable onSelectStudent={setSelectedStudentId} />
+            <QuizTable/>
           )}
         </>
       )}

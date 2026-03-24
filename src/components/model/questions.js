@@ -58,10 +58,8 @@ async function getAllQuestionByAssignment(assignmentId) {
   }
 }
 
-async function getAllActiveAssignmnetByStudent(assignmentId, userId) {
+async function getAllActiveAssignmnetByStudent(questions, userId) {
   try {
-    const questions = await getAllQuestionByAssignment(assignmentId);
-
     return Promise.all(
       questions.map(async (question) => {
         const attemptTime = await countAttempt(question.question_id, userId);
@@ -70,6 +68,7 @@ async function getAllActiveAssignmnetByStudent(assignmentId, userId) {
           question.question_id,
         );
         const isSolved = Boolean(bestAttempt?.is_correct);
+        //console.log(isSolved);
         const status =
           attemptTime === 0
             ? "Not Started"

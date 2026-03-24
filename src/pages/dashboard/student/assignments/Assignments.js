@@ -89,7 +89,7 @@ const Assignments = () => {
             style={{ borderRadius: "4px", fontSize: "12px" }}
             onClick={() =>
               navigate(`/dashboard/questions/${row.assignment_id}`, {
-                state: { dataset: row.dataset },
+                state: { assignment: row },
               })
             }
           >
@@ -101,6 +101,7 @@ const Assignments = () => {
 
   return (
     <>
+      <LoadingOverlay isOpen={isLoading} message="Loading..." />
       <div className="d-sm-flex justify-content-between mb-0">
         <PageTitle pagetitle="Assignments" />
         <Breadcrumb

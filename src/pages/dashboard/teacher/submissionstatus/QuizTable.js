@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getQuizSubmissionsWithDetails } from "../../../../components/model/quizzes";
 
-export default function QuizTable({ onSelectStudent }) {
+export default function QuizTable() {
   const [data, setData] = useState([]);
   const [sortField, setSortField] = useState("");
   const [sortDirection, setSortDirection] = useState("asc");
