@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import "./Dashboard.css";
-import PageTitle from './student/topbar/PageTitle';
 import CardDashboard from './CardDashboard';
 import userSession from "../../components/services/UserSession";
 import { getDashboardDataForTeacher } from "../../components/model/studentAssignments";

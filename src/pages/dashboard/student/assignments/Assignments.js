@@ -18,6 +18,8 @@ const Assignments = () => {
     const fetchdata = async () => {
       try {
         const data = await getAllAssignmnetByStudent(userSession.uid);
+        console.log(data);
+        
         setAssignmentsdata(data);
       } catch (error) {
         console.error("Error:", error);
