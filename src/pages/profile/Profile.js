@@ -12,7 +12,14 @@ const Profile = () => {
           <div className="profile-avatar">
             {userData?.fullName?.charAt(0) || "U"}
           </div>
-          <h2>{userData?.fullName || "User Name"}</h2>
+          <h2>  
+            {userData?.fullName
+            ? userData.fullName
+                .split(" ")
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ")
+            : "User Name"}
+          </h2>
           <p className="profile-role">{userData?.role?.toUpperCase()}</p>
         </div>
 

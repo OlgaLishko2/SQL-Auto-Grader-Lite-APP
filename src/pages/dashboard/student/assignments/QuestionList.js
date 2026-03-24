@@ -28,6 +28,7 @@ const QuestionList = () => {
           userSession.uid,
         );
         setquestiondata(data);
+        //console.log(data)
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -134,8 +135,8 @@ const QuestionList = () => {
         <PageTitle pagetitle="Questions List" />
         <Breadcrumb
           items={[
-            { label: "Dashboard", link: "/dashboard" },
-            { label: "Assignments", link: "/dashboard/assignments" },
+            { label: "Dashboard", path: "/dashboard" },
+            { label: "Assignments", path: "/dashboard/assignments" },
             { label: "Questions List", active: true },
           ]}
         />
@@ -166,7 +167,7 @@ const QuestionList = () => {
         </button>
       </div>
 
-      <div className="card shadow mb-4">
+      <div className="card shadow mb-4 p-0">
         <div className="card-header">Assignment name</div>
         <DataTable
           columns={columns}

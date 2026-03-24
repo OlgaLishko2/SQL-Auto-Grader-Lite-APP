@@ -2,7 +2,7 @@
 const Footer= () =>{
     return(
           <footer className="sticky-footer bg-white">
-                <div className="container my-auto">
+                <div className="container my-auto justify-content-center">
                     <div className="copyright text-center my-auto">
                         <span>&copy; 2026 SQL. All rights reserved.</span>
                     </div>

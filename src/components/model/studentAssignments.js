@@ -136,7 +136,7 @@ async function getAllCompletedAssignmnetByStudent(studentId) {
     const studentAssignmentQuery = query(
       dbCollection,
       where("student_user_id", "==", studentId),
-      where("status", "==", "submitted"),
+      where("status", "==", "completed"),
       orderBy("assigned_on", "desc"),
     );
     let assignments = [];

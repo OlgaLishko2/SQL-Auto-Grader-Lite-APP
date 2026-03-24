@@ -9,6 +9,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "../../firebase";
+import { getAssignmentDetailsByAssignmentId } from "./studentAssignments";
 
 const dbCollection = collection(db, "question_attempts");
 const questionCollection = collection(db, "questions");
@@ -132,6 +133,56 @@ async function getAttemptsByStudent(studentId) {
   }
 }
 
+
+ async function getAssignmentWithStudentAttempts(assignment_id, userId) {
+  try {
+    const assignment = await getAssignmentDetailsByAssignmentId(assignment_id);
+
+    if (!assignment) return null;
+
+    const questionIds = assignment.questions.map(q => q.question_id);
+
+    if (questionIds.length === 0) {
+      return { ...assignment, questions: [] };
+    }
+
+    const attemptsQuery = query(
+      collection(db, "question_attempts"),
+      where("student_user_id", "==", userId),
+      where("question_id", "in", questionIds)
+    );
+
+    const attemptSnap = await getDocs(attemptsQuery);
+
+    const attempts = attemptSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    const attemptsMap = {};
+    attempts.forEach(a => {
+      if (!attemptsMap[a.question_id]) {
+        attemptsMap[a.question_id] = [];
+      }
+      attemptsMap[a.question_id].push(a);
+    });
+
+    return {
+      ...assignment,
+      questions: assignment.questions.map(q => ({
+        ...q,
+        attempts: attemptsMap[q.question_id] || []
+      }))
+    };
+
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+
+
 export {
   countAttempt,
   createAttempt,
@@ -139,4 +190,5 @@ export {
   getAttemptByUserQuestion,
   getStudentInfo,
   getAttemptsByStudent,
+  getAssignmentWithStudentAttempts,
 };

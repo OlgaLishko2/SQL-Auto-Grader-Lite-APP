@@ -5,7 +5,7 @@ import PageTitle from "../topbar/PageTitle";
 import Breadcrumb from "../topbar/Breadcrumb";
 
 import userSession from "../../../../components/services/UserSession";
-import { getAllAssignmnetByStudent } from "../../../../components/model/studentAssignments";
+import { getAllAssignmnetByStudent} from "../../../../components/model/studentAssignments";
 import LoadingOverlay from "../LoadingOverlay";
 
 const Assignments = () => {
@@ -102,17 +102,17 @@ const Assignments = () => {
   return (
     <>
       <LoadingOverlay isOpen={isLoading} message="Loading..." />
-      <div className="d-sm-flex justify-content-between mb-0">
+      <div className="d-sm-flex justify-content-between align-items-center mb-0">
         <PageTitle pagetitle="Assignments" />
         <Breadcrumb
           items={[
-            { label: "Dashboard", link: "/dashboard" },
+            { label: "Dashboard", path: "/dashboard" },
             { label: "Assignments", active: true },
           ]}
         />
       </div>
 
-      <div className="card shadow mb-4">
+      <div className="card shadow mb-4 p-0">
         <DataTable
           columns={columns}
           data={assignmentsdata}

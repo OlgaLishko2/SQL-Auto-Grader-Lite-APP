@@ -4,11 +4,6 @@ import CardDashboard from './CardDashboard';
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db, auth } from "../../firebase";
 
-const studentCards = [
-  { label: "Assignments (Total)", value: 40, color: "primary", icon: "fa-clipboard-list" },
-  { label: "Result (Percentage)", value: "80%", color: "success", icon: "fa-percent" },
-  { label: "Total Quizzes", value: 18, color: "warning", icon: "fa-comments" },
-];
 
 const Dashboard = ({ role }) => {
   const [studentsCount, setStudentsCount] = useState(0);
@@ -93,7 +88,7 @@ const Dashboard = ({ role }) => {
     return (
       <div className="dashboard">
         <h2 className="dashboard-title">Student Dashboard</h2>
-        <CardDashboard cards={studentCards} />
+        <CardDashboard  />
       </div>
     );
   }

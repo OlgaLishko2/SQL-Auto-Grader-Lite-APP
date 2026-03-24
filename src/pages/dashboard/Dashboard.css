@@ -4722,7 +4722,7 @@ input[type="button"].btn-block {
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
   list-style: none;
-  background-color: #eaecf4;
+  /* background-color: #eaecf4; */
   border-radius: 0.35rem;
 }
 
@@ -11395,3 +11395,17 @@ body.sidebar-toggled footer.sticky-footer {
 .table tr:hover {
   background-color: #f9f9f9;
 }
+/* .card .card-header[data-toggle=collapse].collapsed::after {
+    content: '\f105';
+}
+.card .card-header[data-toggle=collapse]::after {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding-right: 1.725rem;
+    line-height: 51px;
+    font-weight: 900;
+    content: '\f107';
+    font-family: 'Font Awesome 5 Free';
+    color: #d1d3e2;
+} */

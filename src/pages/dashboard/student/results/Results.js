@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import PageTitle from "../topbar/PageTitle";
 import Breadcrumb from "../topbar/Breadcrumb";
-
+import LoadingOverlay from "../LoadingOverlay";
 
 import userSession from "../../../../components/services/UserSession";
 import { getAllCompletedAssignmnetByStudent } from "../../../../components/model/studentAssignments";
@@ -19,6 +19,7 @@ import { getAllCompletedAssignmnetByStudent } from "../../../../components/model
 const Results = () => {
   const navigate = useNavigate();
   const [submissionsdata, setsubmissionsdata] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Get data from student assignments table from firebase
@@ -26,8 +27,11 @@ const Results = () => {
       try {
         const data = await getAllCompletedAssignmnetByStudent(userSession.uid);
         setsubmissionsdata(data);
+        //console.log(data)
       } catch (error) {
         console.error("Error:", error);
+      } finally {
+            setIsLoading(false);
       }
     };
 
@@ -51,13 +55,9 @@ const columns = [
     cell: (row) => capitalizeFirstLetter(row.title),
   },
    {
-    name: "Marks Obtained / Total Marks",
-    selector: row => `${row.oMarks} / ${row.totalMarks}`, 
+    name: "Due Date",
+    selector: row => row.dueDate, 
     sortable: true,
-  },
- {
-    name: "Percentage",
-    selector: row => row.percentage,
   },
   
   {
@@ -86,16 +86,18 @@ const columns = [
 
   return (
     <>
-      <div className="d-sm-flex align-items-center justify-content-between mb-4">
+     <LoadingOverlay isOpen={isLoading} message="Loading..." />
+    
+      <div className="d-sm-flex align-items-center justify-content-between mb-0">
         <PageTitle pagetitle="Submitted Assignments" />
         <Breadcrumb
           items={[
-            { label: "Dashboard", link: "/dashboard" },
+            { label: "Dashboard", path: "/dashboard" },
             { label: "Submitted Assignments", active: true },
           ]}
         />
       </div>
-        <div className="card shadow mb-4">
+        <div className="card shadow mb-4 p-0">
             <DataTable
             columns={columns}
             data={submissionsdata}
