@@ -120,29 +120,27 @@ const QuizDetail = () => {
   const runQuery = async () => {
     if (!sqlCode.trim()) { setError("Please write your answer first."); setShowResults(true); return; }
     setShowResults(true);
-    const correct = await executeAndCompare();
-    if (!correct && !submitted) {
-      setAttemptsLeft(prev => {
-        const next = prev - 1;
-        return next;
-      });
-    }
+    await executeAndCompare();
   };
 
   const submitQuery = async () => {
-    const user = userSession.uid
-    if (!user || submitted) return;
+    const user = userSession.uid;
+    if (!user || submitted || lost) return;
     setShowResults(true);
     const correct = await executeAndCompare();
+    if (!correct) {
+      setAttemptsLeft(prev => prev - 1);
+      return;
+    }
     const createdOn = new Date(quiz.created_on?.seconds ? quiz.created_on.seconds * 1000 : quiz.created_on);
     const isLate = createdOn < new Date();
-    const calculatedMark = correct ? (isLate ? Math.floor((quiz.mark || 1) * 0.5) : (quiz.mark || 1)) : 0;
+    const calculatedMark = isLate ? Math.floor((quiz.mark || 1) * 0.5) : (quiz.mark || 1);
     setEarnedMark(calculatedMark);
     await submitStudentQuiz({
       quiz_id: quiz.quiz_id,
       student_user_id: user,
       submitted_sql: sqlCode,
-      is_correct: correct,
+      is_correct: true,
       mark: calculatedMark,
     });
     setSubmitted(true);
@@ -166,7 +164,7 @@ const QuizDetail = () => {
             <p>{quiz.questionText}</p>
             <p><strong>Order Matters: </strong>{quiz.orderMatters ? "Yes" : "No"} | <strong>Alias Strict: </strong>{quiz.aliasStrict ? "Yes" : "No"}</p>
             <p><strong>Difficulty:</strong> {quiz.difficulty} | <strong>Mark:</strong> {quiz.mark} </p>
-            {!(lost || submitted) && <p><strong>Attempts:</strong> {attemptsLeft} / {quiz.max_attempts}</p>}
+            {!(submitted) && <p><strong>Attempts left:</strong> {attemptsLeft} / {quiz.max_attempts}</p>}
             {Object.entries(tableSchemas).map(([table, schema]) => (
               <>
                 <p style={{ marginTop: '20px' }}><strong>{table}</strong></p>
@@ -185,10 +183,10 @@ const QuizDetail = () => {
               spellCheck="false" />
           </div>
           <div className="editor-btns">
-            {(lost || submitted) && <p style={{ color: 'red', margin: 0 }}> No tries left</p>}
+            {lost && !submitted && <p style={{ color: 'red', margin: 0, fontWeight: 'bold' }}>No attempts left — you cannot submit.</p>}
             <button className="btn-run" onClick={runQuery}>Run Code</button>
             <button className="btn-submit" onClick={submitQuery} disabled={lost || submitted}>
-              {submitted ? "Submitted" : "Submit"}
+              {submitted ? "Submitted" : lost ? "No Attempts Left" : "Submit"}
             </button>
           </div>
           {lost && !submitted && (

@@ -4,18 +4,18 @@ import CardDashboard from './CardDashboard';
 import userSession from "../../components/services/UserSession";
 import { getDashboardDataForTeacher } from "../../components/model/studentAssignments";
 import { getAllAssignmnetByStudent } from "../../components/model/studentAssignments";
-import { getAllQuizByOwner } from "../../components/model/quizzes";
 import { getQuizzesForStudent } from "../../components/model/quizzes";
+import { useNavigate } from "react-router-dom";
 // DEV ONLY — remove these 2 lines before pushing to GitHub
 import { seedAllData, uploadDbConfig } from "../../data/devSeed";
 
 const Dashboard = ({ role }) => {
   const [teacherData, setTeacherData] = useState(null);
   const [studentCards, setStudentCards] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (role === "teacher") {
-      // { assignments, studentAssignments, studentsCount, needsGrading }
       getDashboardDataForTeacher(userSession.uid).then(setTeacherData);
     } else if (role === "student") {
       Promise.all([
@@ -33,12 +33,10 @@ const Dashboard = ({ role }) => {
 
   if (role === "student") {
     return (
-
       <div className="dashboard">
         <h2 className="dashboard-title">Student Dashboard</h2>
         <CardDashboard cards={studentCards} />
       </div>
-
     );
   }
 
@@ -48,21 +46,7 @@ const Dashboard = ({ role }) => {
   return (
     <div className="dashboard">
       <h2 className="dashboard-title">Teacher Dashboard</h2>
-      {/* fetching data */}
-      {/* <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-          <button
-            onClick={() => seedAllData().then(() => alert("All data seeded!")).catch((e) => alert("Error: " + e.message))}
-            style={{ padding: "8px 16px" }}
-          >
-            Seed Sample Data (run once)
-          </button>
-          <button
-            onClick={() => uploadDbConfig().then(() => alert("Dataset config uploaded!")).catch((e) => alert("Error: " + e.message))}
-            style={{ padding: "8px 16px" }}
-          >
-            Upload Dataset Config (run once)
-          </button>
-        </div> */}
+
       {/* Cards */}
       <div className="cards">
         <div className="card">
@@ -85,7 +69,12 @@ const Dashboard = ({ role }) => {
         {teacherData.needsGrading.length > 0 ? (
           <ul>
             {teacherData.needsGrading.map((a, i) => (
-              <li key={i}>{a.student_user_id} — {a.assignment_id}</li>
+              <li key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span>{a.student_user_id} — {a.assignment_id}</span>
+                <button className="grade-button" onClick={() => navigate("/dashboard/submissionstatus")}>
+                  Grade
+                </button>
+              </li>
             ))}
           </ul>
         ) : (
@@ -106,10 +95,9 @@ const Dashboard = ({ role }) => {
           <tbody>
             {teacherData.assignments.map((a, index) => {
               const allForAssignment = teacherData.studentAssignments.filter(sa => sa.assignment_id === a.assignment_id);
-              const submittedCount = allForAssignment.filter(sa => sa.status === "submitted").length;
+              const submittedCount = allForAssignment.filter(sa => sa.status === "submitted" || sa.status === "completed").length;
               const totalStudents = allForAssignment.length;
               const percent = totalStudents ? Math.round((submittedCount / totalStudents) * 100) : 0;
-
               return (
                 <tr key={index}>
                   <td>{a.title || a.description}</td>

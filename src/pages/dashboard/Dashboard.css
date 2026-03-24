@@ -11395,3 +11395,17 @@ body.sidebar-toggled footer.sticky-footer {
 .table tr:hover {
   background-color: #f9f9f9;
 }
+
+
+.grade-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.grade-button:hover {
+  background-color: #45a049;
+}
