@@ -1,0 +1,96 @@
+
+.cohort-manager {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+
+.cohort-manager h2, .cohort-manager h3 {
+  margin: 0 0 12px 0;
+}
+
+
+.cohort-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+
+.create-cohort-btn {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.create-cohort-btn:hover {
+  background-color: #218838;
+}
+
+
+.edit-btn {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.edit-btn:hover {
+  background-color: #0069d9;
+}
+
+
+.black-btn {
+  background-color: #000;
+  color: #fff;
+}
+
+.black-btn:hover {
+  background-color: #333;
+}
+
+
+.select-all-btn {
+  background-color: #28a745;
+  color: #fff;
+  margin-right: 8px;
+}
+
+.select-all-btn:hover {
+  background-color: #218838;
+}
+
+.clear-btn {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.clear-btn:hover {
+  background-color: #c82333;
+}
+
+
+.cohort-panel {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+  background-color: #fff;
+}
+
+
+.student-list {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+  background-color: #f9f9f9;
+}
+
+.student-list label {
+  display: block;
+  margin-bottom: 6px;
+  cursor: pointer;
+}

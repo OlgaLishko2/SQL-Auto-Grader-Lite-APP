@@ -36,7 +36,11 @@ const Dashboard = ({ role }) => {
       console.error("Error loading users:", err);
     }
   };
+const handleGrade = (studentAssignment) => {
 
+  console.log("Grading assignment:", studentAssignment);
+  alert(`Open grading for ${studentAssignment.assignment_id} of student ${studentAssignment.student_user_id}`);
+};
   const loadTeacherData = async () => {
     try {
       const currentUser = auth.currentUser;
@@ -135,8 +139,14 @@ const Dashboard = ({ role }) => {
     const assignmentTitle = assignment ? (assignment.title || assignment.description || assignment.assignment_id) : a.assignment_id;
 
     return (
-      <li key={i}>
-        {studentName} — {assignmentTitle}
+      <li key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span>{studentName} — {assignmentTitle}</span>
+        <button
+          className="grade-button"
+          onClick={() => handleGrade(a)}
+        >
+          Grade
+        </button>
       </li>
     );
   })}
