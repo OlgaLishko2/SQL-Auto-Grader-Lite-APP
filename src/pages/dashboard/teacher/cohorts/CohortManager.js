@@ -65,7 +65,7 @@ function CohortManager() {
         <button
           type="button"
           onClick={openPanel === "create" ? closePanel : openCreate}
-          style={{ padding: "8px 16px", backgroundColor: "black", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+          style={{ padding: "8px 16px", backgroundColor: "green", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
         >
           {openPanel === "create" ? "Cancel" : "+ Create New Cohort"}
         </button>
@@ -111,7 +111,7 @@ function CohortManager() {
                   <button type="button" onClick={() => setSelected([])}>Clear</button>
                 </div>
                 {studentList}
-                <button onClick={() => handleSaveEdit(c)} style={{ padding: "6px 16px", backgroundColor: "black", color: "white" }}>
+                <button onClick={() => handleSaveEdit(c)} style={{ padding: "6px 16px", backgroundColor: "green", color: "white" }}>
                   Save Members
                 </button>
               </div>

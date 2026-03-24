@@ -33,9 +33,13 @@ export async function getQuizzesForStudent(studentId) {
     const quizzes = quizSnap.docs.map(d => d.data());
 
     const submissionSnap = await getDocs(query(quizCol, where("student_user_id", "==", studentId)));
-    const submittedIds = new Set(submissionSnap.docs.map(d => d.data().quiz_id));
+    const submissionMap = {};
+    submissionSnap.docs.forEach(d => { const s = d.data(); submissionMap[s.quiz_id] = s; });
 
-    return quizzes.map(q => ({ ...q, status: submittedIds.has(q.quiz_id) ? "Completed" : "New" }));
+    return quizzes.map(q => {
+      const sub = submissionMap[q.quiz_id];
+      return { ...q, status: sub ? "Completed" : "New", achievedMark: sub ? sub.mark : null };
+    });
   } catch (e) {
     console.error("getQuizzesForStudent:", e);
     return [];
@@ -56,6 +60,18 @@ export async function submitStudentQuiz({ quiz_id, student_user_id, submitted_sq
     console.error("submitStudentQuiz:", e);
   }
 }
+
+export async function getStudentQuizSubmission(quiz_id, student_user_id) {
+  try {
+    const snap = await getDocs(query(quizCol, where("quiz_id", "==", quiz_id), where("student_user_id", "==", student_user_id)));
+    if (snap.empty) return null;
+    return snap.docs[0].data();
+  } catch (e) {
+    console.error("getStudentQuizSubmission:", e);
+    return null;
+  }
+}
+
 
 export async function getQuizSubmissionsWithDetails() {
   try {
