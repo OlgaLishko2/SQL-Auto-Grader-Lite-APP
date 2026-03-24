@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "react-data-table-component";
-import PageTitle from "../topbar/PageTitle";
-import Breadcrumb from "../topbar/Breadcrumb";
+
+import Breadcrumb from "../Breadcrumb";
 
 import userSession from "../../../../components/services/UserSession";
 import { useParams } from "react-router-dom";
@@ -137,7 +137,7 @@ const QuestionList = () => {
     <>
       <LoadingOverlay isOpen={isLoading} message="Loading..." />
       <div className="d-sm-flex justify-content-between align-items-center mb-0 al">
-        <PageTitle pagetitle="Questions List" />
+        <h2>Questions List</h2>
         <Breadcrumb
           items={[
             { label: "Dashboard", link: "/dashboard" },

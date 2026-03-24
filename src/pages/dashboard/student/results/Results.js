@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import DataTable from "react-data-table-component";
-import PageTitle from "../topbar/PageTitle";
-import Breadcrumb from "../topbar/Breadcrumb";
+
+import Breadcrumb from "../Breadcrumb";
 
 
 import userSession from "../../../../components/services/UserSession";
@@ -95,7 +95,7 @@ const columns = [
   return (
     <>
       <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <PageTitle pagetitle="Submitted Assignments" />
+        <h2>Submitted Assignments</h2>
         <Breadcrumb
           items={[
             { label: "Dashboard", link: "/dashboard" },

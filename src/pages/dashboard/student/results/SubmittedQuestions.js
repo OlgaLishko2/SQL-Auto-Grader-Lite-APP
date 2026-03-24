@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import PageTitle from "../topbar/PageTitle";
 import userSession from "../../../../components/services/UserSession";
 import { getAssignmentDetailsByAssignmentId } from "../../../../components/model/studentAssignments";
 import { getBestAttemptByUserQuestion } from "../../../../components/model/questionAttempts";
@@ -40,7 +39,7 @@ const SubmittedQuestions = () => {
   return (
     <>
       <LoadingOverlay isOpen={isLoading} message="Loading..." />
-      <PageTitle pagetitle={title} />
+      <h2>{title}</h2>
       <button className="btn btn-sm btn-secondary mb-3" onClick={() => navigate(-1)}>← Back</button>
 
       {questions.length > 0 && (

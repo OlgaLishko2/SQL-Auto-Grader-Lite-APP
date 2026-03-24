@@ -1,9 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { auth } from "./firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { getUser } from "./components/model/users";
-import userSession from "./components/services/UserSession";
+import { useAuth } from "./components/services/useAuth";
 
 import Home from "./pages/home/Home";
 import Register from "./pages/register/Register";
@@ -35,7 +32,6 @@ import SubmissionStatusPage from "./pages/dashboard/teacher/submissionstatus/Sub
 
 import "./App.css";
 import AssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
-import AntiCheatingQuestionDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
 
 function TeacherAssignments() {
   const [creating, setCreating] = useState(false);
@@ -51,26 +47,7 @@ function TeacherQuizzes() {
 }
 
 function App() {
-  const [role, setRole] = useState(null);
-
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        if (!userSession.role) {
-          const userData = await getUser(currentUser.uid);
-          if (userData) userSession.set(userData);
-        }
-        setRole(userSession.role);
-      } else {
-        userSession.clear();
-        setRole(null);
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+  const { role, loading } = useAuth();
 
   if (loading) return null;
 

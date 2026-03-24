@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
-import PageTitle from "../topbar/PageTitle";
-import Breadcrumb from "../topbar/Breadcrumb";
+
+import Breadcrumb from "../Breadcrumb";
 
 import userSession from "../../../../components/services/UserSession";
 import { getAllAssignmnetByStudent } from "../../../../components/model/studentAssignments";
@@ -105,7 +105,7 @@ const Assignments = () => {
     <>
       <LoadingOverlay isOpen={isLoading} message="Loading..." />
       <div className="d-sm-flex justify-content-between mb-0">
-        <PageTitle pagetitle="Assignments" />
+        <h2>Assignments</h2>
         <Breadcrumb
           items={[
             { label: "Dashboard", link: "/dashboard" },

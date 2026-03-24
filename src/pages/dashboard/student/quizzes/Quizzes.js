@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
-import PageTitle from "../topbar/PageTitle";
+
 import userSession from "../../../../components/services/UserSession";
 import { getQuizzesForStudent } from "../../../../components/model/quizzes";
 import LoadingOverlay from "../LoadingOverlay";
@@ -64,7 +64,7 @@ const Quizzes = () => {
   return (
     <>
       <LoadingOverlay isOpen={isLoading} message="Loading..." />
-      <PageTitle pagetitle="Quizzes" />
+      <h2>Quizzes</h2>
       <div className="card shadow mb-4">
         <DataTable columns={columns} data={sortedData} pagination highlightOnHover striped responsive />
       </div>
