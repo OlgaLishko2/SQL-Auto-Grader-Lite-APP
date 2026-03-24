@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
-import PageTitle from "../../topbar/PageTitle";
-import Breadcrumb from "../../topbar/Breadcrumb";
+import PageTitle from "../topbar/PageTitle";
+import Breadcrumb from "../topbar/Breadcrumb";
 
-import { auth } from "../../../../firebase";
+import userSession from "../../../../services/UserSession";
 import { getAllAssignmnetByStudent } from "../../../../components/model/studentAssignments";
 import LoadingOverlay from "../LoadingOverlay";
 
@@ -17,9 +17,7 @@ const Assignments = () => {
     // Get data from assignments table from firebase
     const fetchdata = async () => {
       try {
-        const user = auth.currentUser;
-        if (!user) return;
-        const data = await getAllAssignmnetByStudent(user.uid);
+        const data = await getAllAssignmnetByStudent(userSession.uid);
         setAssignmentsdata(data);
       } catch (error) {
         console.error("Error:", error);

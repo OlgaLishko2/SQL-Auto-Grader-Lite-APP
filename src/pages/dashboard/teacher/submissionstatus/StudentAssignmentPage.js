@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { doc, getDoc, collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../../../../firebase";
+import { getStudentInfo, getAttemptsByStudent } from "../../../../components/model/questionAttempts";
 import DataTable from "react-data-table-component";
 
 export default function StudentAssignmentPage({ studentId, onBack }) {
@@ -16,21 +14,12 @@ export default function StudentAssignmentPage({ studentId, onBack }) {
     const loadData = async () => {
       try {
         console.log("studentId", studentId);
-        const userRef = doc(db, "users", studentId);
-        const userSnap = await getDoc(userRef);
-        console.log("userSnap.data",userSnap.data);
-        setStudent(userSnap.data());
-        console.log("student: ", student);
+        const userData = await getStudentInfo(studentId);
+        setStudent(userData);
 
-        const q = query(
-          collection(db, "question_attempts"),
-          where("student_user_id", "==", studentId)
-        );
-        const snap = await getDocs(q);
-        const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const list = await getAttemptsByStudent(studentId);
         setAttempts(list);
         console.log("list: ", list);
-        console.log("Attempts: ", attempts);
       }catch (err) {
         console.error("Error loading data:", err);
       }

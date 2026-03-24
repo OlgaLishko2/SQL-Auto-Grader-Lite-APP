@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAppContext } from '../../../../components/db/service/context';
 import "./DatabaseManager.css";
 import HintPopup from './HintPopup';
@@ -97,8 +97,8 @@ function DatabaseManager() {
     }
   };
   const fetchData = async () => {
-    const result = await fetchItems(selectedDataset, selectedTable)
-    setDatas(result)
+    const result = await fetchItems(selectedDataset, `SELECT * FROM ${selectedTable}`)
+    setDatas(result.data)
   }
 
   const addColumn = () => {
@@ -265,7 +265,7 @@ function DatabaseManager() {
                       <input
                         className='tableInput'
                         value={col.name}
-                        onChange={(e) => updateColumn(i, 'name', e.target.value)}
+                        onChange={(e) => updateColumn(i, 'name', (e.target.value).trim().replace(/\s+/g, ''))}
                         placeholder="column_name"
                       />
                     </td>

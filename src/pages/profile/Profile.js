@@ -1,26 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { auth, db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import React from "react";
+import userSession from "../../services/UserSession";
 import "./Profile.css";
 
 const Profile = () => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (auth.currentUser) {
-        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
-        }
-      }
-      setLoading(false);
-    };
-    fetchUser();
-  }, []);
-
-  if (loading) return <div className="p-loader">Loading profile...</div>;
+  const userData = userSession.get();
 
   return (
     <div className="profile-container">

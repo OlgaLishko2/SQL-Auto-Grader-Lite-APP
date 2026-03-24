@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { auth, db } from "./firebase";
+import { auth } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { getUser } from "./components/model/users";
+import userSession from "./services/UserSession";
 
 import Home from "./pages/home/Home";
 import Register from "./pages/register/Register";
@@ -18,6 +19,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Assignments from "./pages/dashboard/student/assignments/Assignments";
 import QuestionList from "./pages/dashboard/student/assignments/QuestionList";
 import Quizzes from "./pages/dashboard/student/quizzes/Quizzes";
+import QuizDetail from "./pages/dashboard/student/quizzes/QuizDetail";
 import Results from "./pages/dashboard/student/results/Results";
 import SubmittedQuestions from "./pages/dashboard/student/results/SubmittedQuestions";
 //import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
@@ -56,11 +58,13 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          setRole(userDoc.data().role);
+        if (!userSession.role) {
+          const userData = await getUser(currentUser.uid);
+          if (userData) userSession.set(userData);
         }
+        setRole(userSession.role);
       } else {
+        userSession.clear();
         setRole(null);
       }
       setLoading(false);
@@ -96,7 +100,12 @@ function App() {
               <Route path="assignments/:id" element={<AssignmentDetail />} />
               <Route path="questions/:assignment_id" element={<QuestionList />} />
               <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
-              <Route path="quizzes" element={<Quizzes />} />
+              <Route path="quizzes" element={
+                role === "student"
+                  ? <Quizzes />
+                  : <TeacherQuizzes />
+              } />
+              <Route path="quizzes/:quiz_id" element={<QuizDetail />} />
               <Route path="results" element={<Results />} />
               <Route path="results/:assignment_id" element={<SubmittedQuestions />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
