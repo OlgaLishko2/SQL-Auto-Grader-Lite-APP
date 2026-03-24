@@ -182,7 +182,7 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
 
             {questions.length > 0 && (
               <div style={{ marginTop: "20px" }}>
-                <button style={{ padding: "10px 20px", fontSize: "16px", backgroundColor: "black", color: "white" }} onClick={saveQuestions}>
+                <button style={{ padding: "10px 20px", fontSize: "16px", backgroundColor: "green", color: "white" }} onClick={saveQuestions}>
                   Save Questions
                 </button>
               </div>

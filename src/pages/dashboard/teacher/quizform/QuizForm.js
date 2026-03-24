@@ -259,7 +259,7 @@ const QuizForm = ({ onDone }) => {
         {error && <p style={{ color: 'red' }}>{error}</p>}
 
         <button type="button" onClick={handleSubmit}
-          style={{ padding: '10px 20px', backgroundColor: 'black', color: 'white', cursor: 'pointer' }}>
+          style={{ padding: '10px 20px', backgroundColor: 'green', color: 'white', cursor: 'pointer' }}>
           Create Quiz
         </button>
       </div>
