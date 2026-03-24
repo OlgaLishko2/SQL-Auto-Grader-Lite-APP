@@ -1,10 +1,10 @@
 import "./Dashboard.css";
 import { useEffect, useState } from "react";
-import CardDashboard from './CardDashboard'; // карточки студента
+import CardDashboard from './CardDashboard'; 
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db, auth } from "../../firebase";
 
-// карточки студента (не трогаем)
+
 const studentCards = [
   { label: "Assignments (Total)", value: 40, color: "primary", icon: "fa-clipboard-list" },
   { label: "Result (Percentage)", value: "80%", color: "success", icon: "fa-percent" },
@@ -28,7 +28,6 @@ const Dashboard = ({ role }) => {
 
       const teacherId = currentUser.uid;
 
-      // 1️⃣ Получаем все задания учителя
       const assignmentsRef = collection(db, "assignments");
       const qAssignments = query(assignmentsRef, where("owner_user_id", "==", teacherId));
       const assignmentsSnap = await getDocs(qAssignments);
@@ -40,7 +39,7 @@ const Dashboard = ({ role }) => {
 
       if (assignmentsData.length === 0) return;
 
-      // 2️⃣ Получаем student_assignments для этих заданий
+     
       const assignmentIds = assignmentsData.map(a => a.assignment_id);
       const studentAssignmentsRef = collection(db, "student_assignments");
 
@@ -55,11 +54,10 @@ const Dashboard = ({ role }) => {
 
       setStudentAssignments(studentAssignmentsData);
 
-      // 3️⃣ Считаем уникальных студентов
+   
       const uniqueStudents = new Set(studentAssignmentsData.map(sa => sa.student_user_id));
       setStudentsCount(uniqueStudents.size);
 
-      // 4️⃣ Фильтруем нуждающиеся в проверке
       const submitted = studentAssignmentsData.filter(sa => sa.status === "submitted");
       setNeedsGrading(submitted);
 
@@ -68,7 +66,6 @@ const Dashboard = ({ role }) => {
     }
   };
 
-  // Студентский Dashboard с заголовком
   if (role === "student") {
     return (
       <div className="dashboard">
@@ -78,7 +75,7 @@ const Dashboard = ({ role }) => {
     );
   }
 
-  // Учительский Dashboard
+
   return (
     <div className="dashboard">
       <h2 className="dashboard-title">Teacher Dashboard</h2>
