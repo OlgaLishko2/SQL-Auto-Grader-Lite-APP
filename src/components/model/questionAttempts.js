@@ -6,6 +6,7 @@ import {
   getDoc,
   query,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import { db } from "../../firebase";
@@ -132,6 +133,16 @@ async function getAttemptsByStudent(studentId) {
   }
 }
 
+async function overrideAttemptMark(attemptId, is_correct) {
+  try {
+    const q = query(dbCollection, where("attempt_id", "==", attemptId));
+    const snap = await getDocs(q);
+    if (!snap.empty) await updateDoc(snap.docs[0].ref, { is_correct });
+  } catch (error) {
+    console.error(`overrideAttemptMark: ${error}`);
+  }
+}
+
 export {
   countAttempt,
   createAttempt,
@@ -139,4 +150,5 @@ export {
   getAttemptByUserQuestion,
   getStudentInfo,
   getAttemptsByStudent,
+  overrideAttemptMark,
 };

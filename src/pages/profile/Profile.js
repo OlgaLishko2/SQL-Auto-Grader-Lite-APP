@@ -1,26 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { auth, db } from "../../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import React from "react";
+import userSession from "../../components/services/UserSession";
 import "./Profile.css";
 
 const Profile = () => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      if (auth.currentUser) {
-        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
-        }
-      }
-      setLoading(false);
-    };
-    fetchUser();
-  }, []);
-
-  if (loading) return <div className="p-loader">Loading profile...</div>;
+  const userData = userSession.get();
 
   return (
     <div className="profile-container">
@@ -40,11 +23,11 @@ const Profile = () => {
           </div>
           <div className="info-item">
             <label>Member Since</label>
-            <span>{userData?.createdAt?.toDate().toLocaleDateString() || "Recently"}</span>
+            <span>{userData?.createdAt?.toDate().toLocaleDateString("en-CA") || "Recently"}</span>
           </div>
         </div>
 
-        <div className="profile-stats">
+        {/* <div className="profile-stats">
           <div className="stat-box">
             <span className="stat-val">12</span>
             <span className="stat-label">Solved</span>
@@ -53,7 +36,7 @@ const Profile = () => {
             <span className="stat-val">85%</span>
             <span className="stat-label">Accuracy</span>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

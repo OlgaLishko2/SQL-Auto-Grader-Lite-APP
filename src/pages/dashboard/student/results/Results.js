@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import DataTable from "react-data-table-component";
-import PageTitle from "../topbar/PageTitle";
-import Breadcrumb from "../topbar/Breadcrumb";
+
+import Breadcrumb from "../Breadcrumb";
 
 
-import { auth, db } from "../../../../firebase";
-import DatabaseManager from "../../teacher/datasets/DatabaseManager";
-
+import userSession from "../../../../components/services/UserSession";
 import { getAllCompletedAssignmnetByStudent } from "../../../../components/model/studentAssignments";
+import { getBestAttemptByUserQuestion } from "../../../../components/model/questionAttempts";
 
 
 
@@ -26,11 +25,15 @@ const Results = () => {
     // Get data from student assignments table from firebase
     const fetchdata = async () => {
       try {
-        const user = auth.currentUser;
-        if (!user) return;
-        
-        const data = await getAllCompletedAssignmnetByStudent(user.uid);
-        setsubmissionsdata(data);
+        const data = await getAllCompletedAssignmnetByStudent(userSession.uid);
+        const withMarks = await Promise.all(data.map(async (a) => {
+          const questions = a.questions || [];
+          const totalMarks = questions.reduce((s, q) => s + (q.mark || 1), 0);
+          const attempts = await Promise.all(questions.map(q => getBestAttemptByUserQuestion(userSession.uid, q.question_id)));
+          const oMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (questions[i].mark || 1) : 0), 0);
+          return { ...a, totalMarks, oMarks, percentage: totalMarks ? Math.round((oMarks / totalMarks) * 100) + "%" : "0%" };
+        }));
+        setsubmissionsdata(withMarks);
       } catch (error) {
         console.error("Error:", error);
       }
@@ -92,7 +95,7 @@ const columns = [
   return (
     <>
       <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <PageTitle pagetitle="Submitted Assignments" />
+        <h2>Submitted Assignments</h2>
         <Breadcrumb
           items={[
             { label: "Dashboard", link: "/dashboard" },

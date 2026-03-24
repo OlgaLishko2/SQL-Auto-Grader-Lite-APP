@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../firebase"; 
+import { auth } from "../../firebase"; 
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
+import { createUser } from "../../components/model/users";
 import "./Register.css";
 
 function Register() {
@@ -27,7 +27,7 @@ const [isWaitingForVerify, setIsWaitingForVerify] = useState(false);
     
       await sendEmailVerification(res.user); //send verif email
 
-      await setDoc(doc(db, "users", res.user.uid), {
+      await createUser(res.user.uid, {
         uid: res.user.uid,
         fullName: fullName,
         email: email,

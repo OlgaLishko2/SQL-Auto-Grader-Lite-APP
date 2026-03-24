@@ -1,26 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { auth, db } from "../../firebase";
+import { auth } from "../../firebase";
 import { signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import userSession from "../../components/services/UserSession";
 import "../../App.css"
 
 function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [userName, setUserName] = useState("");
   const user = auth.currentUser;
+  const userName = userSession.fullName || "";
   const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const fetchName = async () => {
-      if (user) {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        if (snap.exists()) setUserName(snap.data().fullName);
-      }
-    };
-    fetchName();
-  }, [user]);
 
   useEffect(() => {
     const handler = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false); };
@@ -29,6 +19,7 @@ function NavBar() {
   }, []);
 
   const handleLogout = () => {
+    userSession.clear();
     signOut(auth).then(() => { window.location.href = "/"; });
   };
 

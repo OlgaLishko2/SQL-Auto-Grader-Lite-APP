@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
-import PageTitle from "../topbar/PageTitle";
-import Breadcrumb from "../topbar/Breadcrumb";
 
-import { auth } from "../../../../firebase";
+import Breadcrumb from "../Breadcrumb";
+
+import userSession from "../../../../components/services/UserSession";
 import { getAllAssignmnetByStudent } from "../../../../components/model/studentAssignments";
 import LoadingOverlay from "../LoadingOverlay";
 
@@ -17,9 +17,9 @@ const Assignments = () => {
     // Get data from assignments table from firebase
     const fetchdata = async () => {
       try {
-        const user = auth.currentUser;
-        if (!user) return;
-        const data = await getAllAssignmnetByStudent(user.uid);
+        const data = await getAllAssignmnetByStudent(userSession.uid);
+        console.log(data);
+        
         setAssignmentsdata(data);
       } catch (error) {
         console.error("Error:", error);
@@ -91,7 +91,7 @@ const Assignments = () => {
             style={{ borderRadius: "4px", fontSize: "12px" }}
             onClick={() =>
               navigate(`/dashboard/questions/${row.assignment_id}`, {
-                state: { dataset: row.dataset },
+                state: { assignment: row },
               })
             }
           >
@@ -103,8 +103,9 @@ const Assignments = () => {
 
   return (
     <>
+      <LoadingOverlay isOpen={isLoading} message="Loading..." />
       <div className="d-sm-flex justify-content-between mb-0">
-        <PageTitle pagetitle="Assignments" />
+        <h2>Assignments</h2>
         <Breadcrumb
           items={[
             { label: "Dashboard", link: "/dashboard" },

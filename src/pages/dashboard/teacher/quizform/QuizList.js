@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { auth } from "../../../../firebase";
-import { getAllQuizByOwner } from "../../../../components/model/assignments";
+import { getAllQuizByOwner } from "../../../../components/model/quizzes";
 import CollapsiblePanel from "../assignmentform/collapsiblepanel/CollapsiblePanel";
+import userSession from "../../../../components/services/UserSession";
+import "./QuizManager.css";
 
 function QuizList({ onCreate }) {
   const [quizzes, setQuizzes] = useState([]);
@@ -9,18 +10,17 @@ function QuizList({ onCreate }) {
   const toggleQuiz = (id) => setExpanded(prev => prev === id ? null : id);
 
   useEffect(() => {
-    getAllQuizByOwner(auth.currentUser.uid).then((data) => {
-      console.log("quizzes:", data);
+    getAllQuizByOwner(userSession.uid).then((data) => {
       const sorted = [...data].sort((a, b) => new Date(b.created_on) - new Date(a.created_on));
       setQuizzes(sorted);
     });
   }, []);
 
   return (
-    <div style={{ padding: "20px"}}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div className="quiz-list">
+      <div className="list-header">
         <h2>Quizzes</h2>
-        <button onClick={onCreate} style={{ padding: "8px 16px", marginBottom: "16px" }}>+ New Quiz</button>
+        <button onClick={onCreate} className="quiz-btn create-quiz-btn">+ New Quiz</button>
       </div>
 
       {quizzes.length === 0 && <p>No quizzes found.</p>}
@@ -33,14 +33,12 @@ function QuizList({ onCreate }) {
           isCollapsed={expanded !== a.quiz_id}
           onToggle={() => toggleQuiz(a.quiz_id)}
         >
-          <div style={{ border: "1px solid #eee", padding: "12px"}}>
+          <div className="quiz-preview">
             <label>Question Text</label>
-            <textarea readOnly value={a.questionText || ""}
-              style={{ width: "100%", height: "60px", boxSizing: "border-box" }} />
+            <textarea readOnly value={a.questionText || ""} className="textarea-field" />
             <label>Answer SQL</label>
-            <textarea readOnly value={a.answer || ""}
-              style={{ width: "100%", height: "60px", boxSizing: "border-box", marginTop: "6px" }} />
-            <div style={{ marginTop: "8px", display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+            <textarea readOnly value={a.answer || ""} className="textarea-field" />
+            <div className="quiz-meta">
               <span>Difficulty: <strong>{a.difficulty || "easy"}</strong></span>
               <span>Max Attempts: <strong>{a.max_attempts || 1}</strong></span>
               <span>Mark: <strong>{a.mark || 1}</strong></span>

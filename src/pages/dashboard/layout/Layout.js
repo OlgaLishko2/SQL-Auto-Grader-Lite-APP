@@ -1,51 +1,43 @@
-import { Outlet, Navigate } from 'react-router-dom';
-import { useState, useEffect } from "react";
-import { auth, db } from "../../../firebase";
-import { doc, getDoc } from "firebase/firestore";
-
+import { Outlet, Navigate } from "react-router-dom";
+import { auth } from "../../../firebase";
+import userSession from "../../../components/services/UserSession";
 import "../Dashboard.css";
-
-import LeftMenu from '../leftmenu/LeftMenu';
+import LeftMenu from "../leftmenu/LeftMenu";
 
 const studentNavItems = [
-  { name: 'Dashboard',   address: '/dashboard',             icon: 'fa-tachometer-alt' },
-  { name: 'Assignments', address: '/dashboard/assignments', icon: 'fa-book' },
-  // { name: 'Quizzes',     address: '/dashboard/quizzes',     icon: 'fa-question' },
-  { name: 'Submission',      address: '/dashboard/results',     icon: 'fa-chart-area' },
-  { name: 'Profile',     address: '/dashboard/profile',     icon: 'fa-user' },
+  { name: "Dashboard", address: "/dashboard", icon: "fa-tachometer-alt" },
+  { name: "Assignments", address: "/dashboard/assignments", icon: "fa-book" },
+  { name: "Quizzes", address: "/dashboard/quizzes", icon: "fa-question" },
+  { name: "Submission", address: "/dashboard/results", icon: "fa-chart-area" },
+  { name: "Profile", address: "/dashboard/profile", icon: "fa-user" },
 ];
 
 const teacherNavItems = [
-  { name: 'Dashboard',   address: '/dashboard',             icon: 'fa-tachometer-alt' },
-  { name: 'Datasets',    address: '/dashboard/datasets',    icon: 'fa-database' },
-  { name: 'Cohorts',     address: '/dashboard/cohorts',     icon: 'fa-users' },
-  { name: 'Assignments', address: '/dashboard/assignments', icon: 'fa-book' },
-  { name: 'Quizzes', address: '/dashboard/quizzes', icon: 'fa-question' },
-  { name: 'Submission Status', address: '/dashboard/submissionstatus', icon: 'fa-check' },
-  { name: 'Profile',     address: '/dashboard/profile',     icon: 'fa-user' },
+  { name: "Dashboard", address: "/dashboard", icon: "fa-tachometer-alt" },
+  { name: "Cohorts", address: "/dashboard/cohorts", icon: "fa-users" },
+  { name: "Assignments", address: "/dashboard/assignments", icon: "fa-book" },
+  { name: "Quizzes", address: "/dashboard/quizzes", icon: "fa-question" },
+  {
+    name: "Submission Status",
+    address: "/dashboard/submissionstatus",
+    icon: "fa-check",
+  },
+  {
+    name: "Dataset Manager",
+    address: "/dashboard/datasets",
+    icon: "fa-database",
+  },
+  { name: "Profile", address: "/dashboard/profile", icon: "fa-user" },
 ];
 
 const Layout = () => {
-  const [userName, setUserName] = useState("");
-  const [userRole, setUserRole] = useState(null);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (auth.currentUser) {
-        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-        if (userDoc.exists()) {
-          setUserName(userDoc.data().fullName);
-          setUserRole(userDoc.data().role);
-        }
-      }
-    };
-    fetchUserData();
-  }, []);
+  const userRole = userSession.role;
 
   if (!auth.currentUser) return <Navigate to="/login" />;
 
   const navItems = userRole === "teacher" ? teacherNavItems : studentNavItems;
-  const dashboardName = userRole === "teacher" ? "Teacher Dashboard" : "Student Dashboard";
+  const dashboardName =
+    userRole === "teacher" ? "Teacher Dashboard" : "Student Dashboard";
 
   return (
     <div id="wrapper">

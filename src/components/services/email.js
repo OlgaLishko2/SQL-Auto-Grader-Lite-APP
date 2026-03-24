@@ -1,6 +1,10 @@
 
 import emailjs from "@emailjs/browser";
 
+const SERVICE_ID = process.env.REACT_APP_EMAILJS_SERVICE_ID;
+const TEMPLATE_ID = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+const PUBLIC_KEY = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
+
 
 export const sendAssignmentEmail = async (student, assignmentTitle, assignmentDueDate, assignmentId) => {
 
@@ -11,17 +15,17 @@ export const sendAssignmentEmail = async (student, assignmentTitle, assignmentDu
 
   try {
     await emailjs.send(
-      "service_3npd20t",
-      "template_w1onkew",
-      {
-    name: student.fullName,
-    email: student.email,
-    title: assignmentTitle,
-    date: assignmentDueDate,
-    link: `${window.location.origin}/dashboard/assingment/${assignmentId}`,
-      },
-      "5FzJhHSACG7-28zpP"
-    );
+          SERVICE_ID,
+          TEMPLATE_ID,
+          {
+        name: student.fullName,
+        email: student.email,
+        title: assignmentTitle,
+        date: assignmentDueDate,
+        link: `${window.location.origin}/dashboard/assignments/${assignmentId}`,
+          },
+          PUBLIC_KEY
+        );
     console.log(`Email sent to ${student.email}`);
   } catch (error) {
     console.error("Error sending email:", error);
@@ -38,19 +42,38 @@ export const sendQuizEmail = async (student, assignmentTitle, assignmentId) => {
 
   try {
     await emailjs.send(
-      "service_3npd20t",
-      "template_w1onkew",
-      {
-    name: student.fullName,
-    email: student.email,
-    title: assignmentTitle,
-    link: `${window.location.origin}/dashboard/quizzes/${assignmentId}`,
-      },
-      "5FzJhHSACG7-28zpP"
-    );
+          SERVICE_ID,
+          TEMPLATE_ID,
+          {
+        name: student.fullName,
+        email: student.email,
+        title: assignmentTitle,
+        link: `${window.location.origin}/dashboard/quizzes/${assignmentId}`,
+          },
+          PUBLIC_KEY
+        );
     console.log(`Email sent to ${student.email}`);
   } catch (error) {
     console.error("Error sending email:", error);
+  }
+};
+
+export const sendSubmissionNotificationEmail = async (teacher, studentName, assignmentTitle) => {
+  if (!teacher?.email) return;
+  try {
+    await emailjs.send(
+          SERVICE_ID,
+          TEMPLATE_ID,
+          {
+            name: teacher.fullName,
+            email: teacher.email,
+            title: `${studentName} has submitted: ${assignmentTitle}`,
+            link: `${window.location.origin}/dashboard/submissionstatus`,
+          },
+          PUBLIC_KEY
+        );
+  } catch (error) {
+    console.error("Error sending submission notification:", error);
   }
 };
 
@@ -58,17 +81,17 @@ export const sendReminderEmail = async (student, assignmentTitle, assignmentDueD
   if (!student?.email) return;
   try {
     await emailjs.send(
-      "service_3npd20t",
-      "template_w1onkew",
-      {
-        name: student.fullName,
-        email: student.email,
-        title: `Reminder: ${assignmentTitle}`,
-        date: assignmentDueDate,
-        link: `${window.location.origin}/dashboard/assignments/${assignmentId}`,
-      },
-      "5FzJhHSACG7-28zpP"
-    );
+          SERVICE_ID,
+          TEMPLATE_ID,
+          {
+            name: student.fullName,
+            email: student.email,
+            title: `Reminder: ${assignmentTitle}`,
+            date: assignmentDueDate,
+            link: `${window.location.origin}/dashboard/assignments/${assignmentId}`,
+          },
+          PUBLIC_KEY
+        );
     console.log(`Reminder sent to ${student.email}`);
   } catch (error) {
     console.error("Error sending reminder:", error);

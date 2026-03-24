@@ -16,10 +16,10 @@
 .points-banner {
   gap: 28px;
   align-items: center;
-  background: #1f202b;
+  background: #3C67C2;
   color: #f6f7fb;
   border-radius: 18px;
-  padding: 28px 24px;
+  padding: 15px 24px;
   margin-bottom: 22px;
   box-shadow: 0 22px 44px rgba(20, 26, 42, 0.18);
 }
@@ -209,6 +209,20 @@
   padding: 20px;
 }
 
+.problem-badge-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.problem-rule-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .badge-problem {
   background: #e8f0fe;
   color: #1967d2;
@@ -217,7 +231,7 @@
   font-size: 12px;
   font-weight: 700;
   display: inline-block;
-  margin-bottom: 15px;
+  margin-bottom: 0;
 }
 
 .table-schema {
@@ -283,6 +297,7 @@
 
 .editor-btns {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;

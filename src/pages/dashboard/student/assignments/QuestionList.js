@@ -1,35 +1,35 @@
-import React, { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "react-data-table-component";
-import PageTitle from "../topbar/PageTitle";
-import Breadcrumb from "../topbar/Breadcrumb";
 
-import { auth, db } from "../../../../firebase";
+import Breadcrumb from "../Breadcrumb";
+
+import userSession from "../../../../components/services/UserSession";
 import { useParams } from "react-router-dom";
 import { getAllActiveAssignmnetByStudent } from "../../../../components/model/questions";
 import LoadingOverlay from "../LoadingOverlay";
+import { updateStudentAssignment } from "../../../../components/model/studentAssignments";
+import { getUser } from "../../../../components/model/users";
+import { sendSubmissionNotificationEmail } from "../../../../components/services/email";
 
 const QuestionList = () => {
   const { assignment_id } = useParams();
-  //console.log(id);
   const navigate = useNavigate();
   const location = useLocation();
-  const dataset = location.state?.dataset;
+  const assignment = location.state?.assignment;
+  const questions = assignment?.questions;
+  const dataset = assignment?.dataset;
   const [questiondata, setquestiondata] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     // Get data from question data by assignement id from firebase
     const fetchdata = async () => {
       try {
-        const user = auth.currentUser;
-        if (!user) return;
-        //(assignment_id, user_id)
         const data = await getAllActiveAssignmnetByStudent(
-          assignment_id,
-          user.uid,
+          questions,
+          userSession.uid,
         );
         setquestiondata(data);
-        // console.log(data)
       } catch (error) {
         console.error("Error:", error);
       } finally {
@@ -39,6 +39,21 @@ const QuestionList = () => {
 
     fetchdata();
   }, []);
+
+  async function markComplele() {
+    const assignmentId = assignment?.assignment_id;
+    if (!assignmentId) return;
+    await updateStudentAssignment({
+      student_user_id: userSession.uid,
+      assignment_id: assignmentId,
+      status: "submitted",
+    });
+    if (assignment?.enable_submission_notification && assignment?.owner_user_id) {
+      const teacher = await getUser(assignment.owner_user_id);
+      await sendSubmissionNotificationEmail(teacher, userSession.fullName, assignment.title);
+    }
+    navigate("/dashboard/assignments");
+  }
 
   // First letter captial for Question title
   const capitalizeFirstLetter = (str) => {
@@ -73,8 +88,6 @@ const QuestionList = () => {
           switch (row.status) {
             case "Correct":
               return "bg-success";
-            // case "In Progress":
-            //   return "bg-warning text-dark";
             case "Incorrect":
               return "bg-warning text-dark";
             case "Not Started":
@@ -97,19 +110,19 @@ const QuestionList = () => {
     },
     {
       name: "Attemption",
-      selector: (row) => `${row.attemptTime ?? 0} / ${row.max_attempts ?? 0}`,
+      selector: (row) => `${row.attemptTime ?? 0} / 1`,
     },
     {
       name: "Action",
       cell: (row) => {
-        const isAttemptLimitReached = row.attemptTime === row.max_attempts;
+        const isAttemptLimitReached = row.attemptTime === 1;
         return (
           <button
             className={`btn btn-sm btn-primary ${isAttemptLimitReached ? "disabled" : ""}`}
             onClick={() =>
               navigate(
                 `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-                { state: { question: row, dataset: dataset } },
+                { state: { question: row, dataset: dataset, assignment_id } },
               )
             }
           >
@@ -122,8 +135,9 @@ const QuestionList = () => {
 
   return (
     <>
-      <div className="d-sm-flex justify-content-between mb-0">
-        <PageTitle pagetitle="Questions List" />
+      <LoadingOverlay isOpen={isLoading} message="Loading..." />
+      <div className="d-sm-flex justify-content-between align-items-center mb-0 al">
+        <h2>Questions List</h2>
         <Breadcrumb
           items={[
             { label: "Dashboard", link: "/dashboard" },
@@ -131,6 +145,31 @@ const QuestionList = () => {
             { label: "Questions List", active: true },
           ]}
         />
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: "12px",
+        }}
+      >
+        <button
+          style={{
+            backgroundColor: "#28A745",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            padding: "10px 18px",
+            fontSize: "14px",
+            fontWeight: 600,
+            lineHeight: 1.2,
+            cursor: "pointer",
+          }}
+          onClick={markComplele}
+        >
+          Mark as completed
+        </button>
       </div>
 
       <div className="card shadow mb-4">
@@ -143,11 +182,15 @@ const QuestionList = () => {
           striped
           responsive
           pointerOnHover
-          onRowClicked={(row) =>
-            window.open(
-              `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-            )
-          }
+          onRowClicked={(row) => {
+            const isAttemptLimitReached = row.attemptTime >= 1;
+            if (!isAttemptLimitReached) {
+              navigate(
+                `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
+                { state: { question: row, dataset: dataset, assignment_id } },
+              );
+            }
+          }}
         />
       </div>
     </>

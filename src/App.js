@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { auth, db } from "./firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { useAuth } from "./components/services/useAuth";
 
 import Home from "./pages/home/Home";
 import Register from "./pages/register/Register";
@@ -18,6 +16,7 @@ import Dashboard from "./pages/dashboard/Dashboard";
 import Assignments from "./pages/dashboard/student/assignments/Assignments";
 import QuestionList from "./pages/dashboard/student/assignments/QuestionList";
 import Quizzes from "./pages/dashboard/student/quizzes/Quizzes";
+import QuizDetail from "./pages/dashboard/student/quizzes/QuizDetail";
 import Results from "./pages/dashboard/student/results/Results";
 import SubmittedQuestions from "./pages/dashboard/student/results/SubmittedQuestions";
 //import AntiCheatingAssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingAssignmentDetail";
@@ -33,7 +32,6 @@ import SubmissionStatusPage from "./pages/dashboard/teacher/submissionstatus/Sub
 
 import "./App.css";
 import AssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
-import AntiCheatingQuestionDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
 
 function TeacherAssignments() {
   const [creating, setCreating] = useState(false);
@@ -49,24 +47,7 @@ function TeacherQuizzes() {
 }
 
 function App() {
-  const [role, setRole] = useState(null);
-
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-        if (userDoc.exists()) {
-          setRole(userDoc.data().role);
-        }
-      } else {
-        setRole(null);
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+  const { role, loading } = useAuth();
 
   if (loading) return null;
 
@@ -96,7 +77,12 @@ function App() {
               <Route path="assignments/:id" element={<AssignmentDetail />} />
               <Route path="questions/:assignment_id" element={<QuestionList />} />
               <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
-              <Route path="quizzes" element={<Quizzes />} />
+              <Route path="quizzes" element={
+                role === "student"
+                  ? <Quizzes />
+                  : <TeacherQuizzes />
+              } />
+              <Route path="quizzes/:quiz_id" element={<QuizDetail />} />
               <Route path="results" element={<Results />} />
               <Route path="results/:assignment_id" element={<SubmittedQuestions />} />
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}

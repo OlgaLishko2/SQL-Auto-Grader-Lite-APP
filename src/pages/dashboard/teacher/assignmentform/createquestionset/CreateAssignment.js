@@ -23,6 +23,7 @@ export const CreateAssignment = ({ formData, handleChange }) => {
         <input
           id="due_date" type="date" name="due_date"
           value={formData.due_date} onChange={handleChange}
+          min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
           style={{ padding: '8px' , width: '100%'}}
         />
       </div>
