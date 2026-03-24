@@ -44,3 +44,162 @@ td {
     width: 100%;
   }
 }
+
+
+
+.container {
+    width: 100%;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 30px;
+}
+
+section {
+    width: 100%;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.inlineForm {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+input, select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    min-width: 250px; 
+    box-sizing: border-box;
+}
+
+button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.createBtn {
+    background-color: #28a745;
+}
+
+.createBtn:hover {
+    background-color: #218838;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    table-layout: fixed; 
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    word-wrap: break-word; 
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+.tableInput {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.insert-input {
+    width: 400px;
+    max-width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .inlineForm {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .insert-input {
+        width: 100%;
+    }
+    table {
+        font-size: 12px;
+    }
+}
+
+
+
+
+
+.hint-wrapper {
+  display: inline-block; 
+  position: relative;    
+}
+
+.hint-circle {
+  width: 24px;
+  height: 24px;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  margin-left: 5px;  
+}
+
+.hint-popup {
+  position: absolute;
+  top: 0px;       
+  left: 40px;     
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #000;
+  padding: 10px 15px;
+  border-radius: 6px;
+  width: 800px;
+  font-size: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 100;
+}
+.hint-popup ul {
+  list-style: none; 
+  padding-left: 0;
+  margin: 0;
+}
+
+
+.hint-popup li {
+  margin-bottom: 8px;
+}

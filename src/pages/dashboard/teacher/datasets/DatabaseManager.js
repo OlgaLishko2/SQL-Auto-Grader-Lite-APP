@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useAppContext } from '../../../../components/db/service/context';
 import "./DatabaseManager.css";
+import HintPopup from './HintPopup';
+
 
 
 function DatabaseManager() {
@@ -20,6 +22,7 @@ function DatabaseManager() {
   const [insertSQL, setInsertSQL] = useState('');
   const [insertResult, setInsertResult] = useState(null);
 
+  
   const loadDatasets = useCallback(async () => {
     const data = await allDataset();
     const dataset = data.map((d, i) => ({
@@ -32,6 +35,9 @@ function DatabaseManager() {
   useEffect(() => {
     loadDatasets();
   }, [loadDatasets]);
+
+
+
 
   const loadTables = async (datasetName) => {
     const data = await allTables(datasetName);
@@ -133,11 +139,17 @@ function DatabaseManager() {
   };
 
   return (
+    
     <div className='container' style={{
       display: 'box', flexDirection: 'column',
       flexWrap: 'nowrap',       /* Prevents items from jumping to new columns */
       alignItems: 'stretch'
     }}>
+      
+      <HintPopup/>
+
+
+
       <div style={{ display: 'flex', gap: '10%', marginBottom: '30px' }}>
         <section>
           <h2>Dataset</h2>
@@ -214,14 +226,14 @@ function DatabaseManager() {
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
+               
                   <th>Name</th>
                 </tr>
               </thead>
               <tbody>
                 {tables.map(t => (
                   <tr key={t.id}>
-                    <td>{t.id + 1}</td>
+                 
                     <td>{t.content}</td>
                   </tr>
                 ))}
@@ -369,9 +381,10 @@ function DatabaseManager() {
 
         </section>
       )}
+      
 
     </div>
   );
 }
 
-export default DatabaseManager;
+export default DatabaseManager
