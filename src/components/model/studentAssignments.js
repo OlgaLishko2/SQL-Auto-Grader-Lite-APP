@@ -231,8 +231,17 @@ async function getStudentAssignmentsWithDetails() {
     const snap = await getDocs(collection(db, "student_assignments"));
     const assignments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-    const userIds = [...new Set(assignments.map((a) => a.student_user_id))];
-    const assignmentIds = [...new Set(assignments.map((a) => a.assignment_id))];
+    const userIds = [...new Set(        
+        assignments
+          .flatMap(a =>
+            Array.isArray(a.student_user_id)
+              ? a.student_user_id
+              : [a.student_user_id]
+          )
+          .filter(id => typeof id === "string")
+      )];
+      
+    const assignmentIds = [...new Set(assignments.map(a => a.assignment_id))];
 
     const [userSnaps, assignmentSnaps] = await Promise.all([
       Promise.all(userIds.map((uid) => getDoc(doc(db, "users", uid)))),
