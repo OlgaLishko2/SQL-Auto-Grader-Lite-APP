@@ -1,11 +1,12 @@
 import { useState } from "react";
-import AssignmentTable from "./AssignmentTable";
+import AssignmentTable from "./studentAssignment/AssignmentTable";
 import QuizTable from "./QuizTable";
-import StudentAssignmentPage from "./StudentAssignmentPage";
+import StudentAssignmentPage from "./studentAssignment/StudentAssignmentPage";
 
 function SubmissionStatusPage() {
   const [activeTab, setActiveTab] = useState("assignments");
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [selectedAssignmetId, setselectedAssignmetId] = useState("");
 
   return (
     <div style={{ padding: "20px" }}>
@@ -15,6 +16,7 @@ function SubmissionStatusPage() {
       {(selectedStudentId !== "") ? (
         <StudentAssignmentPage
           studentId={selectedStudentId}
+          assignmentId={selectedAssignmetId}
           onBack={() => setSelectedStudentId("")}
         />
       ) : (
@@ -36,7 +38,7 @@ function SubmissionStatusPage() {
           </div>
 
           {activeTab === "assignments" ? (
-            <AssignmentTable onSelectStudent={setSelectedStudentId} />
+            <AssignmentTable onSelectStudent={setSelectedStudentId} onselectAssignmentId={setselectedAssignmetId}/>
           ) : (
             <QuizTable onSelectStudent={setSelectedStudentId} />
           )}
