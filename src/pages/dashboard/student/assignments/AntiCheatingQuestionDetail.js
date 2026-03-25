@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { auth } from "../../../../firebase";
 import "./AssignmentDetail.css";
 import { useAppContext } from "../../../../components/db/service/context";
 import CodeMirror from "@uiw/react-codemirror";
@@ -33,6 +32,7 @@ const AntiCheatingQuestionDetail = () => {
   const [showResults, setShowResults] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState(question?.attemptTime);
   const [isLoading, setIsLoading] = useState(true);
+  const [bestRunResult, setBestRunResult] = useState({ isCorrect: false, sql: "" });
   useAntiCheat(undefined, { enableFullscreen: true });
 
   useEffect(() => {
@@ -111,7 +111,11 @@ const AntiCheatingQuestionDetail = () => {
 
   async function runQuery() {
     setShowResults(true);
-    await excuteQueryAndCompare();
+    const correct = await excuteQueryAndCompare();
+    // Track best run result for submit
+    if (correct || !bestRunResult.isCorrect) {
+      setBestRunResult({ isCorrect: correct, sql: normalizeQuery(sqlCode) });
+    }
     setIsSubmmit(false);
     setIsLoading(false);
   }
@@ -123,19 +127,22 @@ const AntiCheatingQuestionDetail = () => {
       return;
     }
     setShowResults(true);
-    const comparationResult = await excuteQueryAndCompare();
+    const currentResult = await excuteQueryAndCompare();
+    const finalCorrect = currentResult || bestRunResult.isCorrect;
+    const finalSql = finalCorrect && !currentResult ? bestRunResult.sql : normalizeQuery(sqlCode);
     const attemptObj = {
       question_id: question?.question_id,
       student_user_id: userSession.uid,
       submitted_on: new Date().toLocaleDateString("en-CA"),
-      submitted_sql: normalizeQuery(sqlCode),
-      is_correct: comparationResult,
+      submitted_sql: finalSql,
+      is_correct: finalCorrect,
     };
-    createAttempt(attemptObj);
+    console.log('attemptObj:', attemptObj);
+    const attemptId = await createAttempt(attemptObj);
+    console.log('saved attempt:', attemptId);
     setCurrentAttempt((prev) => prev + 1);
     setIsSubmmit(true);
     setIsLoading(false);
-    navigate(`/dashboard/questions/${assignment_id}`, { state: { assignment: location.state?.assignment } });
   }
 
   const sqlKeywordCompletions = completeFromList(

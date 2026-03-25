@@ -163,14 +163,14 @@ const QuizDetail = () => {
   const [attemptsLeft, setAttemptsLeft] = useState(quiz?.max_attempts || 1);
   const lost = attemptsLeft <= 0;
 
-  if (!quiz) return <p>Quiz not found. <button onClick={() => navigate(-1)}>Go back</button></p>;
+  if (!quiz) return <p>Quiz not found. <button onClick={() => navigate("/dashboard/quizzes")}>Go back</button></p>;
 
   return (
     <div className="workspace-container">
       <div className="workspace-content">
         <div className="instructions-panel">
           <div className="panel-header">
-            <button className="back-btn" onClick={() => navigate(-1)}>← Quizzes</button>
+            <button className="back-btn" onClick={() => navigate("/dashboard/quizzes")}>← Quizzes</button>
           </div>
           <div className="panel-content">
             <span className="badge-problem">{quiz.title}</span>

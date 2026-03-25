@@ -9,8 +9,7 @@ import {
 import { getQuizzesForStudent } from "../../components/model/quizzes";
 import { getBestAttemptByUserQuestion } from "../../components/model/questionAttempts"; // добавляем
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs } from "firebase/firestore"; 
-import { db } from "../../firebase"; 
+import { getAllUsers } from "../../components/model/users";
 
 const Dashboard = ({ role }) => {
   const [teacherData, setTeacherData] = useState(null);
@@ -24,8 +23,7 @@ const Dashboard = ({ role }) => {
         try {
           const data = await getDashboardDataForTeacher(userSession.uid);
 
-          const usersSnap = await getDocs(collection(db, "users"));
-          const usersData = usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+          const usersData = await getAllUsers();
 
           setTeacherData({ ...data, users: usersData });
         } catch (error) {

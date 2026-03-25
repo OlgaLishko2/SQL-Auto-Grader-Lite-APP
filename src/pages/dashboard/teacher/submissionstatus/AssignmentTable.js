@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getStudentAssignmentsWithDetails } from "../../../../components/model/studentAssignments";
+import userSession from "../../../../components/services/UserSession";
 import StudentAssignmentPage from "./StudentAssignmentPage"
 
 export default function AssignmentTable({ onSelectStudent }) {
@@ -38,7 +39,7 @@ export default function AssignmentTable({ onSelectStudent }) {
   
   useEffect(() => {
     const fetchData = async () => {
-      const merged = await getStudentAssignmentsWithDetails();
+      const merged = await getStudentAssignmentsWithDetails(userSession.uid);
       setData(merged);
     };
     if (!selected) fetchData();

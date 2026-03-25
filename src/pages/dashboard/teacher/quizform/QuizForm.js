@@ -110,6 +110,8 @@ const QuizForm = ({ onDone }) => {
 
     try {
       const validation = await runSelectQuery(formData.dataset, formData.answer)
+      console.log(validation);
+      
       if (!validation?.isSuccessful) return setError(`Invalid answer SQL: ${validation?.message || "query failed"}.`);
       if (!validation.data?.length || validation.data[0]?.values?.length === 0) return setError("Answer SQL returns no rows, please select another question.");
 

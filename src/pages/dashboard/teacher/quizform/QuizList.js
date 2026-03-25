@@ -10,8 +10,10 @@ function QuizList({ onCreate }) {
   const toggleQuiz = (id) => setExpanded(prev => prev === id ? null : id);
 
   useEffect(() => {
+    console.log('QuizList uid:', userSession.uid);
     getAllQuizByOwner(userSession.uid).then((data) => {
-      const sorted = [...data].sort((a, b) => new Date(b.created_on) - new Date(a.created_on));
+      console.log('QuizList data:', data);
+      const sorted = [...data].sort((a, b) => b.created_on?.toMillis() - a.created_on?.toMillis());
       setQuizzes(sorted);
     });
   }, []);

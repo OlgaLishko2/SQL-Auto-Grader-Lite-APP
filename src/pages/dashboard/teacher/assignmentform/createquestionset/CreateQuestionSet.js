@@ -6,18 +6,18 @@ import { CodeEditor } from "./CodeEditor";
 import './CreateQuestionSet.css';
 import CollapsiblePanel from '../collapsiblepanel/CollapsiblePanel';
 
-function CreateQuestionSet({ onAddQuestions, setDb }) {
+function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], existingDataset = "" }) {
   const { allTables, allDataset, getTableSchemaInTable, runSelectQuery } = useAppContext();
 
-  const [selectedDataset, setSelectedDataset] = useState("");
+  const [selectedDataset, setSelectedDataset] = useState(existingDataset);
   const [datasets, setDatasets] = useState([]);
   const [availableTables, setAvailableTables] = useState([]);
   const [selectedTable, setSelectedTable] = useState([]);
   const [selectedTableForSchema, setSelectedTableForSchema] = useState();
   const [tableSchemas, setTableSchemas] = useState({});
   const [presets, setPresets] = useState([]);
-  const [questions, setQuestions] = useState([]);
-  const [savedCount, setSavedCount] = useState(0);
+  const [questions, setQuestions] = useState(existingQuestions);
+  const [savedCount, setSavedCount] = useState(existingQuestions.length);
 
   const filteredPresets = selectedTable.length > 0
     ? presets.filter(p => selectedTable.every(t => p.answer?.toLowerCase().includes(t.toLowerCase())))
@@ -42,11 +42,14 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
   }, [selectedDataset, allTables]);
 
   const handleDatasetChange = (e) => {
+    if (questions.length > 0 && !window.confirm("Changing the dataset will remove all current questions. Continue?")) return;
     setSelectedDataset(e.target.value);
     setDb(e.target.value);
     setSelectedTable([]);
     setPresets([]);
     setQuestions([]);
+    setSavedCount(0);
+    onAddQuestions([]);
   };
 
   const addQuestion = () => {
@@ -68,6 +71,8 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
   const saveQuestions = async () => {
     const invalid = questions.filter((q) => !q.questionText.trim() || !q.answer.trim());
     if (invalid.length > 0) return alert("Every question needs text and an answer.");
+    const texts = questions.map(q => q.questionText.trim().toLowerCase());
+    if (new Set(texts).size !== texts.length) return alert("Duplicate questions found. Please make each question unique.");
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       const result = await runSelectQuery(selectedDataset, q.answer);
@@ -130,7 +135,11 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
                 <div className="question-row">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <h4 style={{ margin: 0 }}>Question {index + 1}</h4>
-                    <button type="button" onClick={() => setQuestions(questions.filter((_, i) => i !== index))}>✕</button>
+                    <button type="button" onClick={() => {
+                      if (!window.confirm("Remove this question?")) return;
+                      setQuestions(questions.filter((_, i) => i !== index));
+                      setSavedCount(0);
+                    }}>✕</button>
                   </div>
 
                   <div>
@@ -189,7 +198,7 @@ function CreateQuestionSet({ onAddQuestions, setDb }) {
 
             {questions.length > 0 && (
               <div style={{ marginTop: "20px" }}>
-                <button style={{ padding: "10px 20px", fontSize: "16px", backgroundColor: "green", color: "white" }} onClick={saveQuestions}>
+                <button style={{ padding: "10px 20px", fontSize: "16px", backgroundColor: "green", color: "white" }} onClick={saveQuestions} disabled={savedCount === questions.length}>
                   Save Questions
                 </button>
               </div>

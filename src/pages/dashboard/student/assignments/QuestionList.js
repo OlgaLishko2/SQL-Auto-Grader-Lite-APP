@@ -8,7 +8,7 @@ import userSession from "../../../../components/services/UserSession";
 import { useParams } from "react-router-dom";
 import { getAllActiveAssignmnetByStudent } from "../../../../components/model/questions";
 import LoadingOverlay from "../LoadingOverlay";
-import { updateStudentAssignment } from "../../../../components/model/studentAssignments";
+import { updateStudentAssignment, getAllAssignmnetByStudent } from "../../../../components/model/studentAssignments";
 import { getUser } from "../../../../components/model/users";
 import { sendSubmissionNotificationEmail } from "../../../../components/services/email";
 
@@ -16,29 +16,66 @@ const QuestionList = () => {
   const { assignment_id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const assignment = location.state?.assignment;
-  const questions = assignment?.questions;
-  const dataset = assignment?.dataset;
+  const [assignment, setAssignment] = useState(location.state?.assignment || null);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [questiondata, setquestiondata] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Refetch every time we navigate back to this page
   useEffect(() => {
-    // Get data from question data by assignement id from firebase
+    setRefreshKey(k => k + 1);
+  }, [location.key]);
+
+  useEffect(() => {
     const fetchdata = async () => {
+      setIsLoading(true);
       try {
-        const data = await getAllActiveAssignmnetByStudent(
-          questions,
-          userSession.uid,
-        );
+        let resolvedAssignment = assignment;
+
+        // Direct link from email — no location.state, fetch and verify ownership
+        if (!resolvedAssignment) {
+          const studentAssignments = await getAllAssignmnetByStudent(userSession.uid);
+          resolvedAssignment = studentAssignments.find(a => a.assignment_id === assignment_id);
+          if (!resolvedAssignment) {
+            setAccessDenied(true);
+            setIsLoading(false);
+            return;
+          }
+          setAssignment(resolvedAssignment);
+        }
+
+        const data = await getAllActiveAssignmnetByStudent(resolvedAssignment.questions, userSession.uid);
         setquestiondata(data);
+
+        // Auto-submit if all questions are attempted
+        const allAttempted = data.length > 0 && data.every(q => q.attemptTime > 0);
+        if (allAttempted && resolvedAssignment.status === 'assigned') {
+          await updateStudentAssignment({ student_user_id: userSession.uid, assignment_id: resolvedAssignment.assignment_id, status: 'submitted' });
+          if (resolvedAssignment.enable_submission_notification && resolvedAssignment.owner_user_id) {
+            const teacher = await getUser(resolvedAssignment.owner_user_id);
+            await sendSubmissionNotificationEmail(teacher, userSession.fullName, resolvedAssignment.title);
+          }
+        }
       } catch (error) {
         console.error("Error:", error);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchdata();
-  }, []);
+  }, [refreshKey]);
+
+  if (accessDenied) return (
+    <div style={{ padding: "40px", textAlign: "center" }}>
+      <h3>Access Denied</h3>
+      <p>This assignment is not assigned to your account.</p>
+      <button onClick={() => navigate("/dashboard/assignments")}>Go to My Assignments</button>
+    </div>
+  );
+
+  const dataset = assignment?.dataset;
 
   async function markComplele() {
     const assignmentId = assignment?.assignment_id;
@@ -54,8 +91,6 @@ const QuestionList = () => {
     }
     navigate("/dashboard/assignments");
   }
-
-  // First letter captial for Question title
   const capitalizeFirstLetter = (str) => {
     if (!str) return "";
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -75,9 +110,8 @@ const QuestionList = () => {
     },
     {
       name: "Marks",
-      selector: (row) => {
-        return row.isSolved ? row.mark : 0;
-      },
+      selector: (row) => row.isSolved ? row.mark : 0,
+      cell: (row) => `${row.isSolved ? row.mark : 0} / ${row.mark}`,
     },
     {
       name: "Status",
@@ -115,9 +149,11 @@ const QuestionList = () => {
     {
       name: "Action",
       cell: (row) => {
-        const isAttemptLimitReached = row.attemptTime === 1;
+        const isAttemptLimitReached = row.attemptTime === 1//row.attemptTime >= (row.max_attempts ?? 1);
         return (
           <button
+            // className="btn btn-sm btn-primary"
+            // disabled={isAttemptLimitReached}
             className={`btn btn-sm btn-primary ${isAttemptLimitReached ? "disabled" : ""}`}
             onClick={() =>
               navigate(
@@ -126,7 +162,7 @@ const QuestionList = () => {
               )
             }
           >
-            Start
+            {isAttemptLimitReached ? "Done" : "Start"}
           </button>
         );
       },
@@ -137,14 +173,17 @@ const QuestionList = () => {
     <>
       <LoadingOverlay isOpen={isLoading} message="Loading..." />
       <div className="d-sm-flex justify-content-between align-items-center mb-0 al">
-        <h2>Questions List</h2>
-        <Breadcrumb
-          items={[
-            { label: "Dashboard", link: "/dashboard" },
-            { label: "Assignments", link: "/dashboard/assignments" },
-            { label: "Questions List", active: true },
-          ]}
-        />
+        <h2>{assignment?.title || "Questions List"}</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <button onClick={() => setRefreshKey(k => k + 1)} className="btn btn-sm btn-outline-secondary">↻ Refresh</button>
+          <Breadcrumb
+            items={[
+              { label: "Dashboard", link: "/dashboard" },
+              { label: "Assignments", link: "/dashboard/assignments" },
+              { label: "Questions List", active: true },
+            ]}
+          />
+        </div>
       </div>
 
       <div
@@ -173,7 +212,7 @@ const QuestionList = () => {
       </div>
 
       <div className="card shadow mb-4">
-        <div className="card-header">Assignment name</div>
+        <div className="card-header">{assignment?.title || "Assignment name"}</div>
         <DataTable
           columns={columns}
           data={questiondata}

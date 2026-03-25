@@ -26,11 +26,12 @@ const Results = () => {
     const fetchdata = async () => {
       try {
         const data = await getAllCompletedAssignmnetByStudent(userSession.uid);
+        console.log('Submissions page - student_assignment records:', data.map(a => ({ assignment_id: a.assignment_id, status: a.status, student_assignment_id: a.student_assignment_id })));
         const withMarks = await Promise.all(data.map(async (a) => {
           const questions = a.questions || [];
-          const totalMarks = questions.reduce((s, q) => s + (q.mark || 1), 0);
-          const attempts = await Promise.all(questions.map(q => getAttemptByPolicy(userSession.uid, q.question_id, a.grading_policy || 'best')));
-          const oMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (questions[i].mark || 1) : 0), 0);
+          const totalMarks = questions.reduce((s, q) => s + (Number(q.mark) || 1), 0);
+          const attempts = await Promise.all(questions.map(q => getBestAttemptByUserQuestion(userSession.uid, q.question_id)));
+          const oMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (Number(questions[i].mark) || 1) : 0), 0);
           return { ...a, totalMarks, oMarks, percentage: totalMarks ? Math.round((oMarks / totalMarks) * 100) + "%" : "0%" };
         }));
         setsubmissionsdata(withMarks);

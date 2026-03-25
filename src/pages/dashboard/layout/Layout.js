@@ -1,5 +1,4 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { auth } from "../../../firebase";
 import userSession from "../../../components/services/UserSession";
 import "../Dashboard.css";
 import LeftMenu from "../leftmenu/LeftMenu";
@@ -33,7 +32,7 @@ const teacherNavItems = [
 const Layout = () => {
   const userRole = userSession.role;
 
-  if (!auth.currentUser) return <Navigate to="/login" />;
+  if (!userSession.uid) return <Navigate to="/login" />;
 
   const navItems = userRole === "teacher" ? teacherNavItems : studentNavItems;
   const dashboardName =

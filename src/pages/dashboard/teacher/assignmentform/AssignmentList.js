@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getAllAssignmentByOwner } from "../../../../components/model/assignments";
 import { sendReminderEmail } from "../../../../components/services/email";
-import { getAllStudents, getCohortsByOwner } from "../../../../components/model/cohorts";
+import { getAllStudents, getCohortsByOwner, getAllCohorts } from "../../../../components/model/cohorts";
 import { publishAssignmentToStudents, isAssignmentPublished } from "../../../../components/model/studentAssignments";
 import CollapsiblePanel from "../assignmentform/collapsiblepanel/CollapsiblePanel";
 import userSession from "../../../../components/services/UserSession";
@@ -10,14 +10,21 @@ function AssignmentList({ onCreate }) {
   const [assignments, setAssignments] = useState([]);
   const [expanded, setExpanded] = useState(null);
 
+  const [cohortMap, setCohortMap] = useState({});
+
   useEffect(() => {
     getAllAssignmentByOwner(userSession.uid).then(async (data) => {
-      const today = new Date();
-      const filtered = data.filter(a => new Date(a.dueDate) >= today);
+      const today = new Date().toISOString().split("T")[0];
+      const filtered = data.filter(a => a.dueDate >= today);
       const withPublished = await Promise.all(
         filtered.map(async (a) => ({ ...a, published: await isAssignmentPublished(a.assignment_id) }))
       );
-      setAssignments(withPublished.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)));
+      setAssignments(withPublished);
+    });
+    getAllCohorts().then(cohorts => {
+      const map = {};
+      cohorts.forEach(c => { map[c.cohort_id] = c; });
+      setCohortMap(map);
     });
   }, []);
 
@@ -62,6 +69,11 @@ function AssignmentList({ onCreate }) {
             >
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <strong>{a.title}</strong>
+                {a.student_class && (
+                  <span style={{ fontSize: "12px", background: "#e0f0ff", color: "#0066cc", borderRadius: "4px", padding: "2px 8px" }}>
+                    {cohortMap[a.student_class]?.name || a.student_class}
+                  </span>
+                )}
                 {needsReminder && (
                 <button
                   onClick={async (e) => {
@@ -111,7 +123,15 @@ function AssignmentList({ onCreate }) {
               <div style={{ padding: "16px 20px" }}>
                 <p style={{ margin: "0 0 12px" }}>{a.description}</p>
 
-                <div style={{ display: "flex", gap: "16px", marginBottom: "12px", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "16px", marginBottom: "12px", alignItems: "center", flexWrap: "wrap" }}>
+                  {(() => {
+                    const cohort = cohortMap[a.student_class];
+                    return cohort ? (
+                      <span>Cohort: <strong>{cohort.name}</strong> ({cohort.student_uids?.length ?? 0} students)</span>
+                    ) : (
+                      <span>Cohort: <strong>{a.student_class || "—"}</strong></span>
+                    );
+                  })()}
                   <span>Submission Notification: <strong>{a.enable_submission_notification ? "Yes" : "No"}</strong></span>
                   <span>Reminder: <strong>{a.reminder_interval ? "Yes" : "No"}</strong></span>
                 </div>
