@@ -122,7 +122,7 @@ const QuestionList = () => {
             onClick={() =>
               navigate(
                 `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-                { state: { question: row, dataset: dataset, assignment_id } },
+                { state: { question: row, dataset: dataset, assignment_id, assignment: location.state?.assignment } },
               )
             }
           >
@@ -187,7 +187,7 @@ const QuestionList = () => {
             if (!isAttemptLimitReached) {
               navigate(
                 `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-                { state: { question: row, dataset: dataset, assignment_id } },
+                { state: { question: row, dataset: dataset, assignment_id, assignment: location.state?.assignment } },
               );
             }
           }}
