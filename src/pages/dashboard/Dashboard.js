@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import "./Dashboard.css";
 import CardDashboard from './CardDashboard';
 import userSession from "../../components/services/UserSession";
-import { getDashboardDataForTeacher } from "../../components/model/studentAssignments";
-import { getAllAssignmnetByStudent } from "../../components/model/studentAssignments";
+import { 
+  getDashboardDataForTeacher, 
+  getAllAssignmnetByStudent 
+} from "../../components/model/studentAssignments";
 import { getQuizzesForStudent } from "../../components/model/quizzes";
+import { getBestAttemptByUserQuestion } from "../../components/model/questionAttempts"; // добавляем
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs } from "firebase/firestore"; 
 import { db } from "../../firebase"; 
@@ -15,38 +18,61 @@ const Dashboard = ({ role }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+
     if (role === "teacher") {
       const loadTeacherData = async () => {
         try {
-    
           const data = await getDashboardDataForTeacher(userSession.uid);
 
-      
           const usersSnap = await getDocs(collection(db, "users"));
           const usersData = usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
 
-   
           setTeacherData({ ...data, users: usersData });
         } catch (error) {
-          console.error("Error loading teacher data:", error);
+          console.error("Error loading teacher dashboard:", error);
         }
       };
       loadTeacherData();
-    } else if (role === "student") {
-      Promise.all([
-        getAllAssignmnetByStudent(userSession.uid),
-        getQuizzesForStudent(userSession.uid),
-      ]).then(([assignments, quizzes]) => {
-        setStudentCards([
-          { label: "Assignments (Total)", value: assignments?.length ?? 0, color: "primary", icon: "fa-clipboard-list" },
-          { label: "Result (Percentage)", value: "80%", color: "success", icon: "fa-percent" },
-          { label: "Total Quizzes", value: quizzes?.length ?? 0, color: "warning", icon: "fa-comments" },
-        ]);
-      });
+    }
+
+    if (role === "student") {
+      const loadStudentData = async () => {
+        try {
+          const assignments = await getAllAssignmnetByStudent(userSession.uid);
+          const quizzes = await getQuizzesForStudent(userSession.uid);
+
+       
+          let totalMarks = 0;
+          let earnedMarks = 0;
+
+          for (const assignment of assignments) {
+            const questions = assignment.questions || [];
+            for (const q of questions) {
+              const bestAttempt = await getBestAttemptByUserQuestion(userSession.uid, q.question_id);
+              totalMarks += q.mark || 1;
+              if (bestAttempt?.is_correct) earnedMarks += q.mark || 1;
+            }
+          }
+
+          const resultPercentage = totalMarks > 0 ? Math.round((earnedMarks / totalMarks) * 100) : 0;
+
+          setStudentCards([
+            { label: "Assignments (Total)", value: assignments?.length ?? 0, color: "primary", icon: "fa-clipboard-list" },
+            { label: "Result (Percentage)", value: `${resultPercentage}%`, color: "success", icon: "fa-percent" },
+            { label: "Total Quizzes", value: quizzes?.length ?? 0, color: "warning", icon: "fa-comments" },
+          ]);
+        } catch (err) {
+          console.error("Error loading student dashboard:", err);
+        }
+      };
+      loadStudentData();
     }
   }, [role]);
 
+  
   if (role === "student") {
+    if (studentCards.length === 0) return <p>Loading student dashboard...</p>;
+
     return (
       <div className="dashboard">
         <h2 className="dashboard-title">Student Dashboard</h2>
@@ -55,7 +81,8 @@ const Dashboard = ({ role }) => {
     );
   }
 
-  if (!teacherData) return <p>Loading...</p>;
+
+  if (role === "teacher" && !teacherData) return <p>Loading teacher dashboard...</p>;
 
   return (
     <div className="dashboard">
@@ -83,7 +110,6 @@ const Dashboard = ({ role }) => {
         {teacherData.needsGrading.length > 0 ? (
           <ul>
             {teacherData.needsGrading.map((a, i) => {
-             
               const studentIds = Array.isArray(a.student_user_id) ? a.student_user_id : [a.student_user_id];
 
               const studentNames = studentIds.map(uid => {
@@ -96,7 +122,10 @@ const Dashboard = ({ role }) => {
               return (
                 <li key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>{studentNames.join(", ")} — {assignmentTitle}</span>
-                  <button className="grade-button" onClick={() => navigate(`/grade/${a.student_assignment_id}`)}>
+                  <button 
+                    className="grade-button" 
+                    onClick={() => navigate(`/dashboard/grade/${a.student_assignment_id}`)}
+                  >
                     Grade
                   </button>
                 </li>
@@ -124,6 +153,7 @@ const Dashboard = ({ role }) => {
               const submittedCount = allForAssignment.filter(sa => sa.status === "submitted" || sa.status === "completed").length;
               const totalStudents = allForAssignment.length;
               const percent = totalStudents ? Math.round((submittedCount / totalStudents) * 100) : 0;
+
               return (
                 <tr key={index}>
                   <td>{a.title || a.description}</td>
