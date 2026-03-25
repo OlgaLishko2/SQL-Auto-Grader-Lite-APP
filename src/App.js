@@ -12,6 +12,7 @@ import NavBar from "./components/bars/Navbar";
 
 import Layout from "./pages/dashboard/layout/Layout";
 import Dashboard from "./pages/dashboard/Dashboard";
+import GradingPage from "./pages/dashboard/GradingPage";
 // student
 import Assignments from "./pages/dashboard/student/assignments/Assignments";
 import QuestionList from "./pages/dashboard/student/assignments/QuestionList";
@@ -69,6 +70,7 @@ function App() {
 
             <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Dashboard role={role}/>} />
+              <Route path="grade/:student_assignment_id" element={<GradingPage />} />
               <Route path="assignments" element={
                 role === "student"
                   ? <Assignments />

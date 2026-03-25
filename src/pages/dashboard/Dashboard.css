@@ -11409,3 +11409,34 @@ body.sidebar-toggled footer.sticky-footer {
 .grade-button:hover {
   background-color: #45a049;
 }
+
+
+
+
+.grading-page {
+  padding: 20px;
+  max-width: 500px;
+  margin: auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.grading-page input {
+  padding: 6px;
+  margin: 8px 16px;
+  width: 60px;
+}
+
+.submit-button {
+  padding: 8px 16px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.submit-button:hover {
+  background-color: #45a049;
+}
