@@ -7,14 +7,16 @@ import CodeMirror from "@uiw/react-codemirror";
 import { sql } from "@codemirror/lang-sql";
 import { SQL_KEYWORDS } from "../../../../components/db/common";
 import { autocompletion, completeFromList } from "@codemirror/autocomplete";
+import { EditorView, keymap } from "@codemirror/view";
 import { isSelectQuery, normalizeQuery } from "../../../../components/db/queryValidation";
 import { createAttempt } from "../../../../components/model/questionAttempts";
 import { compareQueryResult } from "../../../../components/comparison/sqlComparison";
 import LoadingOverlay from "../LoadingOverlay";
 import userSession from "../../../../components/services/UserSession";
+import { useAntiCheat } from "../../../../components/hooks/useAntiCheat";
 
 const AntiCheatingQuestionDetail = () => {
-  const { runSelectQuery } = useAppContext();
+  const { fetchItems } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
   const assignment_id = location.state?.assignment_id;
@@ -31,19 +33,24 @@ const AntiCheatingQuestionDetail = () => {
   const [showResults, setShowResults] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState(question?.attemptTime);
   const [isLoading, setIsLoading] = useState(true);
+  useAntiCheat();
 
   useEffect(() => {
     if (!dataset || !question?.answer) return;
 
     const loadExpectedResult = async () => {
-      const result = await runSelectQuery(dataset, question.answer);
-      const resultData = Array.isArray(result?.data) ? result.data[0] : null;
-      setExpectedResult(resultData || []);
-      setIsLoading(false);
+      const result = await fetchItems(dataset, question.answer);
+      if (result?.isSuccessful && result.data?.length > 0) {
+        const columns = Object.keys(result.data[0]);
+        const values = result.data.map(row => Object.values(row));
+        const formatted = [{ lc: columns, values }];
+        setExpectedResult(formatted);
+        setIsLoading(false);
+      }
     };
 
     loadExpectedResult();
-  }, [dataset, question?.answer, runSelectQuery]);
+  }, [dataset, question?.answer, fetchItems]);
 
   useEffect(() => {
     if (!dataset || !question?.table) {
@@ -72,27 +79,34 @@ const AntiCheatingQuestionDetail = () => {
       return false;
     }
 
-    const result = await runSelectQuery(dataset, sqlCode);
-    const resultData = Array.isArray(result?.data) ? result.data[0] : null;
+    const result = await fetchItems(dataset, sqlCode);
+    if (result?.isSuccessful && result.data?.length > 0) {
+      const rows = result.data;
+      const columns = Object.keys(rows[0]);
 
-    if (!result?.isSuccessful || !resultData) {
-      setError(result?.message || "Query execution failed.");
+      // 2. Extract Values (convert each object into an array of its values)
+      const values = rows.map(row => Object.values(row));
+
+      // 3. Format it for your JSX
+      const formattedData = {
+        lc: columns,
+        values: values
+      };
+
+      setError("");
+      setStudentResult([formattedData]);
+
+      console.log(expectedResult);
+
+      console.log(expectedResult.length);
+      const correct = compareQueryResult(expectedResult, [formattedData], question?.orderMatters, question?.aliasStrict);
+      setIsCorrect(correct);
+      return correct;
+    } else {
       setStudentResult([]);
-      setIsCorrect(false);
+      setError(result?.data?.length === 0 ? "No rows returned." : "Query failed.");
       return false;
     }
-
-    setError("");
-    setStudentResult(resultData);
-
-    const comparationResult = compareQueryResult(
-      expectedResult,
-      resultData,
-      question?.orderMatters,
-      question?.aliasStrict,
-    );
-    setIsCorrect(comparationResult);
-    return comparationResult;
   }
 
   async function runQuery() {
@@ -103,25 +117,25 @@ const AntiCheatingQuestionDetail = () => {
   }
 
   async function submitQuery() {
-    setCurrentAttempt((prev) => prev + 1);
+    const maxAttempts = question?.max_attempts ?? Infinity;
+    if (currentAttempt >= maxAttempts) {
+      alert("You have reached the max attempts.");
+      return;
+    }
     setShowResults(true);
     const comparationResult = await excuteQueryAndCompare();
-    console.log(currentAttempt);
-    if (currentAttempt >= 1) {
-      alert("You have reached the max attempt");
-    } else {
-      const attemptObj = {
-        question_id: question?.question_id,
-        student_user_id: userSession.uid,
-        submitted_on: new Date().toLocaleDateString("en-CA"),
-        submitted_sql: normalizeQuery(sqlCode),
-        is_correct: comparationResult,
-      };
-
-      createAttempt(attemptObj);
-      setIsSubmmit(true);
-      setIsLoading(false);
-    }
+    const attemptObj = {
+      question_id: question?.question_id,
+      student_user_id: userSession.uid,
+      submitted_on: new Date().toLocaleDateString("en-CA"),
+      submitted_sql: normalizeQuery(sqlCode),
+      is_correct: comparationResult,
+    };
+    createAttempt(attemptObj);
+    setCurrentAttempt((prev) => prev + 1);
+    setIsSubmmit(true);
+    setIsLoading(false);
+    navigate(`/dashboard/questions/${assignment_id}`, { state: { assignment: location.state?.assignment } });
   }
 
   const sqlKeywordCompletions = completeFromList(
@@ -138,7 +152,7 @@ const AntiCheatingQuestionDetail = () => {
         <div className="workspace-content">
           <div className="instructions-panel">
             <div className="panel-header">
-              <button className="back-btn" onClick={() => navigate(`/dashboard/questions/${assignment_id}`)}>
+              <button className="back-btn" onClick={() => navigate(`/dashboard/questions/${assignment_id}`, { state: { assignment: location.state?.assignment } })}>
                 Back to Assignment
               </button>
             </div>
@@ -195,15 +209,10 @@ const AntiCheatingQuestionDetail = () => {
               <CodeMirror
                 value={sqlCode}
                 className="code-input"
-                extensions={[
-                  sql(),
-                  autocompletion({
-                    override: [sqlKeywordCompletions],
-                  }),
-                ]}
-                onChange={(value) => {
-                  setSqlCode(value);
-                }}
+                height="200px"
+                basicSetup={{ lineNumbers: true, foldGutter: false }}
+                extensions={[sql(), autocompletion({ override: [sqlKeywordCompletions] }), EditorView.lineWrapping, keymap.of([{ key: "Mod-v", run: () => true }, { key: "Mod-c", run: () => true }])]}
+                onChange={(value) => setSqlCode(value)}
               />
             </div>
 
@@ -254,105 +263,25 @@ const AntiCheatingQuestionDetail = () => {
                   <>
                     <div className="result-table">
                       <h6>Your Output (stdout)</h6>
-                      {!studentResult?.lc ? (
-                        <span className="empty-state">
-                          ~ no response on stdout ~
-                        </span>
+                      {!studentResult[0]?.lc ? (
+                        <span className="empty-state">~ no response on stdout ~</span>
                       ) : (
-                        <div className="table-placeholder">
-                          <table
-                            style={{
-                              width: "100%",
-                              borderCollapse: "collapse",
-                            }}
-                          >
-                            <thead>
-                              <tr>
-                                {studentResult?.lc?.map((col) => (
-                                  <th
-                                    key={col}
-                                    style={{
-                                      padding: "10px",
-                                      border: "1px solid #ddd",
-                                      textAlign: "left",
-                                    }}
-                                  >
-                                    {col}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {studentResult?.values?.map((row, i) => (
-                                <tr key={i}>
-                                  {row.map((val, j) => (
-                                    <td
-                                      key={j}
-                                      style={{
-                                        border: "1px solid #ddd",
-                                        padding: "8px",
-                                      }}
-                                    >
-                                      {val}
-                                    </td>
-                                  ))}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                          <thead><tr>{studentResult[0].lc.map(col => <th key={col} style={{ padding: "10px", border: "1px solid #ddd" }}>{col}</th>)}</tr></thead>
+                          <tbody>{studentResult[0].values.map((row, i) => <tr key={i}>{row.map((val, j) => <td key={j} style={{ border: "1px solid #ddd", padding: "8px" }}>{val}</td>)}</tr>)}</tbody>
+                        </table>
                       )}
                     </div>
 
                     <div className="result-table">
                       <h6>Expected Output</h6>
-                      {!expectedResult?.lc ? (
-                        <span className="empty-state">
-                          ~ no response on stdout ~
-                        </span>
+                      {!expectedResult[0]?.lc ? (
+                        <span className="empty-state">~ no response on stdout ~</span>
                       ) : (
-                        <div className="table-placeholder">
-                          <table
-                            style={{
-                              width: "100%",
-                              borderCollapse: "collapse",
-                            }}
-                          >
-                            <thead>
-                              <tr>
-                                {expectedResult?.lc?.map((col) => (
-                                  <th
-                                    key={col}
-                                    style={{
-                                      padding: "10px",
-                                      border: "1px solid #ddd",
-                                      textAlign: "left",
-                                    }}
-                                  >
-                                    {col}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {expectedResult?.values?.map((row, i) => (
-                                <tr key={i}>
-                                  {row.map((val, j) => (
-                                    <td
-                                      key={j}
-                                      style={{
-                                        border: "1px solid #ddd",
-                                        padding: "8px",
-                                      }}
-                                    >
-                                      {val}
-                                    </td>
-                                  ))}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
+                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                          <thead><tr>{expectedResult[0].lc.map(col => <th key={col} style={{ padding: "10px", border: "1px solid #ddd" }}>{col}</th>)}</tr></thead>
+                          <tbody>{expectedResult[0].values.map((row, i) => <tr key={i}>{row.map((val, j) => <td key={j} style={{ border: "1px solid #ddd", padding: "8px" }}>{val}</td>)}</tr>)}</tbody>
+                        </table>
                       )}
                     </div>
                   </>

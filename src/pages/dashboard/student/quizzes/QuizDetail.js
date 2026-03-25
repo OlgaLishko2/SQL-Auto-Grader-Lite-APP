@@ -4,7 +4,8 @@ import { useAppContext } from "../../../../components/db/service/context";
 import { isSelectQuery } from "../../../../components/db/queryValidation";
 import { compareQueryResult } from "../../../../components/comparison/sqlComparison";
 import { normalizeQuery } from "../../../../components/db/queryValidation";
-import { submitStudentQuiz, getStudentQuizSubmission } from "../../../../components/model/quizzes";
+import { submitStudentQuiz, getStudentQuizSubmission, getQuizById } from "../../../../components/model/quizzes";
+import { useParams } from "react-router-dom";
 import "../assignments/AssignmentDetail.css";
 import TableSchema from "../../tableView/TableSchema";
 import userSession from "../../../../components/services/UserSession";
@@ -13,14 +14,24 @@ const QuizDetail = () => {
   const { getTableSchemaInTable, fetchItems } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const quiz = location.state?.quiz;
+  const { quiz_id } = useParams();
+  const [quiz, setQuiz] = useState(location.state?.quiz || null);
+
+  useEffect(() => {
+    if (!quiz && quiz_id) {
+      getQuizById(quiz_id).then(data => {
+        if (data) setQuiz({ ...data, status: "New" });
+      });
+    }
+  }, [quiz_id]);
 
   const [sqlCode, setSqlCode] = useState("");
   const [expectedResult, setExpectedResult] = useState([]);
   const [studentResult, setStudentResult] = useState([]);
   const [isCorrect, setIsCorrect] = useState(false);
   const [error, setError] = useState("");
-  const [submitted, setSubmitted] = useState(quiz?.status === "Completed");
+  const [submitted, setSubmitted] = useState(false);
+  useEffect(() => { if (quiz?.status === "Completed") setSubmitted(true); }, [quiz]);
   const [showResults, setShowResults] = useState(false);
   const [tableSchemas, setTableSchemas] = useState({});
 
@@ -133,7 +144,9 @@ const QuizDetail = () => {
       return;
     }
     const createdOn = new Date(quiz.created_on?.seconds ? quiz.created_on.seconds * 1000 : quiz.created_on);
-    const isLate = createdOn < new Date();
+    const createdDay = new Date(createdOn.getFullYear(), createdOn.getMonth(), createdOn.getDate());
+    const todayDay = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+    const isLate = createdDay < todayDay;
     const calculatedMark = isLate ? Math.floor((quiz.mark || 1) * 0.5) : (quiz.mark || 1);
     setEarnedMark(calculatedMark);
     await submitStudentQuiz({

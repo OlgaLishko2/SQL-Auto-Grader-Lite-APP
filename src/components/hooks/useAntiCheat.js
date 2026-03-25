@@ -1,4 +1,3 @@
-import { copy } from 'fontawesome';
 import { useEffect, useState } from 'react';
 
 export const useAntiCheat = (onViolation) => {

@@ -61,6 +61,16 @@ export async function submitStudentQuiz({ quiz_id, student_user_id, submitted_sq
   }
 }
 
+export async function getQuizById(quiz_id) {
+  try {
+    const snap = await getDocs(query(quizzesCol, where("quiz_id", "==", quiz_id)));
+    return snap.empty ? null : snap.docs[0].data();
+  } catch (e) {
+    console.error("getQuizById:", e);
+    return null;
+  }
+}
+
 export async function getStudentQuizSubmission(quiz_id, student_user_id) {
   try {
     const snap = await getDocs(query(quizCol, where("quiz_id", "==", quiz_id), where("student_user_id", "==", student_user_id)));

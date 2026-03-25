@@ -11,21 +11,25 @@ export default function AssignmentTable({ onSelectStudent }) {
  
    /*sorting logic*/
      const sortedData = [...data].sort((a, b) => {
-       if (!sortField) return 0;
- 
-       const valueA = a[sortField]?.toString().toLowerCase();
-       const valueB = b[sortField]?.toString().toLowerCase();
- 
-       if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
-       if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
-       return 0;
+       if (sortField) {
+         const valueA = a[sortField]?.toString().toLowerCase();
+         const valueB = b[sortField]?.toString().toLowerCase();
+         if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
+         if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
+         return 0;
+       }
+       // default: sort by submissionDate desc, fall back to assigned_on
+       const aTime = a.submissionDate && a.submissionDate !== "-" ? new Date(a.submissionDate) : new Date(a.assigned_on);
+       const bTime = b.submissionDate && b.submissionDate !== "-" ? new Date(b.submissionDate) : new Date(b.assigned_on);
+       return bTime - aTime;
      });
  
      /* filtering logic */
      const filteredData = sortedData.filter(item =>
-       item.studentName.toLowerCase().includes(filterText.toLowerCase()) ||
+       item.status !== "created" &&
+       (item.studentName.toLowerCase().includes(filterText.toLowerCase()) ||
        item.assignmentTitle.toLowerCase().includes(filterText.toLowerCase()) ||
-       item.status.toLowerCase().includes(filterText.toLowerCase())
+       item.status.toLowerCase().includes(filterText.toLowerCase()))
      );
  
 
