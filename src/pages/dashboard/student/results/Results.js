@@ -8,7 +8,7 @@ import Breadcrumb from "../Breadcrumb";
 
 import userSession from "../../../../components/services/UserSession";
 import { getAllCompletedAssignmnetByStudent } from "../../../../components/model/studentAssignments";
-import { getBestAttemptByUserQuestion } from "../../../../components/model/questionAttempts";
+import { getBestAttemptByUserQuestion, getAttemptByPolicy } from "../../../../components/model/questionAttempts";
 
 
 
@@ -29,7 +29,7 @@ const Results = () => {
         const withMarks = await Promise.all(data.map(async (a) => {
           const questions = a.questions || [];
           const totalMarks = questions.reduce((s, q) => s + (q.mark || 1), 0);
-          const attempts = await Promise.all(questions.map(q => getBestAttemptByUserQuestion(userSession.uid, q.question_id)));
+          const attempts = await Promise.all(questions.map(q => getAttemptByPolicy(userSession.uid, q.question_id, a.grading_policy || 'best')));
           const oMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (questions[i].mark || 1) : 0), 0);
           return { ...a, totalMarks, oMarks, percentage: totalMarks ? Math.round((oMarks / totalMarks) * 100) + "%" : "0%" };
         }));

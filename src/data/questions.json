@@ -2,6 +2,96 @@
   "datasetA": {
     "Employees": [
       {
+        "id": "A1",
+        "question": "Return all employees with employeeid, firstname, lastname, and email, ordered by lastname then firstname.",
+        "answer": "select employeeid, firstname, lastname, email from employees order by lastname asc, firstname asc;",
+        "difficulty": "easy",
+        "mark": 2,
+        "max_attempts": 5,
+        "orderMatters": true,
+        "aliasStrict": false
+      },
+      {
+        "id": "A2",
+        "question": "Return firstname, lastname, salary for employees with salary greater than 80000. Order by salary descending.",
+        "answer": "select firstname, lastname, salary from employees where salary > 80000 order by salary desc;",
+        "difficulty": "easy",
+        "mark": 2,
+        "max_attempts": 5,
+        "orderMatters": true,
+        "aliasStrict": false
+      },
+      {
+        "id": "A3",
+        "question": "Return the total number of employees as a single value named employeecount.",
+        "answer": "select count(*) as employeecount from employees;",
+        "difficulty": "easy",
+        "mark": 2,
+        "max_attempts": 5,
+        "orderMatters": false,
+        "aliasStrict": true
+      },
+      {
+        "id": "A4",
+        "question": "Return firstname, lastname, departmentname, and location for all employees who have a department assigned.",
+        "answer": "select e.firstname, e.lastname, d.departmentname, d.location from employees e join departments d on d.departmentid = e.departmentid;",
+        "difficulty": "medium",
+        "mark": 4,
+        "max_attempts": 4,
+        "orderMatters": false,
+        "aliasStrict": false
+      },
+      {
+        "id": "A5",
+        "question": "Return departmentname and average salary (alias avgsalary) for each department. Only include departments with average salary greater than 70000. Order by avgsalary descending.",
+        "answer": "select d.departmentname, avg(e.salary) as avgsalary from employees e join departments d on d.departmentid = e.departmentid group by d.departmentid, d.departmentname having avg(e.salary) > 70000 order by avgsalary desc;",
+        "difficulty": "medium",
+        "mark": 5,
+        "max_attempts": 4,
+        "orderMatters": true,
+        "aliasStrict": true
+      },
+      {
+        "id": "A6",
+        "question": "Return employees who do not have a matching department record. Show employeeid, firstname, lastname.",
+        "answer": "select e.employeeid, e.firstname, e.lastname from employees e left join departments d on d.departmentid = e.departmentid where d.departmentid is null;",
+        "difficulty": "medium",
+        "mark": 5,
+        "max_attempts": 4,
+        "orderMatters": false,
+        "aliasStrict": false
+      },
+      {
+        "id": "A7",
+        "question": "Return employees whose salary is greater than the average salary of their own department. Show firstname, lastname, salary, departmentid.",
+        "answer": "select e.firstname, e.lastname, e.salary, e.departmentid from employees e where e.departmentid is not null and e.salary > (select avg(e2.salary) from employees e2 where e2.departmentid = e.departmentid);",
+        "difficulty": "hard",
+        "mark": 7,
+        "max_attempts": 3,
+        "orderMatters": false,
+        "aliasStrict": false
+      },
+      {
+        "id": "A8",
+        "question": "Return departments where total salary expense exceeds the department budget. Show departmentname, budget, totalsalary.",
+        "answer": "select d.departmentname, d.budget, sum(e.salary) as totalsalary from departments d join employees e on e.departmentid = d.departmentid group by d.departmentid, d.departmentname, d.budget having sum(e.salary) > d.budget;",
+        "difficulty": "hard",
+        "mark": 7,
+        "max_attempts": 3,
+        "orderMatters": false,
+        "aliasStrict": true
+      },
+      {
+        "id": "A9",
+        "question": "Return the top 2 highest-paid employees in each department. Show departmentid, firstname, lastname, salary.",
+        "answer": "select departmentid, firstname, lastname, salary from (select e.departmentid, e.firstname, e.lastname, e.salary, row_number() over (partition by e.departmentid order by e.salary desc) as rn from employees e where e.departmentid is not null) ranked where rn <= 2 order by departmentid asc, salary desc;",
+        "difficulty": "hard",
+        "mark": 9,
+        "max_attempts": 3,
+        "orderMatters": true,
+        "aliasStrict": false
+      },
+      {
         "id": 1,
         "question": "Select all employees",
         "answer": "SELECT * FROM Employees;",
@@ -123,6 +213,36 @@
       }
     ],
     "Departments": [
+      {
+        "id": "D1",
+        "question": "Select all departments.",
+        "answer": "select * from departments;",
+        "difficulty": "easy",
+        "mark": 1,
+        "max_attempts": 5,
+        "orderMatters": false,
+        "aliasStrict": false
+      },
+      {
+        "id": "D2",
+        "question": "Get department names and locations ordered by departmentname.",
+        "answer": "select departmentname, location from departments order by departmentname asc;",
+        "difficulty": "easy",
+        "mark": 2,
+        "max_attempts": 5,
+        "orderMatters": true,
+        "aliasStrict": false
+      },
+      {
+        "id": "D3",
+        "question": "Count total departments as departmentcount.",
+        "answer": "select count(*) as departmentcount from departments;",
+        "difficulty": "easy",
+        "mark": 2,
+        "max_attempts": 5,
+        "orderMatters": false,
+        "aliasStrict": true
+      },
       {
         "id": 16,
         "question": "Select all departments",
@@ -274,6 +394,36 @@
   "datasetB": {
     "Customers": [
       {
+        "id": "B1",
+        "question": "Return customerid, firstname, lastname, city for customers in Canada, ordered by lastname then firstname.",
+        "answer": "select customerid, firstname, lastname, city from customers where lower(country) = 'canada' order by lastname asc, firstname asc;",
+        "difficulty": "easy",
+        "mark": 2,
+        "max_attempts": 5,
+        "orderMatters": true,
+        "aliasStrict": false
+      },
+      {
+        "id": "B2",
+        "question": "Return the total number of orders as ordercount.",
+        "answer": "select count(*) as ordercount from orders;",
+        "difficulty": "easy",
+        "mark": 2,
+        "max_attempts": 5,
+        "orderMatters": false,
+        "aliasStrict": true
+      },
+      {
+        "id": "B8",
+        "question": "Return customers who have never placed an order. Show customerid, firstname, lastname.",
+        "answer": "select c.customerid, c.firstname, c.lastname from customers c left join orders o on o.customerid = c.customerid where o.orderid is null;",
+        "difficulty": "hard",
+        "mark": 7,
+        "max_attempts": 3,
+        "orderMatters": false,
+        "aliasStrict": false
+      },
+      {
         "id": 26,
         "question": "Select all customers",
         "answer": "SELECT * FROM Customers;",
@@ -355,6 +505,66 @@
       }
     ],
     "Orders": [
+      {
+        "id": "B3",
+        "question": "Return orderid, orderdate, totalamount for orders with totalamount >= 1000, ordered by orderdate descending.",
+        "answer": "select orderid, orderdate, totalamount from orders where totalamount >= 1000 order by orderdate desc;",
+        "difficulty": "easy",
+        "mark": 2,
+        "max_attempts": 5,
+        "orderMatters": true,
+        "aliasStrict": false
+      },
+      {
+        "id": "B4",
+        "question": "Return orderid, orderdate, customer full name as customername, and totalamount for all orders.",
+        "answer": "select o.orderid, o.orderdate, c.firstname || ' ' || c.lastname as customername, o.totalamount from orders o join customers c on c.customerid = o.customerid;",
+        "difficulty": "medium",
+        "mark": 4,
+        "max_attempts": 4,
+        "orderMatters": false,
+        "aliasStrict": true
+      },
+      {
+        "id": "B5",
+        "question": "Return customerid and total spend (alias totalspent) for each customer with totalspent > 2000. Order by totalspent descending.",
+        "answer": "select c.customerid, sum(o.totalamount) as totalspent from customers c join orders o on o.customerid = c.customerid group by c.customerid having sum(o.totalamount) > 2000 order by totalspent desc;",
+        "difficulty": "medium",
+        "mark": 5,
+        "max_attempts": 4,
+        "orderMatters": true,
+        "aliasStrict": true
+      },
+      {
+        "id": "B6",
+        "question": "Return city and number of orders (alias ordersincity) for each city, ordered by ordersincity descending.",
+        "answer": "select c.city, count(o.orderid) as ordersincity from customers c join orders o on o.customerid = c.customerid group by c.city order by ordersincity desc;",
+        "difficulty": "medium",
+        "mark": 5,
+        "max_attempts": 4,
+        "orderMatters": true,
+        "aliasStrict": true
+      },
+      {
+        "id": "B7",
+        "question": "Return each customerid with their most recent orderdate and totalamount. Include all rows matching the most recent date.",
+        "answer": "select o.customerid, o.orderdate, o.totalamount from orders o where o.orderdate = (select max(o2.orderdate) from orders o2 where o2.customerid = o.customerid);",
+        "difficulty": "hard",
+        "mark": 7,
+        "max_attempts": 3,
+        "orderMatters": false,
+        "aliasStrict": false
+      },
+      {
+        "id": "B9",
+        "question": "Return monthly totals with the previous month total (alias prevtotal) and difference (alias diff). Month format YYYY-MM, ordered by month.",
+        "answer": "with monthly as (select strftime('%Y-%m', orderdate) as month, sum(totalamount) as total from orders group by strftime('%Y-%m', orderdate)) select month, total, lag(total) over (order by month) as prevtotal, total - lag(total) over (order by month) as diff from monthly order by month;",
+        "difficulty": "hard",
+        "mark": 9,
+        "max_attempts": 3,
+        "orderMatters": true,
+        "aliasStrict": true
+      },
       {
         "id": 36,
         "question": "Select all orders",

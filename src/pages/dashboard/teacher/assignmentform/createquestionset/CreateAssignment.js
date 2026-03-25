@@ -27,6 +27,15 @@ export const CreateAssignment = ({ formData, handleChange }) => {
           style={{ padding: '8px' , width: '100%'}}
         />
       </div>
+      <div>
+        <label>Grading Policy</label><br />
+        <select name="grading_policy" value={formData.grading_policy} onChange={handleChange}
+          style={{ padding: '8px', width: '100%' }}>
+          <option value="best">Best attempt</option>
+          <option value="first">First attempt</option>
+          <option value="latest">Latest attempt</option>
+        </select>
+      </div>
     </div>
   );
 };

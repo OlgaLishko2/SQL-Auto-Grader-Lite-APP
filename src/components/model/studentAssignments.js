@@ -11,7 +11,7 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "../../firebase";
-import { getBestAttemptByUserQuestion } from "./questionAttempts";
+import { getBestAttemptByUserQuestion, getAttemptByPolicy } from "./questionAttempts";
 
 const dbCollection = collection(db, "student_assignments");
 
@@ -260,7 +260,7 @@ async function getStudentAssignmentsWithDetails() {
       const assignmentData = assignmentMap[a.assignment_id];
       const questions = assignmentData?.questions || [];
       const totalMarks = questions.reduce((s, q) => s + (q.mark || 1), 0);
-      const attempts = await Promise.all(questions.map(q => getBestAttemptByUserQuestion(a.student_user_id, q.question_id)));
+      const attempts = await Promise.all(questions.map(q => getAttemptByPolicy(a.student_user_id, q.question_id, assignmentData?.grading_policy || 'best')));
       const earnedMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (questions[i].mark || 1) : 0), 0);
       return {
         ...a,

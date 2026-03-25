@@ -14,7 +14,7 @@ const AssignmentForm = ({ onDone }) => {
   const [db, setDb] = useState("");
   const [formData, setFormData] = useState({
     title: '', total_marks: '', due_date: '', description: '',
-    student_class: '', questions: [],
+    student_class: '', questions: [], grading_policy: 'best',
     enable_submission_notification: false, reminder_interval: false
   });
   const [cohorts, setCohorts] = useState([]);

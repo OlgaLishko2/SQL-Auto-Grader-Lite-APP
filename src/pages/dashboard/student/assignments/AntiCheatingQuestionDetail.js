@@ -33,7 +33,7 @@ const AntiCheatingQuestionDetail = () => {
   const [showResults, setShowResults] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState(question?.attemptTime);
   const [isLoading, setIsLoading] = useState(true);
-  useAntiCheat();
+  useAntiCheat(undefined, { enableFullscreen: true });
 
   useEffect(() => {
     if (!dataset || !question?.answer) return;

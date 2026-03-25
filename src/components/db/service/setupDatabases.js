@@ -1,4 +1,4 @@
-import { loadSqliteData, addDataToFirestore } from '../setup/setupFirebaseDb';
+import { loadSqliteData, addDataToFirestore, getSqliteConfig } from '../setup/setupFirebaseDb';
 
 
 const initDB = async (dbname) => {
@@ -32,17 +32,12 @@ export const insertTable = async (tableName, datasetName) => {
 export const getTableSchema = async (tableName, dbname) => {
     const db = await initDB(dbname);
     try {
-        // Debug: show all tables
         const allTables = db.exec(`SELECT name FROM sqlite_master WHERE type='table'`);
-        // console.log('All tables in database:', allTables);
 
         if (allTables.length === 0) {
-
-
             console.warn('No tables found in database, checking localStorage...');
             const schemaKey = `schema_${dbname}`
             const existingSchema = JSON.parse(localStorage.getItem(schemaKey) || '{}');
-            // console.log('Table schema:', existingSchema[tableName].createSQL);
             return existingSchema['Users']?.createSQL || null;
         }
         const result = db.exec(`SELECT sql FROM sqlite_master WHERE type='table' AND name='${tableName}'`);
@@ -57,10 +52,8 @@ export const getTableInTable = async (tableName, dbname) => {
     const createSQL = await getTableSchema(tableName, dbname);
 
     if (!createSQL) return [];
-    // extract content inside the last parentheses block at the end of the SQL string
     const match = createSQL.match(/\((.+)\)$/s);
     if (!match) return [];
-    // Decimal(15,2)
     const splitCols = (str) => {
         const cols = [];
         let depth = 0, cur = '';
@@ -74,16 +67,14 @@ export const getTableInTable = async (tableName, dbname) => {
         return cols;
     };
     const allCols = splitCols(match[1]).filter(Boolean);
-    // console.log(allCols);
-    
+
     const fkCols = new Set(
         allCols
             .filter(col => col.toUpperCase().startsWith('FOREIGN KEY'))
             .map(col => { const m = col.match(/FOREIGN KEY\s*\((\w+)\)/i); return m?.[1]; })
             .filter(Boolean)
     );
-    console.log(fkCols);
-    
+
     return allCols.filter(col => !col.toUpperCase().startsWith('FOREIGN KEY') && !col.toUpperCase().startsWith('PRIMARY KEY')).map(col => {
         const parts = col.split(/\s+/);
         return {
@@ -115,60 +106,38 @@ export const generateCreateTableSQL = async (dbname, tableName, columns) => {
     return createSQL;
 };
 
-export const fetchData = async (dbname, query) => {
-    const db = await initDB(dbname);
-    if (!db) {
-        console.error(`Database '${dbname}' not found`);
-        return [];
-    }
-   try {
-        // 1. Prepare the statement
-        const stmt = db.prepare(query);
-        const rows = [];
+// Runs a query in a Web Worker — worker.terminate() on timeout actually kills
+// the thread, unlike Promise.race which can't interrupt synchronous sql.js.
+function runInWorker(type, dbname, query, timeoutMs = 5000) {
+    return new Promise(async (resolve) => {
+        const config = await getSqliteConfig();
+        if (!config) return resolve({ isSuccessful: false, message: 'No database config found' });
 
-        // 2. Iterate through rows and "Decode" them into objects
-        while (stmt.step()) {
-            const rowDoc = stmt.getAsObject();
+        const worker = new Worker('/sqlWorker.js');
+        const id = crypto.randomUUID();
 
-            // 3. Ensure a unique ID for Firestore 
-            // If the table doesn't have an 'id', we use the SQLite rowid
-            if (!rowDoc.id && rowDoc.rowid) {
-                rowDoc.id = rowDoc.rowid;
-            }
+        const timer = setTimeout(() => {
+            worker.terminate();
+            resolve({ isSuccessful: false, message: 'Query timed out' });
+        }, timeoutMs);
 
-            rows.push(rowDoc);
-        }
+        worker.onmessage = ({ data }) => {
+            if (data.id !== id) return;
+            clearTimeout(timer);
+            worker.terminate();
+            resolve({ isSuccessful: data.isSuccessful, data: data.data, message: data.message });
+        };
 
-        // 4. Free memory
-        stmt.free();
+        worker.onerror = (e) => {
+            clearTimeout(timer);
+            worker.terminate();
+            resolve({ isSuccessful: false, message: e.message });
+        };
 
-        console.log(`Successfully decoded ${rows.length} rows`);
-        return {isSuccessful:true, data:rows};
+        worker.postMessage({ id, type, dbname, config, query });
+    });
+}
 
-    } catch (error) {
-        console.error(`Failed to fetch data:`, error);
-        return {isSuccessful:false, message:error.message};
-    }
-};
-//  if sql.js doesn’t return before timeoutMs, the timeout error is raised.
-// But because db.exec() is synchronous in sql.js, the timeout may not interrupt a blocking query; it only wins the race if the timeout can actually run.
-export const selectQuery = async (dbname, query, timeoutMs = 5000) => {
-    const db = await initDB(dbname);
-    if (!db) {
-        console.error(`Database '${dbname}' not found`);
-        return [];
-    }
-    try {
-        // new Promise((resolve, reject)=>{})
-        const timeout = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Query timed out")), timeoutMs)
-        );
-        // const execution = new Promise((resolve) => resolve(db.exec(query)));
-        const execution = Promise.resolve().then(() => db.exec(query));
-        const result = await Promise.race([execution, timeout]);
-        return {isSuccessful:true, data:result};
-    } catch (error) {
-        console.error(`Failed to fetch data:`, error.message);
-        return {isSuccessful:false, message:error.message};
-    }
-};
+export const fetchData = (dbname, query) => runInWorker('fetch', dbname, query);
+
+export const selectQuery = (dbname, query, timeoutMs = 5000) => runInWorker('exec', dbname, query, timeoutMs);
