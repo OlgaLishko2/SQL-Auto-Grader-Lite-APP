@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./Dashboard.css";
 import CardDashboard from './CardDashboard';
+import StudentSubmissionDashboard from "./StudentSubmissionDashboard";
 import userSession from "../../components/services/UserSession";
 import { 
   getDashboardDataForTeacher, 
@@ -57,9 +58,9 @@ const Dashboard = ({ role }) => {
           const resultPercentage = totalMarks > 0 ? Math.round((earnedMarks / totalMarks) * 100) : 0;
 
           setStudentCards([
-            { label: "Assignments (Total)", value: assignments?.length ?? 0, color: "primary", icon: "fa-clipboard-list" },
-            { label: "Result (Percentage)", value: `${resultPercentage}%`, color: "success", icon: "fa-percent" },
-            { label: "Total Quizzes", value: quizzes?.length ?? 0, color: "warning", icon: "fa-comments" },
+            { label: "Assignments (Total)", value: assignments?.length ?? 0, color: "primary", icon: "fa-clipboard-list" , path:"/dashboard/assignments" },
+            { label: "Result (Percentage)", value: `${resultPercentage}%`, color: "success", icon: "fa-percent" , path:"/dashboard/quizzes"},
+            { label: "Total Quizzes", value: quizzes?.length ?? 0, color: "warning", icon: "fa-comments" , path:"/dashboard/results" },
           ]);
         } catch (err) {
           console.error("Error loading student dashboard:", err);
@@ -77,6 +78,7 @@ const Dashboard = ({ role }) => {
       <div className="dashboard">
         <h2 className="dashboard-title">Student Dashboard</h2>
         <CardDashboard cards={studentCards} />
+        <StudentSubmissionDashboard />
       </div>
     );
   }
