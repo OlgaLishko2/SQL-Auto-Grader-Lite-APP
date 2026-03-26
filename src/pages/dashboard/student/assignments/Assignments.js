@@ -1,103 +1,87 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DataTable from "react-data-table-component";
+import { Tabs, TabList, Tab, TabPanel } from "react-tabs";
+import "react-tabs/style/react-tabs.css";
 
 import Breadcrumb from "../Breadcrumb";
-
 import userSession from "../../../../components/services/UserSession";
-import { getAllAssignmnetByStudent } from "../../../../components/model/studentAssignments";
+import { getAllAssignmnetByStudent, getAllCompletedAssignmnetByStudent } from "../../../../components/model/studentAssignments";
+import { getBestAttemptByUserQuestion } from "../../../../components/model/questionAttempts";
 import LoadingOverlay from "../LoadingOverlay";
 
 const Assignments = () => {
   const navigate = useNavigate();
   const [assignmentsdata, setAssignmentsdata] = useState([]);
+  const [submissionsdata, setSubmissionsdata] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get data from assignments table from firebase
     const fetchdata = async () => {
       try {
-        const data = await getAllAssignmnetByStudent(userSession.uid);
-        console.log('Assignments page - student_assignment records:', data.map(a => ({ assignment_id: a.assignment_id, status: a.status, student_assignment_id: a.student_assignment_id })));
-        
-        setAssignmentsdata(data);
+        const [all, completed] = await Promise.all([
+          getAllAssignmnetByStudent(userSession.uid),
+          getAllCompletedAssignmnetByStudent(userSession.uid),
+        ]);
+        setAssignmentsdata(all.filter((a) => a.status !== "Completed" && a.status !== "Done"));
+
+        const withMarks = await Promise.all(completed.map(async (a) => {
+          const questions = a.questions || [];
+          const totalMarks = questions.reduce((s, q) => s + (Number(q.mark) || 1), 0);
+          const attempts = await Promise.all(questions.map(q => getBestAttemptByUserQuestion(userSession.uid, q.question_id)));
+          const oMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (Number(questions[i].mark) || 1) : 0), 0);
+          return { ...a, totalMarks, oMarks, percentage: totalMarks ? Math.round((oMarks / totalMarks) * 100) + "%" : "0%" };
+        }));
+        setSubmissionsdata(withMarks);
       } catch (error) {
         console.error("Error:", error);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchdata();
   }, []);
 
-  // First letter captial for Assignments title
-  const capitalizeFirstLetter = (str) => {
-    if (!str) return "";
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  };
+  const cap = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 
-  const columns = [
+  const activeColumns = [
+    { name: "S.No", selector: (row, index) => index + 1, sortable: true },
+    { name: "Title", selector: (row) => row.title, sortable: true, cell: (row) => cap(row.title) },
+    { name: "Due Date", selector: (row) => row.dueDate },
     {
-      name: "S.No",
-      selector: (row, index) => index + 1,
-      sortable: true,
-    },
-    {
-      name: "Title",
-      selector: (row) => row.title,
-      sortable: true,
-      cell: (row) => capitalizeFirstLetter(row.title),
-    },
-    {
-      name: "Due Date",
-      selector: (row) => row.dueDate,
-    },
-    {
-      name: "Status",
-      selector: (row) => row.status,
-
+      name: "Status", selector: (row) => row.status,
       cell: (row) => (
-        <span
-          className={`badge ${
-            row.status === "Completed" || row.status === "Done"
-              ? "bg-success"
-              : row.status === "In Progress"
-                ? "bg-warning text-dark"
-                : "bg-primary"
-          }`}
-          style={{
-            color: "white",
-            padding: "5px 10px",
-            borderRadius: "12px",
-            fontSize: "11px",
-          }}
-        >
+        <span className={`badge ${row.status === "In Progress" ? "bg-warning text-dark" : "bg-primary"}`}
+          style={{ color: "white", padding: "5px 10px", borderRadius: "12px", fontSize: "11px" }}>
           {row.status}
         </span>
       ),
     },
     {
-      name: "Action",
-      button: true,
-      cell: (row) =>
-        row.status === "Completed" || row.status === "Done" ? (
-          <span className="text-muted" style={{ fontSize: "12px" }}>
-            Review only
-          </span>
-        ) : (
-          <button
-            className="btn btn-sm btn-primary"
-            style={{ borderRadius: "4px", fontSize: "12px" }}
-            onClick={() =>
-              navigate(`/dashboard/questions/${row.assignment_id}`, {
-                state: { assignment: row },
-              })
-            }
-          >
-            {row.status === "New" ? "Start Test" : "Continue"}
-          </button>
-        ),
+      name: "Action", button: true,
+      cell: (row) => (
+        <button className="btn btn-sm btn-primary" style={{ borderRadius: "4px", fontSize: "12px" }}
+          onClick={() => navigate(`/dashboard/questions/${row.assignment_id}`, { state: { assignment: row } })}>
+          {row.status === "New" ? "Start Test" : "Continue"}
+        </button>
+      ),
+    },
+  ];
+
+  const submittedColumns = [
+    { name: "S.No", selector: (row, index) => index + 1, sortable: true },
+    { name: "Title", selector: (row) => row.title, sortable: true, cell: (row) => cap(row.title) },
+    { name: "Due Date", selector: (row) => row.dueDate },
+    { name: "Marks Obtained / Total", selector: (row) => `${row.oMarks} / ${row.totalMarks}`, sortable: true },
+    { name: "Percentage", selector: (row) => row.percentage },
+    {
+      name: "Action", button: true,
+      cell: (row) => (
+        <button className="btn btn-sm btn-primary" style={{ borderRadius: "4px", fontSize: "12px" }}
+          onClick={() => navigate(`/dashboard/results/${row.assignment_id}`)}>
+          View Detail
+        </button>
+      ),
     },
   ];
 
@@ -106,23 +90,21 @@ const Assignments = () => {
       <LoadingOverlay isOpen={isLoading} message="Loading..." />
       <div className="d-sm-flex justify-content-between mb-0">
         <h2>Assignments</h2>
-        <Breadcrumb
-          items={[
-            { label: "Dashboard", link: "/dashboard" },
-            { label: "Assignments", active: true },
-          ]}
-        />
+        <Breadcrumb items={[{ label: "Dashboard", link: "/dashboard" }, { label: "Assignments", active: true }]} />
       </div>
-
       <div className="card shadow mb-4">
-        <DataTable
-          columns={columns}
-          data={assignmentsdata}
-          pagination
-          highlightOnHover
-          striped
-          responsive
-        />
+        <Tabs>
+          <TabList>
+            <Tab>Assignments</Tab>
+            <Tab>Submitted Assignments</Tab>
+          </TabList>
+          <TabPanel>
+            <DataTable columns={activeColumns} data={assignmentsdata} pagination highlightOnHover striped responsive />
+          </TabPanel>
+          <TabPanel>
+            <DataTable columns={submittedColumns} data={submissionsdata} pagination highlightOnHover striped responsive />
+          </TabPanel>
+        </Tabs>
       </div>
     </>
   );

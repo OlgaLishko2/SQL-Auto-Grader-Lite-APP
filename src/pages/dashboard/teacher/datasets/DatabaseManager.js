@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAppContext } from "../../../../components/db/service/context";
-import "./DatabaseManager.css";
 import HintPopup from "./HintPopup";
+import "./DatabaseManager.css";
 
 function DatabaseManager() {
   const {

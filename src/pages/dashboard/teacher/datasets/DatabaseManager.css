@@ -1,18 +1,21 @@
-.dataset-manager {
+:root {
   --ds-bg: linear-gradient(180deg, #f5f8fc 0%, #eef4fb 100%);
   --ds-surface: #ffffff;
   --ds-surface-soft: #f7fafc;
   --ds-border: #d9e3ef;
   --ds-text: #1d2a39;
   --ds-muted: #5f7185;
-  --ds-primary: #4A76C5;
+ --ds-primary: #4A76C5;
   --ds-primary-dark: #385fa6;
   --ds-accent: #e8effb;
   --ds-success: #1f9d55;
   --ds-danger: #c0392b;
+}
+
+.dataset-manager {
   width: 100%;
   padding: 8px;
-  color: var(--ds-text);
+  color: var(--ds-text) !important ;
 }
 
 .dataset-hero {
@@ -42,7 +45,7 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ds-primary);
+  color: var(--ds-primary) !important;
 }
 
 .dataset-hero h1 {
@@ -53,7 +56,7 @@
 
 .dataset-subtitle {
   margin: 0 auto;
-  color: var(--ds-muted);
+  color: var(--ds-muted) !important;
   font-size: 16px;
   line-height: 1.6;
 }
@@ -90,16 +93,16 @@
   font-size: 22px;
 }
 
-.card-meta {
+.dataset-manager .card-meta {
   padding: 6px 10px;
   border-radius: 999px;
   background: var(--ds-accent);
-  color: var(--ds-primary);
+  color: var(--ds-primary) !important;
   font-size: 12px;
   font-weight: 700;
 }
 
-.inlineForm {
+.dataset-manager .inlineForm {
   display: flex;
   gap: 12px;
   margin-top: 14px;
@@ -131,7 +134,7 @@
   margin-bottom: 4px;
 }
 
-.inlineForm input {
+.dataset-manager .inlineForm input {
   flex: 1 1 220px;
 }
 
@@ -141,7 +144,7 @@
   padding: 10px 16px;
   border: none;
   border-radius: 12px;
-  background: var(--ds-primary);
+  background: var(--ds-primary) !important;
   color: #fff;
   font-weight: 700;
   cursor: pointer;
@@ -150,16 +153,16 @@
 
 .dataset-btn:hover,
 .dataset-manager button:hover {
-  background: var(--ds-primary-dark);
+  background: var(--ds-primary-dark) !important;
   transform: translateY(-1px);
 }
 
-.createBtn {
-  background: var(--ds-success);
+.dataset-manager .createBtn {
+  background: var(--ds-success) !important;
   box-shadow: 0 10px 22px rgba(31, 157, 85, 0.2);
 }
 
-.createBtn:hover {
+.dataset-manager .createBtn:hover {
   background: #187844;
 }
 
@@ -206,14 +209,14 @@
   min-width: 120px;
 }
 
-.schema-actions {
+.dataset-manager .schema-actions {
   display: flex;
   gap: 12px;
   margin-top: 16px;
   flex-wrap: wrap;
 }
 
-.schema-preview {
+.dataset-manager .schema-preview {
   margin-top: 20px;
   padding: 16px;
   border: 1px solid var(--ds-border);
@@ -221,7 +224,7 @@
   background: #f7fafc;
 }
 
-.schema-pre {
+.dataset-manager .schema-pre {
   margin: 10px 0 0;
   font-size: 12px;
   line-height: 1.6;
@@ -229,54 +232,54 @@
   white-space: pre-wrap;
 }
 
-.data-actions {
+.dataset-manager .data-actions {
   display: flex;
   gap: 14px;
   margin: 18px 0 24px;
   flex-wrap: wrap;
 }
 
-.data-insert-form {
+.dataset-manager .data-insert-form {
   align-items: flex-start;
 }
 
-.insert-input {
+.dataset-manager .insert-input {
   flex: 1 1 460px;
 }
 
-.insert-message {
+.dataset-manager .insert-message {
   margin: 10px 0 0;
   font-weight: 700;
 }
 
-.insert-message.success {
-  color: var(--ds-success);
+.dataset-manager .insert-message.success {
+  color: var(--ds-success) !important;
 }
 
-.insert-message.error {
-  color: var(--ds-danger);
+.dataset-manager .insert-message.error {
+  color: var(--ds-danger) !important;
 }
 
-.hint-wrapper {
+.dataset-manager .hint-wrapper {
   position: relative;
   flex: 0 0 auto;
 }
 
-.hint-circle {
+.dataset-manager .hint-circle {
   width: 38px;
   height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--ds-primary);
+  background: var(--ds-primary) !important;
   color: #fff;
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 10px 20px rgba(15, 118, 110, 0.2);
 }
 
-.hint-popup {
+.dataset-manager .hint-popup {
   position: absolute;
   top: 48px;
   right: 0;
@@ -289,21 +292,21 @@
   z-index: 100;
 }
 
-.hint-popup h3 {
+.dataset-manager .hint-popup h3 {
   margin: 0 0 10px;
 }
 
-.hint-popup p {
+.dataset-manager .hint-popup p {
   margin: 0 0 10px;
-  color: var(--ds-muted);
+  color: var(--ds-muted) !important;
 }
 
-.hint-popup ul {
+.dataset-manager .hint-popup ul {
   margin: 0;
   padding-left: 18px;
 }
 
-.hint-popup li {
+.dataset-manager .hint-popup li {
   margin-bottom: 8px;
   color: var(--ds-text);
 }
@@ -335,9 +338,9 @@
     align-items: flex-start;
   }
 
-  .inlineForm,
-  .data-actions,
-  .schema-actions {
+  .dataset-manager .inlineForm,
+  .dataset-manager .data-actions,
+  .dataset-manager .schema-actions {
     flex-direction: column;
     align-items: stretch;
   }
