@@ -7,6 +7,7 @@ import {
   query,
   setDoc,
   where,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 
@@ -158,6 +159,15 @@ function computeTotalMarks(questions, attempts) {
   return { earned, total };
 }
 
+async function updateAttemptCorrectness(attemptId, newValue) {
+  const ref = doc(db, "question_attempts", attemptId);
+  console.log("Inside  updateAttemptCorrectness: ref, newValue ", ref, newValue);
+  await updateDoc(ref, {
+    is_correct: newValue
+  });
+
+  return true;
+}
 export {
   countAttempt,
   createAttempt,
@@ -167,4 +177,5 @@ export {
   getAttemptsByStudent,
   computeQuestionGrade,
   computeTotalMarks,
+  updateAttemptCorrectness,
 };

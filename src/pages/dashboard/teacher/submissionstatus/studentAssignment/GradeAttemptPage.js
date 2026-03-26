@@ -1,16 +1,26 @@
 import { useEffect, useState } from "react";
+import { updateAttemptCorrectness } from "../../../../../components/model/questionAttempts";
 import { CodeEditor } from "../../../teacher/assignmentform/createquestionset/CodeEditor";
 import "./StudentAssignmentPage.css";
 //import "./GradeAttemptPage.css"
 
 export default function GradeAttemptPage({ attempt, question, autoGrade, dataset, onClose }) {
   const [manualGrade, setManualGrade] = useState(attempt.manualGrade ?? null);
-  const [comment, setComment] = useState(attempt.comment ?? "");
+  const [isCorrect, setIsCorrect] = useState(attempt.is_correct ?? false);
   
   async function handleSave() {
     const finalGrade = manualGrade !== null ? manualGrade : autoGrade;
     onClose();
   }
+
+  async function handleToggle() {
+  const newValue = !isCorrect;
+
+  await updateAttemptCorrectness(attempt.id, newValue);
+
+  setIsCorrect(newValue);
+  onClose();
+}
 
   return (
     <div className="grading-container">
@@ -30,7 +40,6 @@ export default function GradeAttemptPage({ attempt, question, autoGrade, dataset
       <div className="editor-box">
         <CodeEditor selectedDataset={dataset} />
       </div>
-
       <div className="bottom-box">
         <label>Auto Grade:</label>
         <input type="number" value={autoGrade} readOnly />
@@ -42,14 +51,12 @@ export default function GradeAttemptPage({ attempt, question, autoGrade, dataset
           onChange={(e) => setManualGrade(Number(e.target.value))}
         />
 
-        <label>Comment:</label>
-        <textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-        />
-
-        <button onClick={handleSave}>Save</button>
+      {/* NEW: Toggle Button */}
+        <button className="toggle-btn" onClick={handleToggle}>
+          {isCorrect ? "Mark Incorrect" : "Mark Correct"}
+        </button>
       </div>
+      
     </div>
   );
 }

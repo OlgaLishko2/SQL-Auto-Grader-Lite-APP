@@ -89,3 +89,19 @@
 .bottom-box button:hover {
   background: #005fcc;
 }
+
+.toggle-btn {
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #0078ff;
+  color: white;
+  transition: background 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background: #005fcc;
+}
