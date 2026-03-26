@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../../firebase"; 
+import { auth } from "../../firebase";
 import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { createUser } from "../../components/model/users";
 import "./Register.css";
@@ -14,17 +14,17 @@ function Register() {
   const [role, setRole] = useState("student");
   const [error, setError] = useState("");
 
-const [isWaitingForVerify, setIsWaitingForVerify] = useState(false);
+  const [isWaitingForVerify, setIsWaitingForVerify] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     setError("");
 
 
     try {
-     
+
       const res = await createUserWithEmailAndPassword(auth, email, password);
-    
+
       await sendEmailVerification(res.user); //send verif email
 
       await createUser(res.user.uid, {
@@ -36,12 +36,12 @@ const [isWaitingForVerify, setIsWaitingForVerify] = useState(false);
       });
 
       console.log("Success! Account created.");
-     
-setIsWaitingForVerify(true);
+
+      setIsWaitingForVerify(true);
 
 
     } catch (err) {
-    setError("This email is already existes. Try logging in.");
+      setError("This email is already existes. Try logging in.");
     }
   };
 
@@ -57,14 +57,14 @@ setIsWaitingForVerify(true);
     }
   };
 
-if (isWaitingForVerify) {
+  if (isWaitingForVerify) {
     return (
       <div className="auth-container">
         <div className="auth-card">
           <div className="verify-icon">✉️</div>
           <h2>Check your email</h2>
           <p className="auth-subtitle">
-            We've sent a verification link to <b>{email}</b>. 
+            We've sent a verification link to <b>{email}</b>.
             Please check your inbox (and spam folder).
           </p>
 
@@ -89,8 +89,8 @@ if (isWaitingForVerify) {
         <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Full Name</label>
-            <input type="text" 
-            value={fullName}
+            <input type="text"
+              value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required />
           </div>
@@ -102,9 +102,9 @@ if (isWaitingForVerify) {
           </div>
 
 
-<div className="form-group">
+          <div className="form-group">
             <label>I am registering as:</label>
-            <select 
+            <select
               className="role-select"
               value={role}
               onChange={(e) => setRole(e.target.value)}
@@ -115,7 +115,7 @@ if (isWaitingForVerify) {
             </select>
           </div>
 
-          
+
 
           <div className="form-group">
             <label>Password</label>

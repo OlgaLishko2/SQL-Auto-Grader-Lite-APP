@@ -18,9 +18,9 @@ const StudentSubmissionDashboard = () => {
         const data = await getAllCompletedAssignmnetByStudent(userSession.uid);
         const withMarks = await Promise.all(data.map(async (a) => {
           const questions = a.questions || [];
-          const totalMarks = questions.reduce((s, q) => s + (q.mark || 1), 0);
+          const totalMarks = questions.reduce((s, q) => s + (Number(q.mark) || 1), 0);
           const attempts = await Promise.all(questions.map(q => getBestAttemptByUserQuestion(userSession.uid, q.question_id)));
-          const oMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (questions[i].mark || 1) : 0), 0);
+          const oMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (Number(questions[i].mark) || 1) : 0), 0);
           return { ...a, totalMarks, oMarks, percentage: totalMarks ? Math.round((oMarks / totalMarks) * 100) + "%" : "0%" };
         }));
         setsubmissionsdata(withMarks);
@@ -66,7 +66,7 @@ const StudentSubmissionDashboard = () => {
               <h4 className="small font-weight-bold">
                 {item.title || `Assignment ${index + 1}`}{" "}
                 <span className="float-right">
-                  {percent === 100 ? "Complete!" : `${percent}%`}
+                  {item.oMarks} / {item.totalMarks} {percent === 100 ? "— Complete!" : `(${percent}%)`}
                 </span>
               </h4>
 

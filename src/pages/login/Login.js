@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../../firebase"; 
-import { signInWithEmailAndPassword, sendEmailVerification} from "firebase/auth";
+import { auth } from "../../firebase";
+import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { getUser } from "../../components/model/users";
 import userSession from "../../components/services/UserSession";
-import "../register/Register.css"; 
+import "../register/Register.css";
 
 function Login() {
   const navigate = useNavigate();
@@ -12,9 +12,9 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (userSession.uid) navigate("/dashboard", { replace: true });
-  }, []);
+  // useEffect(() => {
+  //   if (userSession.uid) navigate("/dashboard", { replace: true });
+  // }, []);
 
 
   const handleLogin = async (e) => {
@@ -22,32 +22,34 @@ function Login() {
     setError("");
 
     try {
-      
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log(userCredential);
+
+      const user = userCredential.user;
 
 
 
-if (!user.emailVerified) {
+      if (!user.emailVerified) {
         await sendEmailVerification(user); // resend link
         setError("Email not verified. We've sent a NEW verification link to your inbox. Please check it!");
-        return; 
+        return;
       }
 
 
-    const userData = await getUser(user.uid);
+      const userData = await getUser(user.uid);
       if (userData) {
         userSession.set(userData);
         navigate('/dashboard', { replace: true })
-        
+
         // if (userRole === "teacher") {
         //   navigate("/teacher-dashboard");
         // } else {
         //   navigate("/student-dashboard");
         // }
-      } 
+      }
     } catch (err) {
-    setError("Wrong email or password. Or user does not exist.");
+      setError("Wrong email or password. Or user does not exist.");
     }
   };
 
@@ -66,15 +68,15 @@ if (!user.emailVerified) {
             <label>Email</label>
             <input type="email" placeholder="name@example.com" value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required/>
+              required />
           </div>
 
           <div className="form-group">
             <div className="label-row">
               <label>Password</label>
               <span className="forgot-link">Forgot?</span>
-            
-            
+
+
             </div>
             <input type="password" placeholder="••••••••" value={password}
               onChange={(e) => setPassword(e.target.value)}

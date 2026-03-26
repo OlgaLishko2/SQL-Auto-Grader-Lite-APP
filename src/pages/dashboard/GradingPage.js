@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { db } from "../../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { getStudentAssignmentsWithDetails } from "../../components/model/studentAssignments";
+import { getStudentAssignmentsWithDetails, updateStudentAssignment } from "../../components/model/studentAssignments";
 import "./Dashboard.css";
 
 const GradingPage = () => {
@@ -37,14 +35,9 @@ const GradingPage = () => {
   const handleSubmit = async () => {
     if (!assignment) return;
     try {
-    
-      const studentAssignmentRef = doc(db, "student_assignments", assignment.id);
-      await updateDoc(studentAssignmentRef, {
-        grade: Number(grade),
-        status: "graded",
-      });
+      await updateStudentAssignment({ student_assignment_id: assignment.id, grade: Number(grade), status: "graded" });
       alert("Grade submitted!");
-      navigate("/dashboard"); 
+      navigate("/dashboard/submissionstatus");
     } catch (error) {
       console.error("Error submitting grade:", error);
     }

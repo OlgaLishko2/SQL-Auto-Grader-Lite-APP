@@ -104,12 +104,21 @@ async function countAttempt(questionId, userId) {
 
 async function getBestAttemptByUserQuestion(userId, questionId) {
   const attempts = await getAttemptByUserQuestion(userId, questionId);
-
-  if (attempts.length === 0) {
-    return null;
-  }
-
+  if (attempts.length === 0) return null;
   return attempts.reduce(pickBetterAttempt, null);
+}
+
+// Returns the attempt selected by grading policy: 'best' | 'first' | 'latest'
+async function getAttemptByPolicy(userId, questionId, policy = 'best') {
+  const attempts = await getAttemptByUserQuestion(userId, questionId);
+  if (attempts.length === 0) return null;
+  if (policy === 'first') {
+    return attempts.reduce((a, b) => toComparableDate(a.submitted_on) <= toComparableDate(b.submitted_on) ? a : b);
+  }
+  if (policy === 'latest') {
+    return attempts.reduce((a, b) => toComparableDate(a.submitted_on) >= toComparableDate(b.submitted_on) ? a : b);
+  }
+  return attempts.reduce(pickBetterAttempt, null); // 'best'
 }
 
 async function getStudentInfo(studentId) {
@@ -147,6 +156,7 @@ export {
   countAttempt,
   createAttempt,
   getBestAttemptByUserQuestion,
+  getAttemptByPolicy,
   getAttemptByUserQuestion,
   getStudentInfo,
   getAttemptsByStudent,

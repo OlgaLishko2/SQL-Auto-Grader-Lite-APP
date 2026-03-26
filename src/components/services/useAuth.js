@@ -10,7 +10,7 @@ export function useAuth() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
+      if (currentUser && currentUser.emailVerified) {
         if (!userSession.role) {
           const userData = await getUser(currentUser.uid);
           if (userData) userSession.set(userData);

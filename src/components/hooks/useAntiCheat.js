@@ -1,54 +1,40 @@
 import { useEffect, useState } from 'react';
 
-export const useAntiCheat = (onViolation) => {
+export const useAntiCheat = (onViolation, { enableFullscreen = false } = {}) => {
   const [violations, setViolations] = useState([]);
-useEffect(() => {
-  // Disable text selection
-  document.body.style.userSelect = 'none';
-  document.body.style.msUserSelect = 'none';
 
-  return () => {
-    document.body.style.userSelect = '';
-    document.body.style.msUserSelect = '';
-  };
-}, []);
   useEffect(() => {
-    // Disable copy/paste
-    const handleCopy = (e) => {
-      e.preventDefault();
-      // prevent copy
-      // logViolation('copy_attempt');
+    document.body.style.userSelect = 'none';
+    document.body.style.msUserSelect = 'none';
+    return () => {
+      document.body.style.userSelect = '';
+      document.body.style.msUserSelect = '';
     };
+  }, []);
 
-    const handlePaste = (e) => {
-      e.preventDefault();
-      // prevent past
-      // logViolation('paste_attempt');
-    };
+  useEffect(() => {
+    if (!enableFullscreen) return;
+    // Request fullscreen on mount; if user exits, log it as a violation
+    document.documentElement.requestFullscreen?.().catch(() => {});
 
-    // Detect tab/window switch
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        logViolation('tab_switch');
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        logViolation('exited_fullscreen');
       }
     };
-
-    // Detect window blur (switching apps)
-    const handleBlur = () => {
-      logViolation('window_blur');
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      if (document.fullscreenElement) document.exitFullscreen?.();
     };
+  }, [enableFullscreen]);
 
-    // Disable right-click
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-      logViolation('right_click');
-    };
-
-    const logViolation = (type) => {
-      const violation = { type, timestamp: new Date().toISOString() };
-      setViolations(prev => [...prev, violation]);
-      onViolation?.(violation);
-    };
+  useEffect(() => {
+    const handleCopy = (e) => e.preventDefault();
+    const handlePaste = (e) => e.preventDefault();
+    const handleVisibilityChange = () => { if (document.hidden) logViolation('tab_switch'); };
+    const handleBlur = () => logViolation('window_blur');
+    const handleContextMenu = (e) => { e.preventDefault(); logViolation('right_click'); };
 
     document.addEventListener('copy', handleCopy);
     document.addEventListener('paste', handlePaste);
@@ -64,6 +50,12 @@ useEffect(() => {
       document.removeEventListener('contextmenu', handleContextMenu);
     };
   }, [onViolation]);
+
+  const logViolation = (type) => {
+    const violation = { type, timestamp: new Date().toISOString() };
+    setViolations(prev => [...prev, violation]);
+    onViolation?.(violation);
+  };
 
   return { violations };
 };

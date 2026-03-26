@@ -42,9 +42,10 @@ function TeacherAssignments() {
 }
 function TeacherQuizzes() {
   const [creating, setCreating] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   return creating
-    ? <QuizForm onDone={() => setCreating(false)} />
-    : <QuizList onCreate={() => setCreating(true)} />;
+    ? <QuizForm onDone={() => { setCreating(false); setRefreshKey(k => k + 1); }} />
+    : <QuizList key={refreshKey} onCreate={() => setCreating(true)} />;
 }
 
 function App() {

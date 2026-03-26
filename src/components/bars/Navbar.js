@@ -20,11 +20,15 @@ function NavBar() {
 
   const handleLogout = () => {
     userSession.clear();
-    signOut(auth).then(() => { window.location.href = "/"; });
+    signOut(auth).then(() => {
+      window.location.replace("/");
+    }).catch((error) => {
+      console.error("Sign out error", error);
+    });
   };
 
   return (
-    <nav className="navbar" style={{zIndex:1000}}>
+    <nav className="navbar" style={{ zIndex: 1000 }}>
       <div className="nav-container">
         <Link to="/" className="logo">🌐 SQL Practice Platform</Link>
         <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>☰</button>

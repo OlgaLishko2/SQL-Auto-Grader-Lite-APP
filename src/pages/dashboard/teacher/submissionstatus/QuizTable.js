@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getQuizSubmissionsWithDetails } from "../../../../components/model/quizzes";
+import userSession from "../../../../components/services/UserSession";
 
 export default function QuizTable() {
   const [data, setData] = useState([]);
@@ -24,7 +25,7 @@ export default function QuizTable() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getQuizSubmissionsWithDetails();
+      const data = await getQuizSubmissionsWithDetails(userSession.uid);
       setData(data);
     };
     fetchData();

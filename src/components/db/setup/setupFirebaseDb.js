@@ -3,7 +3,8 @@ import { db } from '../../../firebase.js';
 import initSqlJs from 'sql.js';
 
 let SQL = null;
-let runtimeConfig = {}; // Mutable copy
+let runtimeConfig = {};
+let cachedDatabases = null; // cache built databases in memory
 
 // Upload once
 // Initialize SQL.js once
@@ -19,20 +20,15 @@ export const initSQL = async () => {
 // Add data such as create Dataset, table, and table Schema in Firestore
 export const addDataToFirestore = async (dbname, query = []) => {
     runtimeConfig = await getSqliteConfig();
-    // If no config exists, start with empty object
     if (!runtimeConfig[dbname]) {
-        runtimeConfig[dbname] = {
-            name: `${dbname}.sqlite`,
-            queries: []
-        };
+        runtimeConfig[dbname] = { name: `${dbname}.sqlite`, queries: [] };
     }
     if (runtimeConfig) {
         runtimeConfig[dbname].queries.push(...query);
-        // await deleteDoc(doc(db, 'sqliteConfigs', 'mainConfig'));
         await setDoc(doc(db, 'sqliteConfigs', 'mainConfig'), runtimeConfig);
+        invalidateDatabaseCache(); // force rebuild on next load
         console.log('Saved to Firestore');
     }
-
 };
 
 // Retrieve anytime
@@ -45,6 +41,7 @@ export const getSqliteConfig = async () => {
 };
 // Use it
 export const loadSqliteData = async () => {
+    if (cachedDatabases) return cachedDatabases; // return cache on subsequent calls
     const databases = {};
     await initSQL();
     runtimeConfig = await getSqliteConfig();
@@ -53,18 +50,20 @@ export const loadSqliteData = async () => {
         return {};
     }
     for (const [key, config] of Object.entries(runtimeConfig)) {
-        // Execute queries for main db
-        const sqliteDb = new SQL.Database()
-        // 2. Execute table creations
+        const sqliteDb = new SQL.Database();
         for (const query of config.queries)
             try {
                 sqliteDb.run(query);
             } catch (error) {
                 console.error(`Error in ${key}:`, error.message);
                 console.error('Failed query:', query);
-                throw error; // Or continue to skip bad queries
+                throw error;
             }
-        databases[key] = sqliteDb
+        databases[key] = sqliteDb;
     }
-    return (databases)
+    cachedDatabases = databases; // store in cache
+    return databases;
 };
+
+// Call this after teacher adds/modifies datasets so cache is refreshed
+export const invalidateDatabaseCache = () => { cachedDatabases = null; };

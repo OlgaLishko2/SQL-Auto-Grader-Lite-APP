@@ -28,6 +28,7 @@ const AssignmentForm = ({ onDone }) => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    if (name === 'due_date') setError("");
   };
 
   const handleNext = async () => {
@@ -36,11 +37,18 @@ const AssignmentForm = ({ onDone }) => {
       setError("You must be logged in to create an assignment.");
       return;
     }
+    if (activeTab === 0 && formData.due_date) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (new Date(formData.due_date) < today) {
+        setError("Due date cannot be in the past.");
+        return;
+      }
+    }
     setActiveTab(activeTab + 1);
   };
 
   const tabRequiredFields = [
-    ['title', 'description', 'due_date'],
+    ['title', 'due_date'],
     [],
     ['student_class'],
   ];
@@ -65,15 +73,28 @@ const AssignmentForm = ({ onDone }) => {
   });
 
   const sendEmailsToStudents = async (id) => {
-    const cohort = cohorts.find(c => c.cohort_id === formData.student_class);
-    if (!cohort?.student_uids?.length) return;
+    const allCohorts = await getCohortsByOwner(userSession.uid);
+    console.log('[email] cohorts found:', allCohorts.length, 'student_class:', formData.student_class);
+    const cohort = allCohorts.find(c => c.cohort_id === formData.student_class);
+    console.log('[email] matched cohort:', cohort);
+    if (!cohort?.student_uids?.length) { console.warn('[email] no students in cohort, aborting'); return; }
     const allStudents = await getAllStudents();
     const cohortStudents = allStudents.filter(s => cohort.student_uids.includes(s.uid));
+    console.log('[email] sending to', cohortStudents.map(s => s.email));
     await Promise.all(cohortStudents.map(s => sendAssignmentEmail(s, formData.title, formData.due_date, id)));
+  };
+
+  const validateDueDate = () => {
+    const date = new Date(formData.due_date);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (date < today) { setError("Due date cannot be in the past."); return false; }
+    if (date.getFullYear() > 2100) { setError("Please enter a valid due date."); return false; }
+    return true;
   };
 
   const handleSave = async () => {
     if (formData.questions.length === 0) { alert("The assignment needs at least one question."); return; }
+    if (!validateDueDate()) return;
     try {
       const id = await createNewAssignment(buildAssignmentPayload());
       setAssignmentId(id);
@@ -86,6 +107,7 @@ const AssignmentForm = ({ onDone }) => {
 
   const handlePublish = async () => {
     if (!window.confirm("Are you sure you want to publish?")) return;
+    if (!validateDueDate()) return;
     try {
       let id = assignmentId;
       if (!id) {
@@ -124,7 +146,7 @@ const AssignmentForm = ({ onDone }) => {
         {activeTab === 0 && <CreateAssignment formData={formData} handleChange={handleChange} />}
 
         {activeTab === 1 && (
-          <CreateQuestionSet onAddQuestions={(qs) => setFormData(prev => ({ ...prev, questions: qs }))} setDb={setDb} />
+          <CreateQuestionSet onAddQuestions={(qs) => setFormData(prev => ({ ...prev, questions: qs }))} setDb={setDb} existingQuestions={formData.questions} existingDataset={db} />
         )}
 
         {activeTab === 2 && (
@@ -145,17 +167,14 @@ const AssignmentForm = ({ onDone }) => {
                 </select><br /><br />
               </>
             )}
-            <label>Enable Notification (on submission): </label>
+            <label>Would you like to be notified when a student submits this assignment?: </label>
             <input name="enable_submission_notification" type="checkbox" checked={formData.enable_submission_notification} onChange={handleChange} /><br />
-            <label>Reminder Interval: </label>
+            <label>Would you like to remind students to submit this assignment?: </label>
             <input name="reminder_interval" type="checkbox" checked={formData.reminder_interval} onChange={handleChange} />
           </div>
         )}
 
         <div style={{ marginTop: '20px' }}>
-          {activeTab < 2 && (
-            <button type="button" disabled={!isTabComplete(activeTab)} onClick={handleNext}>Next</button>
-          )}
           {activeTab === 2 && (
             <div style={{ display: "flex", gap: "12px" }}>
               <button type="button" disabled={!isTabComplete(2)} onClick={handleSave}>Save Assignment</button>

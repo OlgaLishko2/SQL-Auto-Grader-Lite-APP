@@ -5,13 +5,13 @@ import StudentSubmissionDashboard from "./StudentSubmissionDashboard";
 import userSession from "../../components/services/UserSession";
 import { 
   getDashboardDataForTeacher, 
-  getAllAssignmnetByStudent 
+  getAllAssignmnetByStudent,
+  getAllCompletedAssignmnetByStudent
 } from "../../components/model/studentAssignments";
 import { getQuizzesForStudent } from "../../components/model/quizzes";
 import { getBestAttemptByUserQuestion } from "../../components/model/questionAttempts"; // добавляем
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs } from "firebase/firestore"; 
-import { db } from "../../firebase"; 
+import { getAllUsers } from "../../components/model/users";
 
 const Dashboard = ({ role }) => {
   const [teacherData, setTeacherData] = useState(null);
@@ -25,8 +25,7 @@ const Dashboard = ({ role }) => {
         try {
           const data = await getDashboardDataForTeacher(userSession.uid);
 
-          const usersSnap = await getDocs(collection(db, "users"));
-          const usersData = usersSnap.docs.map(doc => ({ uid: doc.id, ...doc.data() }));
+          const usersData = await getAllUsers();
 
           setTeacherData({ ...data, users: usersData });
         } catch (error) {
@@ -40,27 +39,31 @@ const Dashboard = ({ role }) => {
       const loadStudentData = async () => {
         try {
           const assignments = await getAllAssignmnetByStudent(userSession.uid);
+          const completedAssignments = await getAllCompletedAssignmnetByStudent(userSession.uid);
+          const seen = new Set();
+          const allAssignments = [...assignments, ...completedAssignments].filter(a => {
+            if (seen.has(a.assignment_id)) return false;
+            seen.add(a.assignment_id);
+            return true;
+          });
           const quizzes = await getQuizzesForStudent(userSession.uid);
 
-       
           let totalMarks = 0;
           let earnedMarks = 0;
 
-          for (const assignment of assignments) {
-            const questions = assignment.questions || [];
-            for (const q of questions) {
-              const bestAttempt = await getBestAttemptByUserQuestion(userSession.uid, q.question_id);
-              totalMarks += q.mark || 1;
-              if (bestAttempt?.is_correct) earnedMarks += q.mark || 1;
-            }
-          }
+          const allQuestions = allAssignments.flatMap(a => (a.questions || []).map(q => ({ ...q, uid: userSession.uid })));
+          const attempts = await Promise.all(allQuestions.map(q => getBestAttemptByUserQuestion(q.uid, q.question_id)));
+          allQuestions.forEach((q, i) => {
+            totalMarks += Number(q.mark) || 1;
+            if (attempts[i]?.is_correct) earnedMarks += Number(q.mark) || 1;
+          });
 
           const resultPercentage = totalMarks > 0 ? Math.round((earnedMarks / totalMarks) * 100) : 0;
 
           setStudentCards([
-            { label: "Assignments (Total)", value: assignments?.length ?? 0, color: "primary", icon: "fa-clipboard-list" , path:"/dashboard/assignments" },
-            { label: "Result (Percentage)", value: `${resultPercentage}%`, color: "success", icon: "fa-percent" , path:"/dashboard/quizzes"},
-            { label: "Total Quizzes", value: quizzes?.length ?? 0, color: "warning", icon: "fa-comments" , path:"/dashboard/results" },
+            { label: "Assignments (Total)", value: allAssignments?.length ?? 0, color: "primary", icon: "fa-clipboard-list" , path:"/dashboard/assignments" },
+            { label: "Result (Marks)", value: `${earnedMarks} / ${totalMarks} (${resultPercentage}%)`, color: "success", icon: "fa-percent", path:"/dashboard/results" },
+            { label: "Total Quizzes", value: quizzes?.length ?? 0, color: "warning", icon: "fa-comments" , path:"/dashboard/quizzes" },
           ]);
         } catch (err) {
           console.error("Error loading student dashboard:", err);
@@ -126,7 +129,7 @@ const Dashboard = ({ role }) => {
                   <span>{studentNames.join(", ")} — {assignmentTitle}</span>
                   <button 
                     className="grade-button" 
-                    onClick={() => navigate(`/dashboard/grade/${a.student_assignment_id}`)}
+                    onClick={() => navigate(`/dashboard/submissionstatus`, { state: { student_assignment_id: a.student_assignment_id } })}
                   >
                     Grade
                   </button>

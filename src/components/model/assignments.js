@@ -7,41 +7,33 @@ import {
   setDoc,
   updateDoc,
   where,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 
 const dbCollection = collection(db, "assignments");
+const today = () => new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
 async function createNewAssignment(assignment) {
   try {
     const newDocRef = doc(dbCollection);
     const assignmentId = newDocRef.id;
-    await setDoc(newDocRef, {
-      ...assignment,
-      assignment_id: assignmentId,
-    });
-
+    await setDoc(newDocRef, { ...assignment, assignment_id: assignmentId });
     return assignmentId;
   } catch (error) {
     console.error(`createNewAssignment: ${error}`);
   }
 }
 
-//Return an array of assignment
+// Teacher: only their own assignments, ordered by due date
 async function getAllAssignmentByOwner(ownerId) {
   try {
-    const assignmentsQuery = query(
-      dbCollection,
-      where("owner_user_id", "==", ownerId),
-    );
-    let assignments = [];
-    const querySnapshot = await getDocs(assignmentsQuery);
-    querySnapshot.forEach((doc) => {
-      assignments.push(doc.data());
-    });
-    return assignments;
+    const q = query(dbCollection, where("owner_user_id", "==", ownerId), orderBy("dueDate", "asc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => d.data());
   } catch (error) {
     console.error(`getAllAssignmentByOwner: ${error}`);
+    return [];
   }
 }
 

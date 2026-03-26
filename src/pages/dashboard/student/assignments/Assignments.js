@@ -18,7 +18,7 @@ const Assignments = () => {
     const fetchdata = async () => {
       try {
         const data = await getAllAssignmnetByStudent(userSession.uid);
-        console.log(data);
+        console.log('Assignments page - student_assignment records:', data.map(a => ({ assignment_id: a.assignment_id, status: a.status, student_assignment_id: a.student_assignment_id })));
         
         setAssignmentsdata(data);
       } catch (error) {

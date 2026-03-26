@@ -8,7 +8,7 @@ A web-based educational platform for learning SQL through hands-on practice. SQL
 
 - **React 19** — UI framework
 - **Firebase** — Authentication (email/password) + Firestore (user data, assignments, questions)
-- **sql.js** — SQLite compiled to WebAssembly, runs SQL in the browser
+- **sql.js** — SQLite compiled to WebAssembly, runs SQL in the browser via Web Worker
 - **react-router-dom v7** — Client-side routing
 - **CRACO** — Create React App config override (for WASM support)
 - **Font Awesome 5** — Icons
@@ -25,29 +25,70 @@ A web-based educational platform for learning SQL through hands-on practice. SQL
 ### Student Dashboard
 - **Assignments** — View and start SQL assignments with status tracking (New / In Progress / Completed)
 - **Quizzes** — View quiz list with status
-- **Results** — View grades, marks, percentage, pass/fail per assignment and quiz
-- **Anti-cheat system** — Disables copy/paste, right-click, text selection; detects tab switching and window blur during assignments
+- **Results** — View grades, marks, percentage per assignment; graded by the assignment's grading policy
+- **Anti-cheat system** — Disables copy/paste, right-click, text selection; detects tab switching and window blur; prompts fullscreen on assignment start
 
 ### Teacher Dashboard
 - **Datasets** — Create and manage datasets and tables stored in Firestore
 - **Cohorts** — Group students into cohorts (Beginner, Intermediate, Advanced)
 - **Assignments** — Create multi-step assignments with:
-  - Title, description, total marks, due date
+  - Title, description, due date, grading policy (best / first / latest attempt)
   - Assign to a student cohort
-  - Add questions with preset SQL questions or custom ones
-  - Per-question settings: difficulty, max attempts, order matters, alias strict
-  - Shared SQL code editor (fixed on right) to test queries while building questions
+  - Add questions from preset library or write custom ones
+  - Per-question settings: difficulty, max attempts, marks, order matters, alias strict
+  - Shared SQL code editor to test queries while building questions
 - **Edit Questions** — Expand any assignment to edit its questions inline
+- **Submission Status** — View per-student attempt results and override marks
+
+---
+
+## Grading System
+
+### Query Execution
+- Only `SELECT` statements are allowed; multi-statement queries are blocked
+- Student queries are lower-cased before execution
+- SQL runs in a **Web Worker** — long-running queries are terminated via `worker.terminate()` after 5 seconds without freezing the UI
+
+### Result Comparison
+- Grading compares result sets, not query text
+- Rows compared as a **multiset** (order ignored unless *Order Matters* is enabled per question)
+- Column names normalized to lowercase
+- String values compared case-insensitively
+
+### Grading Policy (per assignment)
+| Policy | Behaviour |
+|---|---|
+| **Best** | Correct attempt wins; if tied, most recent |
+| **First** | Earliest submitted attempt is used |
+| **Latest** | Most recently submitted attempt is used |
 
 ---
 
 ## Database Architecture
 
 Datasets are **not** stored as physical `.sqlite` files. Instead:
-- Dataset schemas and seed data are defined as SQL queries in `src/data/db-config.json`
+- Dataset schemas and seed data are defined as SQL statements in `src/data/db-config.json`
 - On first run, this config is uploaded to Firestore (`sqliteConfigs/mainConfig`)
 - On each app load, the config is fetched from Firestore and builds **in-memory SQLite databases** using `sql.js`
 - Teachers can add new datasets/tables dynamically — changes are saved back to Firestore
+- This is functionally equivalent to bundling `.sqlite` files and works better for a browser-first app
+
+### Bundled Datasets
+| Dataset | Tables | Use |
+|---|---|---|
+| **datasetA** | Employees, Departments | Joins, filters, aggregates, subqueries, window functions |
+| **datasetB** | Customers, Orders | Subqueries, grouping, date filters, totals, window functions |
+
+---
+
+## Security
+
+Firestore security rules (`firestore.rules`) enforce:
+- Users can only read/write their own profile
+- Students can only create attempts for themselves; `is_correct` must be `false` on create (grading is client-side)
+- Teachers can override attempt marks
+- Only teachers can write assignments, cohorts, questions, datasets, and preset questions
+- All authenticated users can read assignments and datasets
 
 ---
 
@@ -58,19 +99,19 @@ src/
 ├── data/                       # DEV ONLY seed files (remove before production push)
 │   ├── devSeed.js              # All seed functions — delete this before pushing to GitHub
 │   ├── seedData.json           # Sample cohorts, assignments, questions
-│   ├── questions.json          # Preset SQL questions with difficulty levels
+│   ├── questions.json          # Preset SQL questions (A1–A9, B1–B9) with difficulty, marks, grading flags
 │   └── db-config.json          # SQLite schema + seed data for in-browser databases
 │
 ├── components/
 │   ├── bars/                   # Navbar, Footer
-│   ├── comparison/             # SQL result comparison logic
+│   ├── comparison/             # SQL result comparison logic (multiset + ordered)
 │   ├── db/
 │   │   ├── sqlTest.js          # SQL Tester component
 │   │   ├── queryValidation.js  # SELECT-only enforcement + query normalization
-│   │   ├── service/            # AppContext (global DB state), setupDatabases
+│   │   ├── service/            # AppContext (global DB state), setupDatabases (Web Worker calls)
 │   │   └── setup/              # Firebase DB setup
-│   ├── hooks/                  # useAntiCheat hook
-│   └── model/                  # Firestore data models (assignments, questions, cohorts, presetQuestions)
+│   ├── hooks/                  # useAntiCheat hook (fullscreen, copy/paste, tab detection)
+│   └── model/                  # Firestore data models (assignments, questions, cohorts, attempts)
 │
 ├── pages/
 │   ├── home/
@@ -81,17 +122,24 @@ src/
 │   └── dashboard/
 │       ├── layout/             # Dashboard shell (sidebar + topbar + outlet)
 │       ├── leftmenu/           # Sidebar navigation
-│       ├── topbar/             # Top bar
 │       ├── Dashboard.js        # Dashboard home (seed buttons for dev, role-aware cards)
 │       ├── student/
-│       │   ├── assignments/    # Assignments list + anti-cheat detail
+│       │   ├── assignments/    # Assignments list + anti-cheat question detail
 │       │   ├── quizzes/
 │       │   └── results/
 │       └── teacher/
 │           ├── assignmentform/ # AssignmentForm (multi-step) + AssignmentList
 │           ├── cohorts/        # CohortManager
 │           ├── createquestionset/ # CreateQuestionSet with fixed code editor
-│           └── datasets/       # DatabaseManager
+│           ├── datasets/       # DatabaseManager
+│           └── submissionstatus/ # Per-student attempt viewer + mark override
+│
+public/
+├── sql-wasm.wasm               # SQLite WASM binary
+├── sql-wasm.js                 # sql.js loader (used by Web Worker)
+└── sqlWorker.js                # Web Worker — builds DB from Firestore config, runs queries
+│
+firestore.rules                 # Firestore security rules
 ```
 
 ---
@@ -116,6 +164,11 @@ REACT_APP_FIREBASE_PROJECT_ID=your_project_id
 REACT_APP_FIREBASE_STORAGE_BUCKET=your_storage_bucket
 REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 REACT_APP_FIREBASE_APP_ID=your_app_id
+```
+
+### Deploy Firestore Rules
+```bash
+firebase deploy --only firestore:rules
 ```
 
 ### Run
@@ -155,6 +208,7 @@ Log in as a teacher and use the buttons on the Dashboard:
 ## Anti-Cheat System
 
 During assignments, `useAntiCheat` hook:
+- Prompts fullscreen on question load; logs `exited_fullscreen` if student exits
 - Disables text selection, copy, and paste
 - Detects tab switching (`visibilitychange`) and window blur
 - Disables right-click context menu

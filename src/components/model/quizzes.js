@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, getDoc, setDoc, query, where } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, setDoc, query, where, orderBy } from "firebase/firestore";
 import { db } from "../../firebase";
 
 const quizCol = collection(db, "student_quizzes");
@@ -7,9 +7,10 @@ const quizzesCol = collection(db, "quizzes");
 export async function getAllQuizByOwner(ownerId) {
   try {
     const snap = await getDocs(query(quizzesCol, where("owner_user_id", "==", ownerId)));
-    return snap.docs.map(d => d.data());
+    return snap.docs.map(d => d.data()).sort((a, b) => (b.created_on?.toMillis?.() ?? 0) - (a.created_on?.toMillis?.() ?? 0));
   } catch (e) {
     console.error("getAllQuizByOwner:", e);
+    return [];
   }
 }
 
@@ -83,58 +84,58 @@ export async function getStudentQuizSubmission(quiz_id, student_user_id) {
 }
 
 
-export async function getQuizSubmissionsWithDetails() {
+export async function getQuizSubmissionsWithDetails(teacherId) {
   try {
-    const snap = await getDocs(quizCol);
-    const submissions = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Only this teacher's quizzes, ordered by creation date
+    const teacherQuizzesSnap = await getDocs(
+      query(quizzesCol, where("owner_user_id", "==", teacherId))
+    );
+    const teacherQuizzes = teacherQuizzesSnap.docs.map(d => d.data()).sort((a, b) => (b.created_on?.toMillis?.() ?? 0) - (a.created_on?.toMillis?.() ?? 0));
+    if (!teacherQuizzes.length) return [];
+
+    const quizMap = {};
+    teacherQuizzes.forEach(q => { quizMap[q.quiz_id] = q; });
+    const teacherQuizIds = teacherQuizzes.map(q => q.quiz_id);
+
+    // Submissions for those quizzes ordered by submissionDate desc
+    let submissions = [];
+    for (let i = 0; i < teacherQuizIds.length; i += 10) {
+      const snap = await getDocs(
+        query(quizCol, where("quiz_id", "in", teacherQuizIds.slice(i, i + 10)))
+      );
+      submissions.push(...snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }
 
     const userIds = [...new Set(submissions.map(s => s.student_user_id))];
-    const quizIds = [...new Set(submissions.map(s => s.quiz_id))];
-
-    const [userSnaps, quizSnaps] = await Promise.all([
-      Promise.all(userIds.map(uid => getDoc(doc(db, "users", uid)))),
-      Promise.all(quizIds.map(id => getDoc(doc(db, "quizzes", id)))),
-    ]);
-
+    const userSnaps = await Promise.all(userIds.map(uid => getDoc(doc(db, "users", uid))));
     const userMap = {};
     userSnaps.forEach((s, i) => { if (s.exists()) userMap[userIds[i]] = s.data(); });
-    const quizMap = {};
-    quizSnaps.forEach((s, i) => { if (s.exists()) quizMap[quizIds[i]] = s.data(); });
 
-    const submitted = submissions.map(s => ({
-      ...s,
-      studentName: userMap[s.student_user_id]?.fullName || "Unknown",
-      quizTitle: quizMap[s.quiz_id]?.title || "Quiz",
-    }));
+    // Build submitted rows
+    const submissionMap = {};
+    submissions.forEach(s => { submissionMap[`${s.quiz_id}_${s.student_user_id}`] = s; });
 
-    // Find all quizzes and their assigned cohorts, then add not-submitted students
-    const allQuizzesSnap = await getDocs(quizzesCol);
-    const allQuizzes = allQuizzesSnap.docs.map(d => d.data());
-    const cohortIds = [...new Set(allQuizzes.map(q => q.student_class).filter(Boolean))];
-    if (!cohortIds.length) return submitted;
-
-    const cohortSnaps = await getDocs(query(collection(db, "cohorts"), where("cohort_id", "in", cohortIds)));
-    const cohortMap = {};
-    cohortSnaps.docs.forEach(d => { const c = d.data(); cohortMap[c.cohort_id] = c.student_uids || []; });
-
-    const allStudentIds = [...new Set(Object.values(cohortMap).flat())];
-    const studentSnaps = await Promise.all(allStudentIds.map(uid => getDoc(doc(db, "users", uid))));
-    const studentMap = {};
-    studentSnaps.forEach((s, i) => { if (s.exists()) studentMap[allStudentIds[i]] = s.data(); });
-
-    const submissionMap2 = {};
-    submissions.forEach(s => { submissionMap2[`${s.quiz_id}_${s.student_user_id}`] = s; });
+    // Include all students in cohorts for not-yet-submitted rows
+    const cohortIds = [...new Set(teacherQuizzes.map(q => q.student_class).filter(Boolean))];
+    let cohortStudentMap = {};
+    if (cohortIds.length) {
+      const cohortSnaps = await getDocs(query(collection(db, "cohorts"), where("cohort_id", "in", cohortIds)));
+      cohortSnaps.docs.forEach(d => { const c = d.data(); cohortStudentMap[c.cohort_id] = c.student_uids || []; });
+      const allStudentIds = [...new Set(Object.values(cohortStudentMap).flat())];
+      const studentSnaps = await Promise.all(allStudentIds.map(uid => getDoc(doc(db, "users", uid))));
+      studentSnaps.forEach((s, i) => { if (s.exists()) userMap[allStudentIds[i]] = s.data(); });
+    }
 
     const result = [];
-    allQuizzes.forEach(q => {
-      const students = cohortMap[q.student_class] || [];
+    teacherQuizzes.forEach(q => {
+      const students = cohortStudentMap[q.student_class] || [];
       students.forEach(uid => {
-        const sub = submissionMap2[`${q.quiz_id}_${uid}`];
+        const sub = submissionMap[`${q.quiz_id}_${uid}`];
         result.push({
           id: `${q.quiz_id}_${uid}`,
           quiz_id: q.quiz_id,
           student_user_id: uid,
-          studentName: studentMap[uid]?.fullName || "Unknown",
+          studentName: userMap[uid]?.fullName || "Unknown",
           quizTitle: q.title || "Quiz",
           status: sub ? "Submitted" : "Assigned",
           submissionDate: sub?.submissionDate || "-",

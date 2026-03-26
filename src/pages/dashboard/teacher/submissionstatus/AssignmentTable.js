@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { getStudentAssignmentsWithDetails } from "../../../../components/model/studentAssignments";
+import userSession from "../../../../components/services/UserSession";
 import StudentAssignmentPage from "./StudentAssignmentPage"
 
 export default function AssignmentTable({ onSelectStudent }) {
@@ -8,6 +10,8 @@ export default function AssignmentTable({ onSelectStudent }) {
   const [sortDirection, setSortDirection] = useState("asc");
   const [filterText, setFilterText] = useState("");
   const [selected, setSelected] = useState(null);
+  const location = useLocation();
+  const preselectedId = location.state?.student_assignment_id;
  
    /*sorting logic*/
      const sortedData = [...data].sort((a, b) => {
@@ -36,10 +40,17 @@ export default function AssignmentTable({ onSelectStudent }) {
   
   /* function to fetch name per student id from the "users" collection */
   
+  const [preselectedUsed, setPreselectedUsed] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
-      const merged = await getStudentAssignmentsWithDetails();
+      const merged = await getStudentAssignmentsWithDetails(userSession.uid);
       setData(merged);
+      if (preselectedId && !preselectedUsed) {
+        const match = merged.find(item => item.student_assignment_id === preselectedId || item.id === preselectedId);
+        if (match) setSelected(match);
+        setPreselectedUsed(true);
+      }
     };
     if (!selected) fetchData();
   }, [selected]);
