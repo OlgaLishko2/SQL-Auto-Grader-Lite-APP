@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Tabs, TabList, Tab, TabPanel } from 'react-tabs';
+import 'react-tabs/style/react-tabs.css';
 import CreateQuestionSet from './createquestionset/CreateQuestionSet';
 import { createNewAssignment } from "../../../../components/model/assignments";
 import { getCohortsByOwner, getAllStudents } from "../../../../components/model/cohorts";
@@ -44,7 +46,8 @@ const AssignmentForm = ({ onDone }) => {
         return;
       }
     }
-    setActiveTab(activeTab + 1);
+    const next = activeTab + 1;
+    setActiveTab(next);
   };
 
   const tabRequiredFields = [
@@ -55,8 +58,6 @@ const AssignmentForm = ({ onDone }) => {
 
   const isTabComplete = (tabIndex) =>
     tabRequiredFields[tabIndex]?.every((f) => String(formData[f]).trim() !== '') ?? true;
-
-  const tabs = ['Create Assignment', 'Add Questions', 'Assign Students'];
 
   const buildAssignmentPayload = () => ({
     title: formData.title,
@@ -126,64 +127,77 @@ const AssignmentForm = ({ onDone }) => {
     }
   };
 
-  return (
-    <div style={{ maxWidth: 'auto', margin: '20px auto', border: '1px solid #ccc', padding: '20px' }}>
-      {onDone && <button type="button" onClick={onDone} style={{ marginBottom: "16px" }}>← Back to Assignments</button>}
+  const tab0Content = () => <CreateAssignment formData={formData} handleChange={handleChange} />;
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        {tabs.map((tab, index) => {
-          const unlocked = index === 0 || [...Array(index)].every((_, i) => isTabComplete(i));
-          return (
-            <button key={tab} type="button" onClick={() => unlocked && setActiveTab(index)} disabled={!unlocked}
-              style={{ fontWeight: activeTab === index ? 'bold' : 'normal', opacity: unlocked ? 1 : 0.35, cursor: unlocked ? 'pointer' : 'not-allowed' }}>
-              {tab}
-            </button>
-          );
-        })}
+  const tab1Content = () => (
+    <CreateQuestionSet
+      onAddQuestions={(qs) => setFormData(prev => ({ ...prev, questions: qs }))}
+      setDb={setDb}
+      existingQuestions={formData.questions}
+      existingDataset={db}
+    />
+  );
+
+  const tab2Content = () => (
+    <div>
+      <label>Student Cohort: </label><br />
+      {cohorts.length === 0 ? (
+        <p style={{ color: "red", marginTop: "8px" }}>
+          No cohorts found.{" "}
+          <span onClick={() => navigate("/dashboard/cohorts")} style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}>
+            Create a cohort first
+          </span>
+        </p>
+      ) : (
+        <>
+          <select name="student_class" value={formData.student_class} onChange={handleChange}>
+            <option value="">-- Select Cohort --</option>
+            {cohorts.map(c => <option key={c.cohort_id} value={c.cohort_id}>{c.name}</option>)}
+          </select><br /><br />
+        </>
+      )}
+      <label>Would you like to be notified when a student submits this assignment?: </label>
+      <input name="enable_submission_notification" type="checkbox" checked={formData.enable_submission_notification} onChange={handleChange} /><br />
+      <label>Would you like to remind students to submit this assignment?: </label>
+      <input name="reminder_interval" type="checkbox" checked={formData.reminder_interval} onChange={handleChange} />
+
+      <div style={{ marginTop: '20px', display: "flex", gap: "12px" }}>
+        <button type="button" disabled={!isTabComplete(2)} onClick={handleSave}>Save Assignment</button>
+        <button type="button" disabled={!isTabComplete(2)} onClick={handlePublish}>Create & Publish Assignment</button>
       </div>
+      {error && <span style={{ color: "red" }}>{error}</span>}
+    </div>
+  );
 
-      <div>
-        {activeTab === 0 && <CreateAssignment formData={formData} handleChange={handleChange} />}
+  const onTabSelecting = (args) => {
+    const targetIndex = args.selectingIndex;
+    const unlocked = targetIndex === 0 || [...Array(targetIndex)].every((_, i) => isTabComplete(i));
+    if (!unlocked) args.cancel = true;
+    else setActiveTab(targetIndex);
+  };
 
-        {activeTab === 1 && (
-          <CreateQuestionSet onAddQuestions={(qs) => setFormData(prev => ({ ...prev, questions: qs }))} setDb={setDb} existingQuestions={formData.questions} existingDataset={db} />
-        )}
-
-        {activeTab === 2 && (
-          <div>
-            <label>Student Cohort: </label><br />
-            {cohorts.length === 0 ? (
-              <p style={{ color: "red", marginTop: "8px" }}>
-                No cohorts found.{" "}
-                <span onClick={() => navigate("/dashboard/cohorts")} style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}>
-                  Create a cohort first
-                </span>
-              </p>
-            ) : (
-              <>
-                <select name="student_class" value={formData.student_class} onChange={handleChange}>
-                  <option value="">-- Select Cohort --</option>
-                  {cohorts.map(c => <option key={c.cohort_id} value={c.cohort_id}>{c.name}</option>)}
-                </select><br /><br />
-              </>
-            )}
-            <label>Would you like to be notified when a student submits this assignment?: </label>
-            <input name="enable_submission_notification" type="checkbox" checked={formData.enable_submission_notification} onChange={handleChange} /><br />
-            <label>Would you like to remind students to submit this assignment?: </label>
-            <input name="reminder_interval" type="checkbox" checked={formData.reminder_interval} onChange={handleChange} />
-          </div>
-        )}
-
+  return (
+    <div style={{ maxWidth: 'auto', margin: '20px auto', padding: '20px' }}>
+      {onDone && <button type="button" onClick={onDone} style={{ marginBottom: "16px" }}>← Back to Assignments</button>}
+      <Tabs selectedIndex={activeTab} onSelect={(index) => {
+        const unlocked = index === 0 || [...Array(index)].every((_, i) => isTabComplete(i));
+        if (unlocked) setActiveTab(index);
+      }}>
+        <TabList>
+          <Tab disabled={false}>Create Assignment</Tab>
+          <Tab disabled={!isTabComplete(0)}>Add Questions</Tab>
+          <Tab disabled={!isTabComplete(0) || !isTabComplete(1)}>Assign Students</Tab>
+        </TabList>
+        <TabPanel>{tab0Content()}</TabPanel>
+        <TabPanel>{tab1Content()}</TabPanel>
+        <TabPanel>{tab2Content()}</TabPanel>
+      </Tabs>
+      {activeTab < 2 && (
         <div style={{ marginTop: '20px' }}>
-          {activeTab === 2 && (
-            <div style={{ display: "flex", gap: "12px" }}>
-              <button type="button" disabled={!isTabComplete(2)} onClick={handleSave}>Save Assignment</button>
-              <button type="button" disabled={!isTabComplete(2)} onClick={handlePublish}>Create & Publish Assignment</button>
-            </div>
-          )}
+          <button type="button" onClick={handleNext}>Next →</button>
           {error && <span style={{ marginLeft: "12px", color: "red" }}>{error}</span>}
         </div>
-      </div>
+      )}
     </div>
   );
 };
