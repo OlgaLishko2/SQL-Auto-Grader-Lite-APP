@@ -370,9 +370,8 @@ async function getDashboardDataForTeacher(teacherId) {
 
 /* Added by sreyasi: for assignment grading */
 async function getTeacherQuestionDetails(assignmentId, questionId) {
-  console.log("assignmentId, questionId : ", assignmentId, questionId);
   try {
-    
+    console.log("assignmentId, questionId : ", assignmentId, questionId);
     const ref = doc(db, "assignments", assignmentId);
     const snap = await getDoc(ref);
 

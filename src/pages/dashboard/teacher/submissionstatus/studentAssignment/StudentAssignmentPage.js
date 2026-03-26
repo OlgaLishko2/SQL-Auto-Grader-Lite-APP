@@ -1,128 +1,188 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import GradeAttemptPage from "./GradeAttemptPage";
-import { getAttemptsByStudent, getStudentInfo } from "../../../../../components/model/questionAttempts";
+import { getAttemptsByStudent, computeQuestionGrade, computeTotalMarks } from "../../../../../components/model/questionAttempts";
+import { getAssignmentDetailsByAssignmentId } from "../../../../../components/model/studentAssignments";
+import { getUser } from "../../../../../components/model/users";
+import { compareQueryResult } from "../../../../../components/comparison/sqlComparison";
 import "./StudentAssignmentPage.css";
 
 export default function StudentAssignmentPage({ studentId, assignmentId, onBack }) {
-
   const [student, setStudent] = useState(null);
+  const [assignment, setAssignment] = useState(null);
   const [attempts, setAttempts] = useState([]);
-  const [gradingAttempt, setGradingAttempt] = useState(null);
-  const [batchMode, setBatchMode] = useState(false);
+  const [gradingContext, setGradingContext] = useState(null);
+
+  const [earned, setEarned] = useState(0);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    refreshAttempts();
+    loadData();
   }, []);
 
-    const  refreshAttempts = async () => {
-    const list = await getAttemptsByStudent(studentId);
-    const student_detail = await getStudentInfo(studentId);
-    setAttempts(list);
-    setStudent(student_detail);
-    console.log("list, attempts, student_detail, student:", list, attempts, student_detail, student);
+  async function loadData() {
+    const [assignmentData, allAttempts, studentInfo] = await Promise.all([
+      getAssignmentDetailsByAssignmentId(assignmentId),
+      getAttemptsByStudent(studentId),
+      getUser(studentId),
+    ]);
+
+    const questionIds = new Set(
+      (assignmentData?.questions || []).map(q => q.question_id)
+    );
+
+    const filteredAttempts = allAttempts.filter(a =>
+      questionIds.has(a.question_id)
+    );
+
+    setAssignment(assignmentData);
+    setAttempts(filteredAttempts);
+    setStudent(studentInfo);
+
+    computeTotals(assignmentData?.questions || [], filteredAttempts);
+
+    console.log("assignmentData, filteredAttempts, studentInfo :", assignmentData, filteredAttempts, studentInfo);
+    console.log("assignment, attempts, student :", assignment, attempts, student);
   }
 
-  const gradedCount = attempts.filter(a => a.checked).length;
-  const totalCount = attempts.length;
+  function computeTotals(questions, attempts) {
+    let earned = 0;
+    let total = 0;
+
+    questions.forEach((q) => {
+      total += q.mark;
+
+      const attempt = attempts.find((a) => a.question_id === q.question_id);
+      if (!attempt) return;
+
+      const isCorrect = compareQueryResult(
+        q.answer,
+        attempt.submitted_sql,
+        q.orderMatters,
+        q.aliasStrict
+      );
+      console.log("isCorrect: ",isCorrect)
+      const autoGrade = isCorrect ? q.mark : 0;
+      const final = attempt.manualGrade ?? autoGrade;
+
+      earned += final;
+    });
+
+    setEarned(earned);
+    setTotal(total);
+  }
+
+  function getGrades(q, attempt) {
+    if (!attempt) return { autoGrade: 0, finalGrade: 0 };
+
+    const isCorrect = compareQueryResult(
+      q.answer,
+      attempt.submitted_sql,
+      q.orderMatters,
+      q.aliasStrict
+    );
+
+    const autoGrade = isCorrect ? q.mark : 0;
+    const finalGrade = attempt.manualGrade ?? autoGrade;
+
+    return { autoGrade, finalGrade };
+  }
+
+  if (!assignment) return <div>Loading...</div>;
 
   return (
     <div>
       <button onClick={onBack}>← Back</button>
 
       <h2>Student Assignment</h2>
+
       {student && (
         <div style={{ marginBottom: "20px" }}>
-          <strong>Student ID:</strong> {studentId} <br />
+          <strong>Assignment:</strong> {assignment.title} <br />
           <strong>Name:</strong> {student.fullName}
         </div>
       )}
-      {/* Progress Bar */}
-      <div className="progress-container">
-        <strong>Progress:</strong> {gradedCount} / {totalCount} graded
-        <div className="progress-bar-bg">
-          <div
-            className={`progress-bar-fill ${gradedCount === totalCount ? "complete" : ""}`}
-            style={{ width: `${(gradedCount / totalCount) * 100}%` }}
-          />
-        </div>
-      </div>
 
-      {/* Grade All Button */}
-      {gradedCount < totalCount && (
-        <button
-          onClick={() => {
-            setBatchMode(true);
-            const next = attempts.find(a => !a.checked);
-            setGradingAttempt(next);
-          }}
-        >
-          Grade All
-        </button>
-      )}
+      <h2 className="final-grade">
+        Final Grade: {earned} / {total}
+      </h2>
 
-      {/* Table */}
-      <table border="1" cellPadding="10">
+      <button
+        className="return-score-btn"
+        onClick={() => alert(`Final Score Returned: ${earned}/${total}`)}
+      >
+        Return Final Score
+      </button>
+
+      <table className="status-table" border="1" cellPadding="10">
         <thead>
           <tr>
-            <th>Question No</th>
-            <th>Attempt No</th>
-            <th>Submitted SQL</th>
-            <th>Marks</th>
-            <th>Status</th>
+            <th>Question</th>
+            <th>Student SQL</th>
+            <th>Auto Grade</th>
+            <th>Final Grade</th>
+            <th>Check</th>
           </tr>
         </thead>
 
         <tbody>
-          {attempts.map((item, index) => (
-            <tr key={item.id}>
-              <td>{item.question_number || item.question_id}</td>
-              <td>{item.attempt_no || index + 1}</td>
-              <td style={{ whiteSpace: "pre-wrap" }}>{item.submitted_sql}</td>
+          {assignment.questions.map((q) => {
+            const attempt = attempts.find((a) => a.question_id === q.question_id);
+            const { autoGrade, finalGrade } = getGrades(q, attempt);
 
-              <td>
-                {item.checked
-                  ? (item.finalGrade ?? item.autoGrade ?? 0)
-                  : "-"}
-              </td>
+            return (
+              <tr key={q.question_id}>
+                <td>{q.questionText}</td>
 
-              <td>
-                {item.checked ? (
-                  <span style={{ color: "green", fontWeight: "bold" }}>
-                    Checked
-                  </span>
-                ) : (
-                  <button onClick={() => setGradingAttempt(item)}>
-                    Check
-                  </button>
-                )}
-              </td>
-            </tr>
-          ))}
+                <td>
+                  <pre className="sql-box">
+                    {attempt?.submitted_sql || "No submission"}
+                  </pre>
+                </td>
+
+                <td className={autoGrade > 0 ? "grade-cell green" : "grade-cell red"}>
+                  {autoGrade} / {q.mark}
+                </td>
+
+                <td className={finalGrade > 0 ? "grade-cell green" : "grade-cell red"}>
+                  {finalGrade} / {q.mark}
+                </td>
+
+                <td>
+                  {attempt ? (
+                    <button
+                      onClick={() =>
+                        setGradingContext({ attempt, question: q, autoGrade , dataset: assignment.dataset})
+                      }
+                    >
+                      Check
+                    </button>
+                  ) : (
+                    "-"
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
 
-      {/* Child Grading Page */}
-      {gradingAttempt && (
-        <GradeAttemptPage
-          attempt={gradingAttempt}
-          studentId={studentId}
-          assignmentId={assignmentId}
-          onClose={() => {
-            refreshAttempts();
-
-            if (batchMode) {
-              const next = attempts.find(a => !a.checked);
-              if (next) {
-                setGradingAttempt(next);
-              } else {
-                setBatchMode(false);
-                setGradingAttempt(null);
-              }
-            } else {
-              setGradingAttempt(null);
-            }
-          }}
-        />
+      {gradingContext && (
+         <div className="modal-overlay">
+          <div className="modal-content">
+            <GradeAttemptPage
+              attempt={gradingContext.attempt}
+              question={gradingContext.question}
+              autoGrade={gradingContext.autoGrade}
+              dataset={gradingContext.dataset}
+              onClose={async () => {
+                setGradingContext(null);
+                await loadData();
+              }}
+            />
+        </div>
+      </div>
+        
       )}
     </div>
   );

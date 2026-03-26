@@ -131,6 +131,32 @@ async function getAttemptsByStudent(studentId) {
     return [];
   }
 }
+// added by sreyasi: Compute grade for a single question
+function computeQuestionGrade(question, attempt) {
+  console.log("Inside computeQuestionGrade - question, attempt: ",question, attempt);
+  if (!attempt) return 0;
+  return attempt.is_correct ? question.mark : 0;
+}
+
+// added by sreyasi: Compute total earned + total possible marks
+function computeTotalMarks(questions, attempts) {
+  console.log("Inside computeTotalMarks - questions, attempts: ",questions, attempts);
+  let earned = 0;
+  let total = 0;
+
+  questions.forEach(q => {
+    total += q.mark;
+
+    const attempt = attempts.find(a => a.question_id === q.question_id);
+    if (!attempt) return;
+
+    if (attempt.is_correct) {
+      earned += q.mark;
+    }
+  });
+
+  return { earned, total };
+}
 
 export {
   countAttempt,
@@ -139,4 +165,6 @@ export {
   getAttemptByUserQuestion,
   getStudentInfo,
   getAttemptsByStudent,
+  computeQuestionGrade,
+  computeTotalMarks,
 };

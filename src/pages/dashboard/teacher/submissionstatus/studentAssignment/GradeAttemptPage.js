@@ -1,67 +1,21 @@
 import { useEffect, useState } from "react";
-import { getTeacherQuestionDetails } from "../../../../../components/model/studentAssignments";
-//import { updateAttemptCheckStatus } from "../../../../../components/model/questionAttempts";
-import { compareQueryResult } from "../../../../../components/comparison/sqlComparison";
 import { CodeEditor } from "../../../teacher/assignmentform/createquestionset/CodeEditor";
 import "./StudentAssignmentPage.css";
+//import "./GradeAttemptPage.css"
 
-export default function GradeAttemptPage({ attempt, studentId, assignmentId, onClose }) {
-  const [question, setQuestion] = useState(null);
-  const [autoGrade, setAutoGrade] = useState(0);
-  const [manualGrade, setManualGrade] = useState(null);
-  const [comment, setComment] = useState("");
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
-    console.log(assignmentId);
-    const q = await getTeacherQuestionDetails(
-      assignmentId,
-      attempt.question_id
-    );
-
-    if (!q) {
-      console.error("Teacher question not found for:", attempt.question_id);
-      alert("Error: This question does not exist in the assignment.");
-      onClose();
-      return;
-    }
-    setQuestion(q);
-    console.log("q, question", q, question);
-    const isCorrect = compareQueryResult(
-      q.answer,
-      attempt.submitted_sql,
-      q.orderMatters,
-      q.aliasStrict
-    );
-
-    setAutoGrade(isCorrect ? q.mark : 0);
-  }
-
+export default function GradeAttemptPage({ attempt, question, autoGrade, dataset, onClose }) {
+  const [manualGrade, setManualGrade] = useState(attempt.manualGrade ?? null);
+  const [comment, setComment] = useState(attempt.comment ?? "");
+  
   async function handleSave() {
     const finalGrade = manualGrade !== null ? manualGrade : autoGrade;
-
-    // await updateAttemptCheckStatus(attempt.id, {
-    //   checked: true,
-    //   autoGrade,
-    //   manualGrade,
-    //   finalGrade,
-    //   comment,
-    //   checked_on: new Date(),
-    // });
-
     onClose();
   }
 
-  if (!question) return <div>Loading...</div>;
-
   return (
     <div className="grading-container">
-
       <div className="teacher-box">
-        <h3>Teacher Expected Answer</h3>
+        <h3>Expected Answer</h3>
         <pre>{question.answer}</pre>
         <p><strong>Marks:</strong> {question.mark}</p>
         <p><strong>Order Matters:</strong> {String(question.orderMatters)}</p>
@@ -74,8 +28,7 @@ export default function GradeAttemptPage({ attempt, studentId, assignmentId, onC
       </div>
 
       <div className="editor-box">
-        <h3>SQL Editor</h3>
-        <CodeEditor value={attempt.submitted_sql} />
+        <CodeEditor selectedDataset={dataset} />
       </div>
 
       <div className="bottom-box">
