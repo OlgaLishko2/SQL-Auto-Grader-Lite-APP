@@ -193,7 +193,7 @@
 .compile-error {
   margin: 0 0 8px;
   color: #ff516b;
-  font-size: 26px;
+  font-size: 16px;
   line-height: 1.2;
   font-weight: 700;
 }
@@ -327,10 +327,6 @@
   padding: 20px;
   display: block;
   box-shadow: 0 12px 24px rgba(20, 26, 42, 0.06);
-}
-
-.result-status-bar {
-  margin-bottom: 18px;
 }
 
 .result-table {

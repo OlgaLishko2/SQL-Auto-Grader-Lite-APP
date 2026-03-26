@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import DataTable from "react-data-table-component";
-
 import Breadcrumb from "../Breadcrumb";
-
 import userSession from "../../../../components/services/UserSession";
 import { useParams } from "react-router-dom";
 import { getAllActiveAssignmnetByStudent } from "../../../../components/model/questions";
@@ -83,7 +81,7 @@ const QuestionList = () => {
     await updateStudentAssignment({
       student_user_id: userSession.uid,
       assignment_id: assignmentId,
-      status: "submitted",
+      status: "completed",
     });
     if (assignment?.enable_submission_notification && assignment?.owner_user_id) {
       const teacher = await getUser(assignment.owner_user_id);
@@ -149,7 +147,7 @@ const QuestionList = () => {
     {
       name: "Action",
       cell: (row) => {
-        const isAttemptLimitReached = row.attemptTime === 1//row.attemptTime >= (row.max_attempts ?? 1);
+        const isAttemptLimitReached = row.attemptTime >= 1;
         return (
           <button
             // className="btn btn-sm btn-primary"
@@ -212,7 +210,6 @@ const QuestionList = () => {
       </div>
 
       <div className="card shadow mb-4">
-        <div className="card-header">{assignment?.title || "Assignment name"}</div>
         <DataTable
           columns={columns}
           data={questiondata}
