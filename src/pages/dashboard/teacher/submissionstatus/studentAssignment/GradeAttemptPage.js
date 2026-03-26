@@ -40,12 +40,14 @@ export default function GradeAttemptPage({ attempt, question, autoGrade, dataset
         <div className="grade-display">
           <strong>Mark:</strong> {isCorrect ? question.mark : 0} / {question.mark}
       </div>
-
-      {/* NEW: Toggle Button */}
-        <button className="toggle-btn" onClick={handleToggle}>
-          {isCorrect ? "Mark Incorrect" : "Mark Correct"}
-        </button>
-      </div>
+      
+      <button className="toggle-btn" onClick={handleToggle}>
+        {isCorrect ? "Mark Incorrect" : "Mark Correct"}
+      </button>
+      <button className="close-btn" onClick={onClose}>
+        Cancel
+      </button>
+    </div>    
       
     </div>
   );
