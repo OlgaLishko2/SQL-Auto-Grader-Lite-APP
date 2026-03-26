@@ -36,7 +36,9 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
     );
 
     setAssignment(assignmentData);
-    setAttempts(filteredAttempts);
+    //setAttempts(filteredAttempts);
+    setAttempts(filteredAttempts.map(a => ({ ...a })));
+
     setStudent(studentInfo);
 
     computeTotals(assignmentData?.questions || [], filteredAttempts);
@@ -55,17 +57,8 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
       const attempt = attempts.find((a) => a.question_id === q.question_id);
       if (!attempt) return;
 
-      const isCorrect = compareQueryResult(
-        q.answer,
-        attempt.submitted_sql,
-        q.orderMatters,
-        q.aliasStrict
-      );
-      console.log("isCorrect: ",isCorrect)
-      const autoGrade = isCorrect ? q.mark : 0;
-      const final = attempt.manualGrade ?? autoGrade;
-
-      earned += final;
+      const finalGrade = attempt.is_correct ? q.mark : 0;
+      earned += finalGrade;
     });
 
     setEarned(earned);
@@ -73,19 +66,8 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
   }
 
   function getGrades(q, attempt) {
-    if (!attempt) return { autoGrade: 0, finalGrade: 0 };
-
-    const isCorrect = compareQueryResult(
-      q.answer,
-      attempt.submitted_sql,
-      q.orderMatters,
-      q.aliasStrict
-    );
-
-    const autoGrade = isCorrect ? q.mark : 0;
-    const finalGrade = attempt.manualGrade ?? autoGrade;
-
-    return { autoGrade, finalGrade };
+    if (!attempt) return 0;
+    return attempt.is_correct ? q.mark : 0;
   }
 
   if (!assignment) return <div>Loading...</div>;
@@ -119,8 +101,7 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
           <tr>
             <th>Question</th>
             <th>Student SQL</th>
-            <th>Auto Grade</th>
-            <th>Final Grade</th>
+            <th>Grade</th>
             <th>Check</th>
           </tr>
         </thead>
@@ -128,10 +109,10 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
         <tbody>
           {assignment.questions.map((q) => {
             const attempt = attempts.find((a) => a.question_id === q.question_id);
-            const { autoGrade, finalGrade } = getGrades(q, attempt);
+            const grade = getGrades(q, attempt);
 
             return (
-              <tr key={q.question_id}>
+              <tr key={q.question_id + "-" + (attempt?.is_correct ? "1" : "0")}>
                 <td>{q.questionText}</td>
 
                 <td>
@@ -140,19 +121,14 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
                   </pre>
                 </td>
 
-                <td className={autoGrade > 0 ? "grade-cell green" : "grade-cell red"}>
-                  {autoGrade} / {q.mark}
+                <td className={grade > 0 ? "grade-cell green" : "grade-cell red"}>
+                  {grade} / {q.mark}
                 </td>
-
-                <td className={finalGrade > 0 ? "grade-cell green" : "grade-cell red"}>
-                  {finalGrade} / {q.mark}
-                </td>
-
                 <td>
                   {attempt ? (
                     <button
                       onClick={() =>
-                        setGradingContext({ attempt, question: q, autoGrade , dataset: assignment.dataset})
+                        setGradingContext({ attempt, question: q, grade , dataset: assignment.dataset})
                       }
                     >
                       Check
@@ -173,11 +149,14 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
             <GradeAttemptPage
               attempt={gradingContext.attempt}
               question={gradingContext.question}
-              autoGrade={gradingContext.autoGrade}
+              autoGrade={gradingContext.grade}
               dataset={gradingContext.dataset}
               onClose={async () => {
+                const updatedAttempts = await getAttemptsByStudent(studentId);
+                setAttempts(updatedAttempts.map(a => ({ ...a })));
                 setGradingContext(null);
-                await loadData();
+                computeTotals(assignment.questions, updatedAttempts);
+                //await loadData();
               }}
             />
         </div>

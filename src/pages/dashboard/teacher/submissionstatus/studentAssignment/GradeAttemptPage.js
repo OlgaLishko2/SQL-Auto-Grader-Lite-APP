@@ -5,21 +5,17 @@ import "./StudentAssignmentPage.css";
 //import "./GradeAttemptPage.css"
 
 export default function GradeAttemptPage({ attempt, question, autoGrade, dataset, onClose }) {
-  const [manualGrade, setManualGrade] = useState(attempt.manualGrade ?? null);
-  const [isCorrect, setIsCorrect] = useState(attempt.is_correct ?? false);
   
-  async function handleSave() {
-    const finalGrade = manualGrade !== null ? manualGrade : autoGrade;
-    onClose();
-  }
-
+  const [isCorrect, setIsCorrect] = useState(attempt.is_correct ?? false);
+  //const computedMark = isCorrect ? question.mark : 0;
+ 
   async function handleToggle() {
-  const newValue = !isCorrect;
+    const newValue = !isCorrect;
 
-  await updateAttemptCorrectness(attempt.id, newValue);
+    await updateAttemptCorrectness(attempt.id, newValue);
 
-  setIsCorrect(newValue);
-  onClose();
+    setIsCorrect(newValue);
+    onClose();
 }
 
   return (
@@ -41,15 +37,9 @@ export default function GradeAttemptPage({ attempt, question, autoGrade, dataset
         <CodeEditor selectedDataset={dataset} />
       </div>
       <div className="bottom-box">
-        <label>Auto Grade:</label>
-        <input type="number" value={autoGrade} readOnly />
-
-        <label>Manual Override:</label>
-        <input
-          type="number"
-          value={manualGrade ?? ""}
-          onChange={(e) => setManualGrade(Number(e.target.value))}
-        />
+        <div className="grade-display">
+          <strong>Mark:</strong> {isCorrect ? question.mark : 0} / {question.mark}
+      </div>
 
       {/* NEW: Toggle Button */}
         <button className="toggle-btn" onClick={handleToggle}>
