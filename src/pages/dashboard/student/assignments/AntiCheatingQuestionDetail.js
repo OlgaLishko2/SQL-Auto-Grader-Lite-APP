@@ -7,12 +7,16 @@ import { sql } from "@codemirror/lang-sql";
 import { SQL_KEYWORDS } from "../../../../components/db/common";
 import { autocompletion, completeFromList } from "@codemirror/autocomplete";
 import { EditorView, keymap } from "@codemirror/view";
-import { isSelectQuery, normalizeQuery } from "../../../../components/db/queryValidation";
+import {
+  isSelectQuery,
+  normalizeQuery,
+} from "../../../../components/db/queryValidation";
 import { createAttempt } from "../../../../components/model/questionAttempts";
 import { compareQueryResult } from "../../../../components/comparison/sqlComparison";
 import LoadingOverlay from "../LoadingOverlay";
 import userSession from "../../../../components/services/UserSession";
 import { useAntiCheat } from "../../../../components/hooks/useAntiCheat";
+import ResultTable from "./ResultTable";
 
 const AntiCheatingQuestionDetail = () => {
   const { fetchItems } = useAppContext();
@@ -32,8 +36,15 @@ const AntiCheatingQuestionDetail = () => {
   const [showResults, setShowResults] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState(question?.attemptTime);
   const [isLoading, setIsLoading] = useState(true);
-  const [bestRunResult, setBestRunResult] = useState({ isCorrect: false, sql: "" });
+  // const [bestRunResult, setBestRunResult] = useState({ isCorrect: false, sql: "" });
   useAntiCheat(undefined, { enableFullscreen: true });
+  const [antiCheatMessage, setAntiCheatMessage] = useState("");
+
+  const { violations } = useAntiCheat((violation) => {
+    setAntiCheatMessage(
+      `Anti-cheat violation detected: ${violation.type.replaceAll("_", " ")}`,
+    );
+  });
 
   useEffect(() => {
     if (!dataset || !question?.answer) return;
@@ -42,7 +53,7 @@ const AntiCheatingQuestionDetail = () => {
       const result = await fetchItems(dataset, question.answer);
       if (result?.isSuccessful && result.data?.length > 0) {
         const columns = Object.keys(result.data[0]);
-        const values = result.data.map(row => Object.values(row));
+        const values = result.data.map((row) => Object.values(row));
         const formatted = [{ lc: columns, values }];
         setExpectedResult(formatted);
         setIsLoading(false);
@@ -79,70 +90,73 @@ const AntiCheatingQuestionDetail = () => {
       return false;
     }
 
-    const result = await fetchItems(dataset, sqlCode);
+    const result = await fetchItems(dataset, normalizeQuery(sqlCode));
     if (result?.isSuccessful && result.data?.length > 0) {
       const rows = result.data;
       const columns = Object.keys(rows[0]);
 
       // 2. Extract Values (convert each object into an array of its values)
-      const values = rows.map(row => Object.values(row));
+      const values = rows.map((row) => Object.values(row));
 
       // 3. Format it for your JSX
       const formattedData = {
         lc: columns,
-        values: values
+        values: values,
       };
-
       setError("");
       setStudentResult([formattedData]);
-
-      console.log(expectedResult);
-
-      console.log(expectedResult.length);
-      const correct = compareQueryResult(expectedResult, [formattedData], question?.orderMatters, question?.aliasStrict);
+      const correct = compareQueryResult(
+        expectedResult,
+        [formattedData],
+        question?.orderMatters,
+        question?.aliasStrict,
+      );
       setIsCorrect(correct);
       return correct;
     } else {
       setStudentResult([]);
-      setError(result?.data?.length === 0 ? "No rows returned." : "Query failed.");
+      setError(result.message);
+      setIsCorrect(false);
       return false;
     }
   }
 
   async function runQuery() {
     setShowResults(true);
-    const correct = await excuteQueryAndCompare();
+    // const correct = await excuteQueryAndCompare();
     // Track best run result for submit
-    if (correct || !bestRunResult.isCorrect) {
-      setBestRunResult({ isCorrect: correct, sql: normalizeQuery(sqlCode) });
-    }
+    // if (correct || !bestRunResult.isCorrect) {
+    //   setBestRunResult({ isCorrect: correct, sql: normalizeQuery(sqlCode) });
+    // }
     setIsSubmmit(false);
+    await excuteQueryAndCompare();
     setIsLoading(false);
+    setShowResults(true);
   }
 
   async function submitQuery() {
-    const maxAttempts = question?.max_attempts ?? Infinity;
-    if (currentAttempt >= maxAttempts) {
-      alert("You have reached the max attempts.");
+    const nextAttempt = (currentAttempt ?? 0) + 1;
+    if (currentAttempt >= 1) {
+      alert("You have reached the max attempt");
       return;
     }
     setShowResults(true);
     const currentResult = await excuteQueryAndCompare();
-    const finalCorrect = currentResult || bestRunResult.isCorrect;
-    const finalSql = finalCorrect && !currentResult ? bestRunResult.sql : normalizeQuery(sqlCode);
+    // const finalCorrect = currentResult || bestRunResult.isCorrect;
+    // const finalSql = finalCorrect && !currentResult ? bestRunResult.sql : normalizeQuery(sqlCode);
+    setCurrentAttempt(nextAttempt);
+    const comparationResult = await excuteQueryAndCompare();
     const attemptObj = {
       question_id: question?.question_id,
       student_user_id: userSession.uid,
       submitted_on: new Date().toLocaleDateString("en-CA"),
-      submitted_sql: finalSql,
-      is_correct: finalCorrect,
+      submitted_sql: sqlCode,
+      is_correct: comparationResult,
     };
-    console.log('attemptObj:', attemptObj);
-    const attemptId = await createAttempt(attemptObj);
-    console.log('saved attempt:', attemptId);
-    setCurrentAttempt((prev) => prev + 1);
+
+    await createAttempt(attemptObj);
     setIsSubmmit(true);
-    setIsLoading(false);
+    alert("Your code has been submitted");
   }
 
   const sqlKeywordCompletions = completeFromList(
@@ -159,7 +173,14 @@ const AntiCheatingQuestionDetail = () => {
         <div className="workspace-content">
           <div className="instructions-panel">
             <div className="panel-header">
-              <button className="back-btn" onClick={() => navigate(`/dashboard/questions/${assignment_id}`, { state: { assignment: location.state?.assignment } })}>
+              <button
+                className="back-btn"
+                onClick={() =>
+                  navigate(`/dashboard/questions/${assignment_id}`, {
+                    state: { assignment: location.state?.assignment },
+                  })
+                }
+              >
                 Back to Assignment
               </button>
             </div>
@@ -208,17 +229,29 @@ const AntiCheatingQuestionDetail = () => {
           </div>
 
           <div className="editor-panel">
+            {antiCheatMessage && (
+              <div className="result-status-bar">
+                <p className="compile-error">{antiCheatMessage}</p>
+              </div>
+            )}
             <div className="editor-section">
               <div className="editor-header">
                 <span>SQL Query Editor</span>
               </div>
-
               <CodeMirror
                 value={sqlCode}
                 className="code-input"
                 height="200px"
                 basicSetup={{ lineNumbers: true, foldGutter: false }}
-                extensions={[sql(), autocompletion({ override: [sqlKeywordCompletions] }), EditorView.lineWrapping, keymap.of([{ key: "Mod-v", run: () => true }, { key: "Mod-c", run: () => true }])]}
+                extensions={[
+                  sql(),
+                  autocompletion({ override: [sqlKeywordCompletions] }),
+                  EditorView.lineWrapping,
+                  keymap.of([
+                    { key: "Mod-v", run: () => true },
+                    { key: "Mod-c", run: () => true },
+                  ]),
+                ]}
                 onChange={(value) => setSqlCode(value)}
               />
             </div>
@@ -268,29 +301,14 @@ const AntiCheatingQuestionDetail = () => {
 
                 {showResults && !error && (
                   <>
-                    <div className="result-table">
-                      <h6>Your Output (stdout)</h6>
-                      {!studentResult[0]?.lc ? (
-                        <span className="empty-state">~ no response on stdout ~</span>
-                      ) : (
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead><tr>{studentResult[0].lc.map(col => <th key={col} style={{ padding: "10px", border: "1px solid #ddd" }}>{col}</th>)}</tr></thead>
-                          <tbody>{studentResult[0].values.map((row, i) => <tr key={i}>{row.map((val, j) => <td key={j} style={{ border: "1px solid #ddd", padding: "8px" }}>{val}</td>)}</tr>)}</tbody>
-                        </table>
-                      )}
-                    </div>
-
-                    <div className="result-table">
-                      <h6>Expected Output</h6>
-                      {!expectedResult[0]?.lc ? (
-                        <span className="empty-state">~ no response on stdout ~</span>
-                      ) : (
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead><tr>{expectedResult[0].lc.map(col => <th key={col} style={{ padding: "10px", border: "1px solid #ddd" }}>{col}</th>)}</tr></thead>
-                          <tbody>{expectedResult[0].values.map((row, i) => <tr key={i}>{row.map((val, j) => <td key={j} style={{ border: "1px solid #ddd", padding: "8px" }}>{val}</td>)}</tr>)}</tbody>
-                        </table>
-                      )}
-                    </div>
+                    <ResultTable
+                      title="Your Output (stdout)"
+                      result={studentResult}
+                    />
+                    <ResultTable
+                      title="Expected Output"
+                      result={expectedResult}
+                    />
                   </>
                 )}
               </div>

@@ -19,7 +19,6 @@ export function compareQueryResult(teacherQuery, studentQuery, isOrder = false, 
   }
   const teacherRows = teacherResult.values;
   const studentRows = studentResult.values;
-  console.log(`Teacher Rows: ${teacherRows} , Student Rows: ${studentRows}`);
   if (teacherRows.length !== studentRows.length) return false;
   return isOrder
     ? compareRowInOrder(teacherRows, studentRows)
