@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./DatabaseManager.css";
 
 function HintPopup() {
   const [open, setOpen] = useState(false);
