@@ -37,7 +37,7 @@ const GradingPage = () => {
     try {
       await updateStudentAssignment({ student_assignment_id: assignment.id, grade: Number(grade), status: "graded" });
       alert("Grade submitted!");
-      navigate("/dashboard"); 
+      navigate("/dashboard/submissionstatus");
     } catch (error) {
       console.error("Error submitting grade:", error);
     }
