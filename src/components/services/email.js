@@ -90,7 +90,7 @@ export const sendReminderEmail = async (student, assignmentTitle, assignmentDueD
             email: student.email,
             title: `Reminder: ${assignmentTitle}`,
             date: assignmentDueDate,
-            link: `${window.location.origin}/dashboard/assignments/${assignmentId}`,
+        link: `${window.location.origin}/dashboard/questions/${assignmentId}`,
           },
           PUBLIC_KEY
         );

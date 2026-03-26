@@ -1,5 +1,5 @@
 
-# .env
+.env
 keys:firebase-admin.json
 # *.json
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.

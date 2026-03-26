@@ -82,8 +82,9 @@ function CohortManager() {
             style={{ marginBottom: "12px", padding: "8px", width: "300px", borderRadius: "4px", border: "1px solid #ccc" }}
           />
           <div style={{ marginBottom: "12px" }}>
-            <button type="button" onClick={() => setSelected(students.map(s => s.uid))} className="cohort-btn select-all-btn">Select All</button>
-            <button type="button" onClick={() => setSelected([])} className="cohort-btn clear-btn">Clear</button>
+            <button type="button" onClick={() => setSelected(selected.length === students.length ? [] : students.map(s => s.uid))} className="cohort-btn select-all-btn">
+              {selected.length === students.length ? "Deselect All" : "Select All"}
+            </button>
           </div>
           {studentList}
           <button onClick={handleCreate} className="cohort-btn black-btn">Create Cohort</button>
@@ -109,8 +110,9 @@ function CohortManager() {
           {openPanel === c.cohort_id && (
             <div style={{ marginTop: "12px" }}>
               <div style={{ marginBottom: "8px" }}>
-                <button type="button" onClick={() => setSelected(students.map(s => s.uid))} className="cohort-btn select-all-btn">Select All</button>
-                <button type="button" onClick={() => setSelected([])} className="cohort-btn clear-btn">Clear</button>
+                <button type="button" onClick={() => setSelected(selected.length === students.length ? [] : students.map(s => s.uid))} className="cohort-btn select-all-btn">
+                  {selected.length === students.length ? "Deselect All" : "Select All"}
+                </button>
               </div>
               {studentList}
               <button onClick={() => handleSaveEdit(c)} className="cohort-btn edit-btn">Save Members</button>
