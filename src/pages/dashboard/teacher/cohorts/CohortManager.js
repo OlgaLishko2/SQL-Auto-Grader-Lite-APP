@@ -36,38 +36,51 @@ function CohortManager() {
     setExpanded(null);
   };
 
-  const renderStudentList = () => (
-    <div className="student-selection-wrapper border rounded bg-white shadow-sm mt-2">
-      <div className="d-flex justify-content-between align-items-center p-2 bg-light border-bottom">
-        <span className="small font-weight-bold text-gray-700">Members: {selected.length}</span>
-        <button 
-          type="button" 
-          className="btn btn-link btn-sm text-decoration-none" 
-          onClick={() => setSelected(selected.length === students.length ? [] : students.map(s => s.uid))}
-        >
-          {selected.length === students.length ? "Deselect All" : "Select All"}
-        </button>
-      </div>
-      <div className="student-scroll-list p-2" style={{ maxHeight: "200px", overflowY: "auto" }}>
-        {students.map(s => (
-          <div key={s.uid} className={`custom-control custom-checkbox p-2 rounded mb-1 ${selected.includes(s.uid) ? 'bg-selected' : ''}`}>
-            <input 
-              type="checkbox" 
-              className="custom-control-input" 
-              id={`student-${s.uid}`}
-              checked={selected.includes(s.uid)} 
-              onChange={() => toggleStudent(s.uid)} 
-            />
-            <label className="custom-control-label d-block w-100 cursor-pointer" htmlFor={`student-${s.uid}`}>
-              <span className="text-dark font-weight-bold">{s.fullName}</span>
-              <span className="small text-gray-500 ml-2">— {s.email}</span>
-            </label>
-          </div>
-        ))}
-      </div>
+const renderStudentList = () => (
+  <div className="student-selection-wrapper border rounded bg-white shadow-sm mt-2">
+    <div className="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
+      <span className="text-uppercase small font-weight-bold text-gray-700">
+        <i className="fas fa-users mr-2"></i>Members: {selected.length}
+      </span>
+      <button 
+        type="button" 
+        className="btn btn-outline-primary btn-sm" 
+        onClick={() => setSelected(selected.length === students.length ? [] : students.map(s => s.uid))}
+      >
+        {selected.length === students.length ? "Deselect All" : "Select All Students"}
+      </button>
     </div>
-  );
-
+    
+    <div className="student-scroll-list p-2">
+      {students.map(s => (
+        <div 
+          key={s.uid} 
+          className={`student-row d-flex align-items-center justify-content-between p-3 rounded mb-2 ${selected.includes(s.uid) ? 'bg-selected' : ''}`}
+          onClick={() => toggleStudent(s.uid)}
+          style={{ cursor: 'pointer', border: '1px solid #e3e6f0' }}
+        >
+          <div className="d-flex align-items-center">
+            <div className="custom-check-box mr-3">
+              <input 
+                type="checkbox" 
+                checked={selected.includes(s.uid)} 
+                readOnly
+                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+              />
+            </div>
+            <div className="student-main-info">
+              <span className="h6 mb-0 font-weight-bold text-gray-800">{s.fullName}</span>
+            </div>
+          </div>
+          
+          <div className="student-email-info">
+            <span className="text-gray-500 small font-italic">{s.email}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
   return (
     <div className="container-fluid py-4">
   
