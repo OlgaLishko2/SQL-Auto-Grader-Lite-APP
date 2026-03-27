@@ -12,7 +12,7 @@ function SubmissionStatusPage() {
   return (
     <div className="container-fluid submission-page">
       <div className="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 className="h3 mb-0 text-dashboard-title">Submission Status</h1>
+        <h2 className="cohort-title">Submission Status</h2>
       </div>
 
       {(selectedStudentId !== "") ? (

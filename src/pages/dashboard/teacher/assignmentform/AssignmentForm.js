@@ -14,17 +14,16 @@ const AssignmentForm = ({ onDone }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [db, setDb] = useState("");
+  const [totalMarks, setTotalMarks] = useState(0);
   const [formData, setFormData] = useState({
     title: '', total_marks: '', due_date: '', description: '',
     student_class: '', questions: [],
     enable_submission_notification: false, reminder_interval: false
   });
   const [cohorts, setCohorts] = useState([]);
+  const [cohortsLoaded, setCohortsLoaded] = useState(false);
   const [assignmentId, setAssignmentId] = useState("");
   const [error, setError] = useState("");
-
-  const [cohortsLoaded, setCohortsLoaded] = useState(false);
-  const [totalMarks, setTotalMarks] = useState(0);
 
   useEffect(() => {
     getCohortsByOwner(userSession.uid).then(data => {
@@ -39,47 +38,30 @@ const AssignmentForm = ({ onDone }) => {
     if (name === 'due_date') setError("");
   };
 
-  const handleNext = async () => {
-    setError("");
-    if (activeTab === 0 && !userSession.uid) {
-      setError("You must be logged in to create an assignment.");
-      return;
-    }
-    if (activeTab === 0 && formData.due_date) {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      if (new Date(formData.due_date) < today) {
-        setError("Due date cannot be in the past.");
-        return;
-      }
-    }
-    const next = activeTab + 1;
-    setActiveTab(next);
+  const isTabComplete = (tabIndex) => {
+    const required = [['title', 'due_date'], [], ['student_class']];
+    return required[tabIndex]?.every((f) => String(formData[f]).trim() !== '') ?? true;
   };
 
-  const tabRequiredFields = [
-    ['title', 'due_date'],
-    [],
-    ['student_class'],
-  ];
-
-  const isTabComplete = (tabIndex) =>
-    tabRequiredFields[tabIndex]?.every((f) => String(formData[f]).trim() !== '') ?? true;
+  const handleNext = async () => {
+    setError("");
+    if (activeTab === 0) {
+      if (!formData.title || !formData.due_date) { setError("Please fill in the title and due date."); return; }
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      if (new Date(formData.due_date) < today) { setError("Due date cannot be in the past."); return; }
+    }
+    setActiveTab(prev => prev + 1);
+  };
 
   const buildAssignmentPayload = () => ({
-    title: formData.title,
-    description: formData.description,
+    ...formData,
     owner_user_id: userSession.uid,
     dataset: db,
-    questions: formData.questions,
-    student_class: formData.student_class,
+    total_marks: totalMarks,
     dueDate: formData.due_date,
-    enable_submission_notification: formData.enable_submission_notification,
-    reminder_interval: formData.reminder_interval,
     created_on: new Date(),
     updated_on: new Date(),
-    total_marks:totalMarks,
   });
-
 
   const validateDueDate = () => {
     const date = new Date(formData.due_date);
@@ -96,9 +78,7 @@ const AssignmentForm = ({ onDone }) => {
       const id = await createNewAssignment(buildAssignmentPayload());
       setAssignmentId(id);
       alert("Assignment saved.");
-    } catch (err) {
-      setError("Failed to save: " + err.message);
-    }
+    } catch (err) { setError("Failed to save: " + err.message); }
   };
 
   const handlePublish = async () => {
@@ -117,58 +97,13 @@ const AssignmentForm = ({ onDone }) => {
         alert("Assignment published!");
         onDone();
       } else alert("Failed to publish: " + result.message);
-    } catch (err) {
-      setError("Failed to publish: " + err.message);
-    }
+    } catch (err) { setError("Failed to publish: " + err.message); }
   };
-
-  const tab0Content = () => <CreateAssignment formData={formData} handleChange={handleChange} />;
-
-  const tab1Content = () => (
-    <CreateQuestionSet
-      onAddQuestions={(qs) => setFormData(prev => ({ ...prev, questions: qs }))}
-      setDb={setDb}
-      existingQuestions={formData.questions}
-      existingDataset={db}
-      setTotalMarks={setTotalMarks}
-    />
-  );
-
-  const tab2Content = () => (
-    <div>
-      <label>Student Cohort: </label><br />
-      {cohorts.length === 0 ? (
-        <p style={{ color: "red", marginTop: "8px" }}>
-          No cohorts found.{" "}
-          <span onClick={() => navigate("/dashboard/cohorts")} style={{ color: "blue", cursor: "pointer", textDecoration: "underline" }}>
-            Create a cohort first
-          </span>
-        </p>
-      ) : (
-        <>
-          <select name="student_class" value={formData.student_class} onChange={handleChange}>
-            <option value="">-- Select Cohort --</option>
-            {cohorts.map(c => <option key={c.cohort_id} value={c.cohort_id}>{c.name}</option>)}
-          </select><br /><br />
-        </>
-      )}
-      <label>Would you like to be notified when a student submits this assignment?: </label>
-      <input name="enable_submission_notification" type="checkbox" checked={formData.enable_submission_notification} onChange={handleChange} /><br />
-      <label>Would you like to remind students to submit this assignment?: </label>
-      <input name="reminder_interval" type="checkbox" checked={formData.reminder_interval} onChange={handleChange} />
-    </div>
-  );
-
-  // const onTabSelecting = (args) => {
-  //   const targetIndex = args.selectingIndex;
-  //   const unlocked = targetIndex === 0 || [...Array(targetIndex)].every((_, i) => isTabComplete(i));
-  //   if (!unlocked) args.cancel = true;
-  //   else setActiveTab(targetIndex);
-  // };
 
   return (
     <div style={{ maxWidth: 'auto', margin: '20px auto', padding: '20px' }}>
       {onDone && <button type="button" onClick={onDone} style={{ marginBottom: "16px" }}>← Back to Assignments</button>}
+
       {cohortsLoaded && cohorts.length === 0 ? (
         <div style={{ padding: '20px', border: '1px solid #f5c6cb', borderRadius: '8px', background: '#fff3f3', color: '#721c24' }}>
           <strong>No cohorts found.</strong> You need to create at least one cohort before creating an assignment.{" "}
@@ -183,15 +118,45 @@ const AssignmentForm = ({ onDone }) => {
             if (unlocked) setActiveTab(index);
           }}>
             <TabList>
-              <Tab disabled={false}>Create Assignment</Tab>
+              <Tab>Create Assignment</Tab>
               <Tab disabled={!isTabComplete(0)}>Add Questions</Tab>
               <Tab disabled={!isTabComplete(0) || !isTabComplete(1)}>Assign Students</Tab>
             </TabList>
-            <TabPanel>{tab0Content()}</TabPanel>
-            <TabPanel>{tab1Content()}</TabPanel>
-            <TabPanel>{tab2Content()}</TabPanel>
+
+            <TabPanel>
+              <CreateAssignment formData={formData} handleChange={handleChange} />
+            </TabPanel>
+
+            <TabPanel>
+              <CreateQuestionSet
+                onAddQuestions={(qs) => setFormData(prev => ({ ...prev, questions: qs }))}
+                setDb={setDb}
+                existingQuestions={formData.questions}
+                existingDataset={db}
+                setTotalMarks={setTotalMarks}
+              />
+            </TabPanel>
+
+            <TabPanel>
+              <div>
+                <label>Student Cohort: </label><br />
+                <select name="student_class" value={formData.student_class} onChange={handleChange}>
+                  <option value="">-- Select Cohort --</option>
+                  {cohorts.map(c => <option key={c.cohort_id} value={c.cohort_id}>{c.name}</option>)}
+                </select><br /><br />
+                <label>Would you like to be notified when a student submits this assignment?: </label>
+                <input name="enable_submission_notification" type="checkbox" checked={formData.enable_submission_notification} onChange={handleChange} /><br />
+                <label>Would you like to remind students to submit this assignment?: </label>
+                <input name="reminder_interval" type="checkbox" checked={formData.reminder_interval} onChange={handleChange} />
+                {/* <div style={{ marginTop: '20px', display: "flex", gap: "12px" }}>
+                  <button type="button" disabled={!isTabComplete(2)} onClick={handleSave}>Save Assignment</button>
+                  <button type="button" disabled={!isTabComplete(2)} onClick={handlePublish}>Create & Publish Assignment</button>
+                </div>
+                {error && <span style={{ color: "red" }}>{error}</span>} */}
+              </div>
+            </TabPanel>
           </Tabs>
-          <div style={{ marginTop: '20px' }}>
+<div style={{ marginTop: '20px' }}>
             {activeTab > 0 && (
               <button type="button" style={{ marginRight: '10px' }} onClick={() => setActiveTab(prev => prev - 1)}>
                 ← Back

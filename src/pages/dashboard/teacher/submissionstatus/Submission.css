@@ -8,10 +8,9 @@
 
 .text-dashboard-title {
     color: #1a2b4b;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 12px; font-family: Arial, sans-serif;
 }
-
 
 .submission-card {
     border: none;
