@@ -2,7 +2,7 @@ import { useState } from "react";
 import AssignmentTable from "./studentAssignment/AssignmentTable";
 import QuizTable from "./QuizTable";
 import StudentAssignmentPage from "./studentAssignment/StudentAssignmentPage";
-
+import "./Submission.css"; 
 
 function SubmissionStatusPage() {
   const [activeTab, setActiveTab] = useState("assignments");
@@ -10,40 +10,55 @@ function SubmissionStatusPage() {
   const [selectedAssignmetId, setselectedAssignmetId] = useState("");
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Submission Status</h2>
+    <div className="container-fluid submission-page">
+      <div className="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 className="h3 mb-0 text-dashboard-title">Submission Status</h1>
+      </div>
 
-      {/* If a student is selected, show the StudentAssignmentPage */}
       {(selectedStudentId !== "") ? (
-        <StudentAssignmentPage
-          studentId={selectedStudentId}
-          assignmentId={selectedAssignmetId}
-          onBack={() => setSelectedStudentId("")}
-        />
-      ) : (
-        <>
-          <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-            <button
-              onClick={() => setActiveTab("assignments")}
-              style={{ background: activeTab === "assignments" ? "#ccc" : "#eee" }}
-            >
-              Assignments
-            </button>
-
-            <button
-              onClick={() => setActiveTab("quizzes")}
-              style={{ background: activeTab === "quizzes" ? "#ccc" : "#eee" }}
-            >
-              Quizzes
-            </button>
+        <div className="card shadow mb-4">
+          <div className="card-body">
+             <StudentAssignmentPage
+                studentId={selectedStudentId}
+                assignmentId={selectedAssignmetId}
+                onBack={() => setSelectedStudentId("")}
+              />
           </div>
-
-          {activeTab === "assignments" ? (
-            <AssignmentTable onSelectStudent={setSelectedStudentId} onselectAssignmentId={setselectedAssignmetId}/>
-          ) : (
-            <QuizTable onSelectStudent={setSelectedStudentId} />
-          )}
-        </>
+        </div>
+      ) : (
+        <div className="card shadow mb-4">
+          <div className="card-header py-3">
+            <ul className="nav nav-tabs card-header-tabs">
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${activeTab === "assignments" ? "active" : ""}`}
+                  onClick={() => setActiveTab("assignments")}
+                >
+                  Assignments
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  className={`nav-link ${activeTab === "quizzes" ? "active" : ""}`}
+                  onClick={() => setActiveTab("quizzes")}
+                >
+                  Quizzes
+                </button>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="card-body">
+            {activeTab === "assignments" ? (
+              <AssignmentTable 
+                onSelectStudent={setSelectedStudentId} 
+                onselectAssignmentId={setselectedAssignmetId}
+              />
+            ) : (
+              <QuizTable onSelectStudent={setSelectedStudentId} />
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

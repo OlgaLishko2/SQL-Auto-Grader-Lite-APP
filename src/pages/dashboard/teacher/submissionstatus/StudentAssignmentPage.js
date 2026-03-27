@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getStudentInfo, getBestAttemptByUserQuestion, overrideAttemptMark } from "../../../../components/model/questionAttempts";
 import { getAssignmentDetailsByAssignmentId } from "../../../../components/model/studentAssignments";
+import "./Submission.css";
 
 export default function StudentAssignmentPage({ studentId, assignmentId, assignmentTitle, onBack }) {
   const [student, setStudent] = useState(null);
@@ -14,6 +15,7 @@ export default function StudentAssignmentPage({ studentId, assignmentId, assignm
         getAssignmentDetailsByAssignmentId(assignmentId),
       ]);
       setStudent(userData);
+      
       const qs = await Promise.all(
         (assignment?.questions || []).map(async (q, i) => {
           const attempt = await getBestAttemptByUserQuestion(studentId, q.question_id);
@@ -49,40 +51,94 @@ export default function StudentAssignmentPage({ studentId, assignmentId, assignm
   const totalMark = questions.reduce((s, q) => s + q.mark, 0);
 
   return (
-    <div>
-      <button onClick={onBack}>← Back</button>
-      <h2>{assignmentTitle}</h2>
-      {student && <p><strong>{student.fullName}</strong></p>}
-      <div style={{ background: "#f0f4ff", padding: "10px", borderRadius: "6px", marginBottom: "16px" }}>
-        <strong>Total Score: {totalEarned} / {totalMark}</strong>
+    <div className="container-fluid student-assignment-page">
+
+      <div className="d-flex align-items-center mb-4">
+        <button className="btn btn-sm btn-outline-secondary shadow-sm mr-3" onClick={onBack}>
+          <i className="fas fa-arrow-left fa-sm"></i> Back
+        </button>
+        <h1 className="h3 mb-0 text-dashboard-title">{assignmentTitle || "Assignment Review"}</h1>
       </div>
 
-      {questions.map((q, i) => (
-        <div key={q.question_id} style={{ border: "1px solid #ddd", borderRadius: "6px", padding: "14px", marginBottom: "12px" }}>
-          <h6>Question {q.index}</h6>
-          <p>{q.questionText}</p>
-
-          <label>Expected Answer:</label>
-          <pre style={{ background: "#e8f5e9", padding: "8px", borderRadius: "4px" }}>{q.expectedAnswer}</pre>
-
-          <label>Student's Answer:</label>
-          <pre style={{ background: "#f4f4f4", padding: "8px", borderRadius: "4px" }}>{q.submittedSql}</pre>
-
-          <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "8px" }}>
-            <span>Mark: <strong>{q.earnedMark} / {q.mark}</strong></span>
-            <span className={`badge ${q.isCorrect ? "bg-success" : "bg-danger"}`}
-              style={{ color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "11px" }}>
-              {q.isCorrect ? "Correct" : "Incorrect"}
-            </span>
-            {q.attempt_id && (
-              <button className="btn btn-sm btn-outline-secondary"
-                onClick={() => toggleMark(i, q.isCorrect, q.attempt_id, q.mark)}>
-                Override → Mark as {q.isCorrect ? "Incorrect" : "Correct"}
-              </button>
-            )}
+      <div className="row">
+      
+        <div className="col-lg-4 mb-4">
+          <div className="card border-left-primary shadow h-100 py-2">
+            <div className="card-body">
+              <div className="row no-gutters align-items-center">
+                <div className="col mr-2">
+                  <div className="text-xs font-weight-bold text-primary text-uppercase mb-1">Student</div>
+                  <div className="h5 mb-0 font-weight-bold text-gray-800">{student?.fullName || "Loading..."}</div>
+                </div>
+                <div className="col-auto">
+                  <i className="fas fa-user fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      ))}
+
+
+        <div className="col-lg-4 mb-4">
+          <div className="card border-left-success shadow h-100 py-2">
+            <div className="card-body">
+              <div className="row no-gutters align-items-center">
+                <div className="col mr-2">
+                  <div className="text-xs font-weight-bold text-success text-uppercase mb-1">Total Score</div>
+                  <div className="h5 mb-0 font-weight-bold text-gray-800">{totalEarned} / {totalMark}</div>
+                </div>
+                <div className="col-auto">
+                  <i className="fas fa-poll fa-2x text-gray-300"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div className="row">
+        <div className="col-lg-12">
+          {questions.map((q, i) => (
+            <div key={q.question_id} className="card shadow mb-4">
+              <div className="card-header py-3 d-flex justify-content-between align-items-center bg-light">
+                <h6 className="m-0 font-weight-bold text-primary">Question {q.index}</h6>
+                <span className={`badge ${q.isCorrect ? "badge-success" : "badge-danger"}`}>
+                  {q.isCorrect ? "Correct" : "Incorrect"}
+                </span>
+              </div>
+              <div className="card-body">
+                <p className="font-weight-bold mb-1 text-gray-800">Problem:</p>
+                <p className="text-gray-600 mb-3">{q.questionText}</p>
+
+                <div className="row">
+                  <div className="col-md-6">
+                    <label className="small font-weight-bold text-success">Expected SQL:</label>
+                    <pre className="bg-light p-3 rounded border-left-success code-block">{q.expectedAnswer}</pre>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="small font-weight-bold text-gray-700">Student's SQL:</label>
+                    <pre className="bg-light p-3 rounded border-left-primary code-block">{q.submittedSql}</pre>
+                  </div>
+                </div>
+
+                <div className="mt-3 d-flex justify-content-between align-items-center border-top pt-3">
+                  <span className="h6 mb-0 text-gray-800">Points: <strong>{q.earnedMark} / {q.mark}</strong></span>
+                  {q.attempt_id && (
+                    <button 
+                      className={`btn btn-sm ${q.isCorrect ? "btn-outline-danger" : "btn-outline-success"}`}
+                      onClick={() => toggleMark(i, q.isCorrect, q.attempt_id, q.mark)}
+                    >
+                      <i className={`fas ${q.isCorrect ? "fa-times" : "fa-check"} fa-sm mr-1`}></i>
+                      Override to {q.isCorrect ? "Incorrect" : "Correct"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
