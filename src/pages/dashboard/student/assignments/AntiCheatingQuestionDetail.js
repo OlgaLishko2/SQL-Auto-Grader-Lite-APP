@@ -19,8 +19,7 @@ import { useAntiCheat } from "../../../../components/hooks/useAntiCheat";
 import ResultTable from "./ResultTable";
 
 const AntiCheatingQuestionDetail = () => {
-  const { fetchItems } = useAppContext();
-  const navigate = useNavigate();
+  const { fetchItems, getTableSchemaInTable, allTables } = useAppContext();  const navigate = useNavigate();
   const location = useLocation();
   const assignment_id = location.state?.assignment_id;
   const question = location.state?.question;
@@ -31,7 +30,6 @@ const AntiCheatingQuestionDetail = () => {
   const [isCorrect, setIsCorrect] = useState(false);
   const [error, setError] = useState("");
   const [tableSchemas, setTableSchemas] = useState([]);
-  const { getTableSchemaInTable } = useAppContext();
   const [isSubmit, setIsSubmmit] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState(question?.attemptTime);
@@ -40,7 +38,7 @@ const AntiCheatingQuestionDetail = () => {
   useAntiCheat(undefined, { enableFullscreen: true });
   const [antiCheatMessage, setAntiCheatMessage] = useState("");
 
-  const { violations } = useAntiCheat((violation) => {
+  const { violations, isFullscreen, requestFullscreen } = useAntiCheat((violation) => {
     setAntiCheatMessage(
       `Anti-cheat violation detected: ${violation.type.replaceAll("_", " ")}`,
     );
@@ -64,14 +62,28 @@ const AntiCheatingQuestionDetail = () => {
   }, [dataset, question?.answer, fetchItems]);
 
   useEffect(() => {
-    if (!dataset || !question?.table) {
-      console.log(`${dataset}, ${question?.table}`);
-      return;
-    }
+    // If new `tables` array exists and is non-empty, use it directly.
+    // Otherwise always auto-detect from the answer SQL against all dataset tables
+    // (this also fixes old questions that only stored a single `table` string).
+    if (!dataset) return;
+
     const loadSchema = async () => {
-      const tables = question.table.split(",").map((t) => t.trim());
+      console.log('[schema] question:', { tables: question?.tables, answer: question?.answer, dataset });
+      let tableList = Array.isArray(question?.tables) && question.tables.length > 0
+        ? question.tables
+        : null;
+
+      if (!tableList) {
+        const all = await allTables(dataset);
+        const allNames = all.map((t) => t.tableName);
+        console.log('[schema] all table names in dataset:', allNames);
+        tableList = allNames.filter(t => question?.answer?.toLowerCase().includes(t.toLowerCase()));
+        console.log('[schema] matched tables from answer:', tableList);
+      }
+
+      if (tableList.length === 0) return;
       const results = await Promise.all(
-        tables.map(async (table) => {
+        tableList.map(async (table) => {
           const schema = await getTableSchemaInTable(dataset, table);
           return [table, schema];
         }),
@@ -80,7 +92,7 @@ const AntiCheatingQuestionDetail = () => {
       setIsLoading(false);
     };
     loadSchema();
-  }, [dataset, question?.table]);
+  }, [dataset, question?.tables]);
 
   async function excuteQueryAndCompare() {
     if (!isSelectQuery(sqlCode)) {
@@ -169,6 +181,14 @@ const AntiCheatingQuestionDetail = () => {
   return (
     <>
       <LoadingOverlay isOpen={isLoading} message="Loading..." />
+      {!isFullscreen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, background: '#1a1a2e', color: '#fff', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>⚠️ This assignment requires fullscreen mode.</span>
+          <button onClick={requestFullscreen} style={{ background: '#4A76C5', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: 700 }}>
+            Enter Fullscreen
+          </button>
+        </div>
+      )}
       <div className="workspace-container">
         <div className="workspace-content">
           <div className="instructions-panel">
@@ -206,7 +226,7 @@ const AntiCheatingQuestionDetail = () => {
 
               {tableSchemas.map((schema) => (
                 <div className="table-schema" key={schema[0]}>
-                  <h3>{`Table: ${schema[0]}`}</h3>
+                  <h3 style={{marginTop:'20px'}}>{`Table: ${schema[0]}`}</h3>
                   <table>
                     <thead>
                       <tr>

@@ -59,7 +59,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
   const addQuestion = () => {
     setQuestions([...questions, {
       question_id: crypto.randomUUID(),
-      table: "", questionText: "", answer: "",
+      tables: [], questionText: "", answer: "",
       orderMatters: false, aliasStrict: false, mark: 1,
       created_on: new Date(), updated_on: new Date(),
       collapsed: false,
@@ -86,8 +86,8 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
       }      
     }
     const updatedQuestions = questions.map((q) => {
-      const matchedTable = availableTables.find((t) => q.questionText.toLowerCase().includes(t.toLowerCase()));
-      return { ...q, table: matchedTable || q.table, collapsed: true };
+      const matchedTables = availableTables.filter((t) => q.answer.toLowerCase().includes(t.toLowerCase()));
+      return { ...q, tables: matchedTables.length > 0 ? matchedTables : q.tables, collapsed: true };
     });
     let final_grade = calculate_totalMarks(updatedQuestions);
     onAddQuestions(updatedQuestions);
@@ -185,7 +185,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
                       updateQuestion(index, "questionText", preset.question);
                       updateQuestion(index, "answer", preset.answer);
                       const matchedTables = availableTables.filter(t => preset.answer.toLowerCase().includes(t.toLowerCase()));
-                      updateQuestion(index, "table", matchedTables.join(", "));
+                      updateQuestion(index, "tables", matchedTables);
                       updateQuestion(index, "mark", preset.mark);
                       updateQuestion(index, "presetId", preset.id);
                     }}>
@@ -198,7 +198,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
                     onChange={(e) => updateQuestion(index, "questionText", e.target.value)} style={{ height: "80px" }} />
                   <textarea placeholder="Answer..." value={q.answer}
                     onChange={(e) => updateQuestion(index, "answer", e.target.value)} style={{ height: "80px" }} />
-                  <p style={{ color: 'blue' }}><strong>Detected Table:</strong> {q.table || "None"}</p>
+                  <p style={{ color: 'blue' }}><strong>Detected Tables:</strong> {q.tables?.length > 0 ? q.tables.join(", ") : "None"}</p>
 
                   <div style={{ display: 'flex', gap: '30px', flexWrap: 'wrap', alignItems: 'center' }}>
                     <label>

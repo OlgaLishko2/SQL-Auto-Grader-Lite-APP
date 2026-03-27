@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 export const useAntiCheat = (onViolation, { enableFullscreen = false } = {}) => {
   const [violations, setViolations] = useState([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     document.body.style.userSelect = 'none';
@@ -14,11 +15,12 @@ export const useAntiCheat = (onViolation, { enableFullscreen = false } = {}) => 
 
   useEffect(() => {
     if (!enableFullscreen) return;
-    // Request fullscreen on mount; if user exits, log it as a violation
-    document.documentElement.requestFullscreen?.().catch(() => {});
 
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
+      if (document.fullscreenElement) {
+        setIsFullscreen(true);
+      } else {
+        setIsFullscreen(false);
         logViolation('exited_fullscreen');
       }
     };
@@ -28,6 +30,10 @@ export const useAntiCheat = (onViolation, { enableFullscreen = false } = {}) => 
       if (document.fullscreenElement) document.exitFullscreen?.();
     };
   }, [enableFullscreen]);
+
+  const requestFullscreen = useCallback(() => {
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handleCopy = (e) => e.preventDefault();
@@ -57,5 +63,5 @@ export const useAntiCheat = (onViolation, { enableFullscreen = false } = {}) => 
     onViolation?.(violation);
   };
 
-  return { violations };
+  return { violations, isFullscreen, requestFullscreen };
 };

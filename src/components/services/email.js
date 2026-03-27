@@ -1,5 +1,7 @@
 
 import emailjs from "@emailjs/browser";
+import { getCohortsByOwner, getAllStudents } from "../model/cohorts";
+import userSession from "./UserSession";
 
 const SERVICE_ID = process.env.REACT_APP_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID_STUDENT = process.env.REACT_APP_EMAILJS_TEMPLATE_ID_STUDENT;
@@ -19,6 +21,7 @@ export const sendAssignmentEmail = async (student, assignmentTitle, assignmentDu
           SERVICE_ID,
           TEMPLATE_ID_STUDENT,
           {
+            from:'info@sql-grader.com',
         name: student.fullName,
         email: student.email,
         title: assignmentTitle,
@@ -46,6 +49,7 @@ export const sendQuizEmail = async (student, assignmentTitle, assignmentId) => {
           SERVICE_ID,
           TEMPLATE_ID_STUDENT,
           {
+            from:'info@sql-grader.com',
         name: student.fullName,
         email: student.email,
         title: assignmentTitle,
@@ -67,6 +71,7 @@ export const sendSubmissionNotificationEmail = async (teacher, studentName, assi
           SERVICE_ID,
           TEMPLATE_ID_TEACHER,
           {
+            from:'info@sql-grader.com',
             name: teacher.fullName,
             email: teacher.email,
             title: `${studentName} has submitted: ${assignmentTitle}`,
@@ -86,6 +91,7 @@ export const sendReminderEmail = async (student, assignmentTitle, assignmentDueD
           SERVICE_ID,
           TEMPLATE_ID_STUDENT,
           {
+            from:'info@sql-grader.com',
             name: student.fullName,
             email: student.email,
             title: `Reminder: ${assignmentTitle}`,
@@ -98,4 +104,14 @@ export const sendReminderEmail = async (student, assignmentTitle, assignmentDueD
   } catch (error) {
     console.error("Error sending reminder:", error);
   }
+};
+
+// Shared helper — send assignment notification emails to all students in the assignment's cohort
+export const sendAssignmentEmailsToStudents = async (assignment, assignmentId) => {
+  const allCohorts = await getCohortsByOwner(userSession.uid);
+  const cohort = allCohorts.find(c => c.cohort_id === assignment.student_class);
+  if (!cohort?.student_uids?.length) return;
+  const allStudents = await getAllStudents();
+  const cohortStudents = allStudents.filter(s => cohort.student_uids.includes(s.uid));
+  await Promise.all(cohortStudents.map(s => sendAssignmentEmail(s, assignment.title, assignment.dueDate || assignment.due_date, assignmentId)));
 };

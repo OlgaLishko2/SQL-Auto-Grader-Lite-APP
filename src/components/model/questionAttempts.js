@@ -62,6 +62,7 @@ async function createAttempt(questionAttempt) {
 }
 
 async function getAttemptByUserQuestion(userId, questionId) {
+  if (!userId || !questionId) return [];
   try {
     const questionQuery = query(
       questionCollection,

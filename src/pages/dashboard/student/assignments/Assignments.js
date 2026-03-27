@@ -23,8 +23,11 @@ const Assignments = () => {
           getAllAssignmnetByStudent(userSession.uid),
           getAllCompletedAssignmnetByStudent(userSession.uid),
         ]);
-        setAssignmentsdata(all.filter((a) => a.status !== "Completed" && a.status !== "Done"));
+        console.log(all)
 
+        console.log(completed)
+        setAssignmentsdata(all.filter((a) => a.status === "assigned" || a.status === "New" || a.status === "In Progress"));
+console.log(assignmentsdata)
         const withMarks = await Promise.all(completed.map(async (a) => {
           const questions = a.questions || [];
           const totalMarks = questions.reduce((s, q) => s + (Number(q.mark) || 1), 0);
@@ -45,9 +48,9 @@ const Assignments = () => {
   const cap = (str) => str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 
   const activeColumns = [
-    { name: "S.No", selector: (row, index) => index + 1, sortable: true },
+    { name: "S.No", selector: (row) => row.assignment_id, cell: (row, index) => index + 1 },
     { name: "Title", selector: (row) => row.title, sortable: true, cell: (row) => cap(row.title) },
-    { name: "Due Date", selector: (row) => row.dueDate },
+    { name: "Due Date", id: "dueDate", selector: (row) => row.dueDate, sortable: true },
     {
       name: "Status", selector: (row) => row.status,
       cell: (row) => (
@@ -58,7 +61,7 @@ const Assignments = () => {
       ),
     },
     {
-      name: "Action", button: true,
+      name: "Action", ignoreRowClick: true,
       cell: (row) => (
         <button className="btn btn-sm btn-primary" style={{ borderRadius: "4px", fontSize: "12px" }}
           onClick={() => navigate(`/dashboard/questions/${row.assignment_id}`, { state: { assignment: row } })}>
@@ -69,13 +72,13 @@ const Assignments = () => {
   ];
 
   const submittedColumns = [
-    { name: "S.No", selector: (row, index) => index + 1, sortable: true },
+    { name: "S.No", selector: (row) => row.assignment_id, cell: (row, index) => index + 1 },
     { name: "Title", selector: (row) => row.title, sortable: true, cell: (row) => cap(row.title) },
-    { name: "Due Date", selector: (row) => row.dueDate },
+    { name: "Due Date", id: "dueDate", selector: (row) => row.dueDate, sortable: true },
     { name: "Marks Obtained / Total", selector: (row) => `${row.oMarks} / ${row.totalMarks}`, sortable: true },
     { name: "Percentage", selector: (row) => row.percentage },
     {
-      name: "Action", button: true,
+      name: "Action", ignoreRowClick: true,
       cell: (row) => (
         <button className="btn btn-sm btn-primary" style={{ borderRadius: "4px", fontSize: "12px" }}
           onClick={() => navigate(`/dashboard/results/${row.assignment_id}`)}>
@@ -99,10 +102,10 @@ const Assignments = () => {
             <Tab>Submitted Assignments</Tab>
           </TabList>
           <TabPanel>
-            <DataTable columns={activeColumns} data={assignmentsdata} pagination highlightOnHover striped responsive />
+            <DataTable columns={activeColumns} data={assignmentsdata} pagination highlightOnHover striped responsive defaultSortFieldId="dueDate" defaultSortAsc={true} />
           </TabPanel>
           <TabPanel>
-            <DataTable columns={submittedColumns} data={submissionsdata} pagination highlightOnHover striped responsive />
+            <DataTable columns={submittedColumns} data={submissionsdata} pagination highlightOnHover striped responsive defaultSortFieldId="dueDate" defaultSortAsc={false} />
           </TabPanel>
         </Tabs>
       </div>

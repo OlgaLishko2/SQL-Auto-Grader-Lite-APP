@@ -91,7 +91,7 @@ export async function getQuizSubmissionsWithDetails(teacherId) {
       query(quizzesCol, where("owner_user_id", "==", teacherId))
     );
     const teacherQuizzes = teacherQuizzesSnap.docs.map(d => d.data()).sort((a, b) => (b.created_on?.toMillis?.() ?? 0) - (a.created_on?.toMillis?.() ?? 0));
-    if (!teacherQuizzes.length) return [];
+    if (!teacherQuizzes.length) { console.warn('[QuizTable] No quizzes found for teacher:', teacherId); return []; }
 
     const quizMap = {};
     teacherQuizzes.forEach(q => { quizMap[q.quiz_id] = q; });
@@ -129,7 +129,13 @@ export async function getQuizSubmissionsWithDetails(teacherId) {
     const result = [];
     teacherQuizzes.forEach(q => {
       const students = cohortStudentMap[q.student_class] || [];
-      students.forEach(uid => {
+      // also include any students who already submitted, even if cohort is gone
+      const submittedStudents = submissions
+        .filter(s => s.quiz_id === q.quiz_id)
+        .map(s => s.student_user_id);
+      const allStudents = [...new Set([...students, ...submittedStudents])];
+
+      allStudents.forEach(uid => {
         const sub = submissionMap[`${q.quiz_id}_${uid}`];
         result.push({
           id: `${q.quiz_id}_${uid}`,
@@ -144,6 +150,10 @@ export async function getQuizSubmissionsWithDetails(teacherId) {
       });
     });
 
+    console.log('[QuizTable] quizzes:', teacherQuizzes.map(q => ({ quiz_id: q.quiz_id, title: q.title, student_class: q.student_class })));
+    console.log('[QuizTable] submissions:', submissions.length);
+    console.log('[QuizTable] cohortStudentMap:', cohortStudentMap);
+    console.log('[QuizTable] result rows:', result.length);
     return result;
   } catch (e) {
     console.error("getQuizSubmissionsWithDetails:", e);

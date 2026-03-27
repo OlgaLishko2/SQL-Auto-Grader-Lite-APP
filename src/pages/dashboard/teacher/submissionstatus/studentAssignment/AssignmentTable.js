@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getStudentAssignmentsWithDetails } from "../../../../../components/model/studentAssignments";
 import userSession from "../../../../../components/services/UserSession";
 import StudentAssignmentPage from "./StudentAssignmentPage";
 import "./..//Submission.css";
 
 export default function AssignmentTable({ onSelectStudent, onselectAssignmentId }) {
+  const Navigate = useNavigate()
   const [data, setData] = useState([]);
   const [sortField, setSortField] = useState("");
   const [sortDirection, setSortDirection] = useState("asc");
