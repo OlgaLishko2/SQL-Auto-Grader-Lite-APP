@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import GradeAttemptPage from "./GradeAttemptPage";
-import { getAttemptsByStudent, computeQuestionGrade, computeTotalMarks } from "../../../../../components/model/questionAttempts";
+import { getAttemptsByStudent } from "../../../../../components/model/questionAttempts";
 import { getAssignmentDetailsByAssignmentId } from "../../../../../components/model/studentAssignments";
 import { getUser } from "../../../../../components/model/users";
-import { compareQueryResult } from "../../../../../components/comparison/sqlComparison";
+import GradeAttemptPage from "./GradeAttemptPage";
 import "./StudentAssignmentPage.css";
 
 export default function StudentAssignmentPage({ studentId, assignmentId, onBack }) {
@@ -12,7 +10,6 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
   const [assignment, setAssignment] = useState(null);
   const [attempts, setAttempts] = useState([]);
   const [gradingContext, setGradingContext] = useState(null);
-
   const [earned, setEarned] = useState(0);
   const [total, setTotal] = useState(0);
 
@@ -26,142 +23,107 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
       getAttemptsByStudent(studentId),
       getUser(studentId),
     ]);
-
-    const questionIds = new Set(
-      (assignmentData?.questions || []).map(q => q.question_id)
-    );
-
-    const filteredAttempts = allAttempts.filter(a =>
-      questionIds.has(a.question_id)
-    );
+    const questionIds = new Set((assignmentData?.questions || []).map(q => q.question_id));
+    const filteredAttempts = allAttempts.filter(a => questionIds.has(a.question_id));
 
     setAssignment(assignmentData);
-    //setAttempts(filteredAttempts);
-    setAttempts(filteredAttempts.map(a => ({ ...a })));
-
+    setAttempts(filteredAttempts);
     setStudent(studentInfo);
-
-    computeTotals(assignmentData?.questions || [], filteredAttempts);
-
-    console.log("assignmentData, filteredAttempts, studentInfo :", assignmentData, filteredAttempts, studentInfo);
-    console.log("assignment, attempts, student :", assignment, attempts, student);
-  }
-
-  function computeTotals(questions, attempts) {
-    let earned = 0;
-    let total = 0;
-
-    questions.forEach((q) => {
-      total += q.mark;
-
-      const attempt = attempts.find((a) => a.question_id === q.question_id);
-      if (!attempt) return;
-
-      const finalGrade = attempt.is_correct ? q.mark : 0;
-      earned += finalGrade;
+    
+    let e = 0, t = 0;
+    assignmentData?.questions.forEach(q => {
+      t += q.mark;
+      if (filteredAttempts.find(a => a.question_id === q.question_id)?.is_correct) e += q.mark;
     });
-
-    setEarned(earned);
-    setTotal(total);
+    setEarned(e); setTotal(t);
   }
 
-  function getGrades(q, attempt) {
-    if (!attempt) return 0;
-    return attempt.is_correct ? q.mark : 0;
-  }
-
-  if (!assignment) return <div>Loading...</div>;
+  if (!assignment) return <div className="p-4">Loading...</div>;
 
   return (
-    <div>
-      <button onClick={onBack}>← Back</button>
-
-      <h2>Student Assignment</h2>
-
-      {student && (
-        <div style={{ marginBottom: "20px" }}>
-          <strong>Assignment:</strong> {assignment.title} <br />
-          <strong>Name:</strong> {student.fullName}
+    <div className="container-fluid w-100 py-3">
+      {/* Простой заголовок */}
+      <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <div>
+          <h4 className="mb-0 text-gray-800">{assignment.title}</h4>
+          <span className="text-muted">Student: <strong>{student?.fullName}</strong></span>
         </div>
-      )}
+        <div className="text-right">
+          <div className="h4 mb-0 font-weight-bold text-primary">{earned} / {total}</div>
+          <button className="btn btn-link btn-sm p-0" onClick={onBack}>← Back to list</button>
+        </div>
+      </div>
 
-      <h2 className="final-grade">
-        Final Grade: {earned} / {total}
-      </h2>
-
-      <button
-        className="return-score-btn"
-        onClick={() => alert(`Final Score Returned: ${earned}/${total}`)}
-      >
-        Return Final Score
-      </button>
-
-      <table className="status-table" border="1" cellPadding="10">
-        <thead>
-          <tr>
-            <th>Question</th>
-            <th>Student SQL</th>
-            <th>Grade</th>
-            <th>Check</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {assignment.questions.map((q) => {
-            const attempt = attempts.find((a) => a.question_id === q.question_id);
-            const grade = getGrades(q, attempt);
-
-            return (
-              <tr key={q.question_id + "-" + (attempt?.is_correct ? "1" : "0")}>
-                <td>{q.questionText}</td>
-
-                <td>
-                  <pre className="sql-box">
-                    {attempt?.submitted_sql || "No submission"}
-                  </pre>
-                </td>
-
-                <td className={grade > 0 ? "grade-cell green" : "grade-cell red"}>
-                  {grade} / {q.mark}
-                </td>
-                <td>
-                  {attempt ? (
-                    <button
-                      onClick={() =>
-                        setGradingContext({ attempt, question: q, grade , dataset: assignment.dataset})
-                      }
-                    >
-                      Check
-                    </button>
-                  ) : (
-                    "-"
-                  )}
-                </td>
+      
+      <div className="card shadow-sm">
+        <div className="table-responsive">
+          <table className="table table-bordered table-striped mb-0">
+            <thead className="bg-light">
+              <tr>
+                <th style={{width: '30%'}}>Question</th>
+                <th>Student SQL</th>
+                <th className="text-center">Mark</th>
+                <th className="text-center">Action</th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody>
+              {assignment.questions.map((q) => {
+                const attempt = attempts.find((a) => a.question_id === q.question_id);
+                return (
+                  <tr key={q.question_id}>
+                    <td className="small font-weight-bold">{q.questionText}</td>
+                    <td>
+                      <code className="p-2 d-block bg-light text-dark rounded border small" style={{whiteSpace: 'pre-wrap'}}>
+                        {attempt?.submitted_sql || "No submission"}
+                      </code>
+                    </td>
+                    <td className="text-center align-middle font-weight-bold">
+                      <span className={attempt?.is_correct ? "text-success" : "text-danger"}>
+                        {attempt?.is_correct ? q.mark : 0} / {q.mark}
+                      </span>
+                    </td>
+                    <td className="text-center align-middle">
+                      {attempt && (
+                        <button 
+                          className="btn btn-primary btn-sm px-3"
+                          onClick={() => setGradingContext({ attempt, question: q, grade: attempt.is_correct ? q.mark : 0, dataset: assignment.dataset })}
+                        >
+                          Check
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
+    
+      <div className="mt-4 text-right">
+        <button className="btn btn-success shadow" onClick={() => alert("Score saved")}>
+          <i className="fas fa-check mr-2"></i> Return Final Score
+        </button>
+      </div>
+
+   
       {gradingContext && (
-         <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="modal-overlay">
+          <div className="modal-content border-0 shadow">
+            <div className="d-flex justify-content-between p-3 border-bottom bg-white">
+              <h6 className="m-0 font-weight-bold">Grading Detail</h6>
+              <button className="close" onClick={() => setGradingContext(null)}>&times;</button>
+            </div>
             <GradeAttemptPage
               attempt={gradingContext.attempt}
               question={gradingContext.question}
               autoGrade={gradingContext.grade}
               dataset={gradingContext.dataset}
-              onClose={async () => {
-                const updatedAttempts = await getAttemptsByStudent(studentId);
-                setAttempts(updatedAttempts.map(a => ({ ...a })));
-                setGradingContext(null);
-                computeTotals(assignment.questions, updatedAttempts);
-                //await loadData();
-              }}
+              onClose={() => { setGradingContext(null); loadData(); }}
             />
+          </div>
         </div>
-      </div>
-        
       )}
     </div>
   );
