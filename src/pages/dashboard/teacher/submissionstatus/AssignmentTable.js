@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getStudentAssignmentsWithDetails } from "../../../../components/model/studentAssignments";
 import userSession from "../../../../components/services/UserSession";
 import StudentAssignmentPage from "./StudentAssignmentPage"
 
 export default function AssignmentTable({ onSelectStudent }) {
+  const Navigate = useNavigate()
   const [data, setData] = useState([]);
   const [sortField, setSortField] = useState("");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -12,34 +13,34 @@ export default function AssignmentTable({ onSelectStudent }) {
   const [selected, setSelected] = useState(null);
   const location = useLocation();
   const preselectedId = location.state?.student_assignment_id;
- 
-   /*sorting logic*/
-     const sortedData = [...data].sort((a, b) => {
-       if (sortField) {
-         const valueA = a[sortField]?.toString().toLowerCase();
-         const valueB = b[sortField]?.toString().toLowerCase();
-         if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
-         if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
-         return 0;
-       }
-       // default: sort by submissionDate desc, fall back to assigned_on
-       const aTime = a.submissionDate && a.submissionDate !== "-" ? new Date(a.submissionDate) : new Date(a.assigned_on);
-       const bTime = b.submissionDate && b.submissionDate !== "-" ? new Date(b.submissionDate) : new Date(b.assigned_on);
-       return bTime - aTime;
-     });
- 
-     /* filtering logic */
-     const filteredData = sortedData.filter(item =>
-       item.status !== "created" &&
-       (item.studentName.toLowerCase().includes(filterText.toLowerCase()) ||
-       item.assignmentTitle.toLowerCase().includes(filterText.toLowerCase()) ||
-       item.status.toLowerCase().includes(filterText.toLowerCase()))
-     );
- 
 
-  
+  /*sorting logic*/
+  const sortedData = [...data].sort((a, b) => {
+    if (sortField) {
+      const valueA = a[sortField]?.toString().toLowerCase();
+      const valueB = b[sortField]?.toString().toLowerCase();
+      if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
+      if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    }
+    // default: sort by submissionDate desc, fall back to assigned_on
+    const aTime = a.submissionDate && a.submissionDate !== "-" ? new Date(a.submissionDate) : new Date(a.assigned_on);
+    const bTime = b.submissionDate && b.submissionDate !== "-" ? new Date(b.submissionDate) : new Date(b.assigned_on);
+    return bTime - aTime;
+  });
+
+  /* filtering logic */
+  const filteredData = sortedData.filter(item =>
+    item.status !== "created" &&
+    (item.studentName.toLowerCase().includes(filterText.toLowerCase()) ||
+      item.assignmentTitle.toLowerCase().includes(filterText.toLowerCase()) ||
+      item.status.toLowerCase().includes(filterText.toLowerCase()))
+  );
+
+
+
   /* function to fetch name per student id from the "users" collection */
-  
+
   const [preselectedUsed, setPreselectedUsed] = useState(false);
 
   useEffect(() => {
@@ -55,63 +56,67 @@ export default function AssignmentTable({ onSelectStudent }) {
     if (!selected) fetchData();
   }, [selected]);
 
-  if (selected) return <StudentAssignmentPage studentId={selected.student_user_id} assignmentId={selected.assignment_id} assignmentTitle={selected.assignmentTitle} onBack={() => setSelected(null)} />;
+  if (selected) return
+  <StudentAssignmentPage
+    studentId={selected.student_user_id} assignmentId={selected.assignment_id} assignmentTitle={selected.assignmentTitle}
+    onBack={() => preselectedUsed && preselectedId ? Navigate(-1) : setSelected(null)}
+  />;
 
   return (
-      <div style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder="Search by name, title, status..."
-          value={filterText}
-          onChange={(e) => setFilterText(e.target.value)}
-        />
+    <div style={{ marginBottom: "20px" }}>
+      <input
+        type="text"
+        placeholder="Search by name, title, status..."
+        value={filterText}
+        onChange={(e) => setFilterText(e.target.value)}
+      />
 
-        <select onChange={(e) => setSortField(e.target.value)}>
-          <option value="">Sort By</option>
-          <option value="studentName">Student Name</option>
-          <option value="assignmentTitle">Assignment Title</option>
-          <option value="status">Status</option>
-        </select>
+      <select onChange={(e) => setSortField(e.target.value)}>
+        <option value="">Sort By</option>
+        <option value="studentName">Student Name</option>
+        <option value="assignmentTitle">Assignment Title</option>
+        <option value="status">Status</option>
+      </select>
 
-        <select onChange={(e) => setSortDirection(e.target.value)}>
-          <option value="asc">Ascending</option>
-          <option value="desc">Descending</option>
-        </select>
-        
-         <table border="1" cellPadding="10">
-      <thead>
-        <tr>
-          <th>Student Name</th>
-          <th>Assignment Title</th>
-          <th>Mark</th>
-          <th>Action</th>
-        </tr>
-      </thead>
+      <select onChange={(e) => setSortDirection(e.target.value)}>
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+      </select>
 
-      <tbody>
-        {filteredData.map(item => {
-          const isLate = item.dueDate && item.updated_on && new Date(item.updated_on) > new Date(item.dueDate);
-          const isSubmitted = item.status === "submitted" || item.status === "completed";
-          const markDisplay = isSubmitted && item.totalMarks > 0
-            ? `${item.earnedMarks ?? 0} / ${item.totalMarks}`
-            : "-";
-          return (
-          <tr key={item.id} style={{ background: isLate ? "#fee2e2" : "white" }}>
-            <td>{item.studentName}</td>
-            <td>{item.assignmentTitle}{isLate && <span style={{ color: "red", marginLeft: "8px", fontSize: "11px" }}>Late</span>}</td>
-            <td>{markDisplay}</td>
-            <td>
-              {isSubmitted ? (
-                <button onClick={() => setSelected(item)}>Check & Grade</button>
-              ) : (
-                <span>{item.status}</span>
-              )}
-            </td>
+      <table border="1" cellPadding="10">
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Assignment Title</th>
+            <th>Mark</th>
+            <th>Action</th>
           </tr>
-          );
-        })}
-      </tbody>
-    </table>
-    </div>      
+        </thead>
+
+        <tbody>
+          {filteredData.map(item => {
+            const isLate = item.dueDate && item.updated_on && new Date(item.updated_on) > new Date(item.dueDate);
+            const isSubmitted = item.status === "submitted" || item.status === "completed";
+            const markDisplay = isSubmitted && item.totalMarks > 0
+              ? `${item.earnedMarks ?? 0} / ${item.totalMarks}`
+              : "-";
+            return (
+              <tr key={item.id} style={{ background: isLate ? "#fee2e2" : "white" }}>
+                <td>{item.studentName}</td>
+                <td>{item.assignmentTitle}{isLate && <span style={{ color: "red", marginLeft: "8px", fontSize: "11px" }}>Late</span>}</td>
+                <td>{markDisplay}</td>
+                <td>
+                  {isSubmitted ? (
+                    <button onClick={() => setSelected(item)}>Check & Grade</button>
+                  ) : (
+                    <span>{item.status}</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }

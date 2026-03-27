@@ -19,8 +19,8 @@ function NavBar() {
   }, []);
 
   const handleLogout = () => {
-    userSession.clear();
     signOut(auth).then(() => {
+      userSession.set(null);
       window.location.replace("/");
     }).catch((error) => {
       console.error("Sign out error", error);

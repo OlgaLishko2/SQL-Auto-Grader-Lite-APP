@@ -23,8 +23,13 @@ const AssignmentForm = ({ onDone }) => {
   const [assignmentId, setAssignmentId] = useState("");
   const [error, setError] = useState("");
 
+  const [cohortsLoaded, setCohortsLoaded] = useState(false);
+
   useEffect(() => {
-    getCohortsByOwner(userSession.uid).then(setCohorts);
+    getCohortsByOwner(userSession.uid).then(data => {
+      setCohorts(data);
+      setCohortsLoaded(true);
+    });
   }, []);
 
   const handleChange = (e) => {
@@ -99,7 +104,7 @@ const AssignmentForm = ({ onDone }) => {
     try {
       const id = await createNewAssignment(buildAssignmentPayload());
       setAssignmentId(id);
-      await sendEmailsToStudents(id);
+      // await sendEmailsToStudents(id);
       alert("Assignment saved.");
     } catch (err) {
       setError("Failed to save: " + err.message);
@@ -160,43 +165,59 @@ const AssignmentForm = ({ onDone }) => {
       <input name="enable_submission_notification" type="checkbox" checked={formData.enable_submission_notification} onChange={handleChange} /><br />
       <label>Would you like to remind students to submit this assignment?: </label>
       <input name="reminder_interval" type="checkbox" checked={formData.reminder_interval} onChange={handleChange} />
-
-      <div style={{ marginTop: '20px', display: "flex", gap: "12px" }}>
-        <button type="button" disabled={!isTabComplete(2)} onClick={handleSave}>Save Assignment</button>
-        <button type="button" disabled={!isTabComplete(2)} onClick={handlePublish}>Create & Publish Assignment</button>
-      </div>
-      {error && <span style={{ color: "red" }}>{error}</span>}
     </div>
   );
 
-  const onTabSelecting = (args) => {
-    const targetIndex = args.selectingIndex;
-    const unlocked = targetIndex === 0 || [...Array(targetIndex)].every((_, i) => isTabComplete(i));
-    if (!unlocked) args.cancel = true;
-    else setActiveTab(targetIndex);
-  };
+  // const onTabSelecting = (args) => {
+  //   const targetIndex = args.selectingIndex;
+  //   const unlocked = targetIndex === 0 || [...Array(targetIndex)].every((_, i) => isTabComplete(i));
+  //   if (!unlocked) args.cancel = true;
+  //   else setActiveTab(targetIndex);
+  // };
 
   return (
     <div style={{ maxWidth: 'auto', margin: '20px auto', padding: '20px' }}>
       {onDone && <button type="button" onClick={onDone} style={{ marginBottom: "16px" }}>← Back to Assignments</button>}
-      <Tabs selectedIndex={activeTab} onSelect={(index) => {
-        const unlocked = index === 0 || [...Array(index)].every((_, i) => isTabComplete(i));
-        if (unlocked) setActiveTab(index);
-      }}>
-        <TabList>
-          <Tab disabled={false}>Create Assignment</Tab>
-          <Tab disabled={!isTabComplete(0)}>Add Questions</Tab>
-          <Tab disabled={!isTabComplete(0) || !isTabComplete(1)}>Assign Students</Tab>
-        </TabList>
-        <TabPanel>{tab0Content()}</TabPanel>
-        <TabPanel>{tab1Content()}</TabPanel>
-        <TabPanel>{tab2Content()}</TabPanel>
-      </Tabs>
-      {activeTab < 2 && (
-        <div style={{ marginTop: '20px' }}>
-          <button type="button" onClick={handleNext}>Next →</button>
-          {error && <span style={{ marginLeft: "12px", color: "red" }}>{error}</span>}
+      {cohortsLoaded && cohorts.length === 0 ? (
+        <div style={{ padding: '20px', border: '1px solid #f5c6cb', borderRadius: '8px', background: '#fff3f3', color: '#721c24' }}>
+          <strong>No cohorts found.</strong> You need to create at least one cohort before creating an assignment.{" "}
+          <span onClick={() => navigate("/dashboard/cohorts")} style={{ color: "#0056b3", cursor: "pointer", textDecoration: "underline" }}>
+            Create a cohort now
+          </span>
         </div>
+      ) : (
+        <>
+          <Tabs selectedIndex={activeTab} onSelect={(index) => {
+            const unlocked = index === 0 || [...Array(index)].every((_, i) => isTabComplete(i));
+            if (unlocked) setActiveTab(index);
+          }}>
+            <TabList>
+              <Tab disabled={false}>Create Assignment</Tab>
+              <Tab disabled={!isTabComplete(0)}>Add Questions</Tab>
+              <Tab disabled={!isTabComplete(0) || !isTabComplete(1)}>Assign Students</Tab>
+            </TabList>
+            <TabPanel>{tab0Content()}</TabPanel>
+            <TabPanel>{tab1Content()}</TabPanel>
+            <TabPanel>{tab2Content()}</TabPanel>
+          </Tabs>
+          <div style={{ marginTop: '20px' }}>
+            {activeTab > 0 && (
+              <button type="button" style={{ marginRight: '10px' }} onClick={() => setActiveTab(prev => prev - 1)}>
+                ← Back
+              </button>
+            )}
+            {activeTab < 2 && (
+              <button type="button" onClick={handleNext}>Next →</button>
+            )}
+            {activeTab === 2 && (
+              <>
+                <button type="button" style={{ marginRight: '10px' }} disabled={!isTabComplete(2)} onClick={handleSave}>Save Assignment</button>
+                <button type="button" disabled={!isTabComplete(2)} onClick={handlePublish}>Create & Publish Assignment</button>
+
+              </>
+            )}
+            {error && <span style={{ marginLeft: "12px", color: "red" }}>{error}</span>}</div>
+        </>
       )}
     </div>
   );

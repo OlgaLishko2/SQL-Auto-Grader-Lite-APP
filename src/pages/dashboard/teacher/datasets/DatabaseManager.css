@@ -5,7 +5,7 @@
   --ds-border: #d9e3ef;
   --ds-text: #1d2a39;
   --ds-muted: #5f7185;
- --ds-primary: #4A76C5;
+  --ds-primary: #4a76c5;
   --ds-primary-dark: #385fa6;
   --ds-accent: #e8effb;
   --ds-success: #1f9d55;
@@ -15,7 +15,7 @@
 .dataset-manager {
   width: 100%;
   padding: 8px;
-  color: var(--ds-text) !important ;
+  color: var(--ds-text, #1d2a39) !important ;
 }
 
 .dataset-hero {
@@ -45,7 +45,7 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ds-primary) !important;
+  color: var(--ds-primary, #4a76c5) !important;
 }
 
 .dataset-hero h1 {
@@ -97,7 +97,7 @@
   padding: 6px 10px;
   border-radius: 999px;
   background: var(--ds-accent);
-  color: var(--ds-primary) !important;
+  color: var(--ds-primary, #4a76c5) !important;
   font-size: 12px;
   font-weight: 700;
 }
@@ -144,7 +144,7 @@
   padding: 10px 16px;
   border: none;
   border-radius: 12px;
-  background: var(--ds-primary) !important;
+  background: var(--ds-primary,#4a76c5) !important;
   color: #fff;
   font-weight: 700;
   cursor: pointer;
@@ -153,7 +153,7 @@
 
 .dataset-btn:hover,
 .dataset-manager button:hover {
-  background: var(--ds-primary-dark) !important;
+  background: var(--ds-primary-dark, #385fa6) !important;
   transform: translateY(-1px);
 }
 
@@ -272,7 +272,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--ds-primary) !important;
+  background: var(--ds-primary, #4a76c5) !important;
   color: #fff;
   font-weight: 800;
   cursor: pointer;

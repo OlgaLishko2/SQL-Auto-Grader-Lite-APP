@@ -19,6 +19,7 @@ export const sendAssignmentEmail = async (student, assignmentTitle, assignmentDu
           SERVICE_ID,
           TEMPLATE_ID_STUDENT,
           {
+            from:'info@sql-grader.com',
         name: student.fullName,
         email: student.email,
         title: assignmentTitle,
@@ -46,6 +47,7 @@ export const sendQuizEmail = async (student, assignmentTitle, assignmentId) => {
           SERVICE_ID,
           TEMPLATE_ID_STUDENT,
           {
+            from:'info@sql-grader.com',
         name: student.fullName,
         email: student.email,
         title: assignmentTitle,
@@ -67,6 +69,7 @@ export const sendSubmissionNotificationEmail = async (teacher, studentName, assi
           SERVICE_ID,
           TEMPLATE_ID_TEACHER,
           {
+            from:'info@sql-grader.com',
             name: teacher.fullName,
             email: teacher.email,
             title: `${studentName} has submitted: ${assignmentTitle}`,
@@ -86,6 +89,7 @@ export const sendReminderEmail = async (student, assignmentTitle, assignmentDueD
           SERVICE_ID,
           TEMPLATE_ID_STUDENT,
           {
+            from:'info@sql-grader.com',
             name: student.fullName,
             email: student.email,
             title: `Reminder: ${assignmentTitle}`,
