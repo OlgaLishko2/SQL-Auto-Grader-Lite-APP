@@ -37,14 +37,23 @@
 .code-editor {
   width: 360px;
   flex-shrink: 0;
-  position: fixed;
+  /* position: fixed;
   top: 200px;
-  right: 20px;
+  right: 20px; */
   border: 1px solid #ccc;
   padding: 20px;
   border-radius: 6px;
   background-color: #fff;
   z-index: 100;
+}
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {

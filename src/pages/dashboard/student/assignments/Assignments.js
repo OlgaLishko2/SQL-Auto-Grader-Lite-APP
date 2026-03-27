@@ -50,7 +50,7 @@ console.log(assignmentsdata)
   const activeColumns = [
     { name: "S.No", selector: (row) => row.assignment_id, cell: (row, index) => index + 1 },
     { name: "Title", selector: (row) => row.title, sortable: true, cell: (row) => cap(row.title) },
-    { name: "Due Date", selector: (row) => row.dueDate },
+    { name: "Due Date", id: "dueDate", selector: (row) => row.dueDate, sortable: true },
     {
       name: "Status", selector: (row) => row.status,
       cell: (row) => (
@@ -74,7 +74,7 @@ console.log(assignmentsdata)
   const submittedColumns = [
     { name: "S.No", selector: (row) => row.assignment_id, cell: (row, index) => index + 1 },
     { name: "Title", selector: (row) => row.title, sortable: true, cell: (row) => cap(row.title) },
-    { name: "Due Date", selector: (row) => row.dueDate },
+    { name: "Due Date", id: "dueDate", selector: (row) => row.dueDate, sortable: true },
     { name: "Marks Obtained / Total", selector: (row) => `${row.oMarks} / ${row.totalMarks}`, sortable: true },
     { name: "Percentage", selector: (row) => row.percentage },
     {
@@ -102,10 +102,10 @@ console.log(assignmentsdata)
             <Tab>Submitted Assignments</Tab>
           </TabList>
           <TabPanel>
-            <DataTable columns={activeColumns} data={assignmentsdata} pagination highlightOnHover striped responsive />
+            <DataTable columns={activeColumns} data={assignmentsdata} pagination highlightOnHover striped responsive defaultSortFieldId="dueDate" defaultSortAsc={true} />
           </TabPanel>
           <TabPanel>
-            <DataTable columns={submittedColumns} data={submissionsdata} pagination highlightOnHover striped responsive />
+            <DataTable columns={submittedColumns} data={submissionsdata} pagination highlightOnHover striped responsive defaultSortFieldId="dueDate" defaultSortAsc={false} />
           </TabPanel>
         </Tabs>
       </div>

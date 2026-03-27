@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getStudentAssignmentsWithDetails } from "../../../../components/model/studentAssignments";
-import userSession from "../../../../components/services/UserSession";
+import { getStudentAssignmentsWithDetails } from "../../../../../components/model/studentAssignments";
+import userSession from "../../../../../components/services/UserSession";
 import StudentAssignmentPage from "./StudentAssignmentPage"
 
-export default function AssignmentTable({ onSelectStudent }) {
+export default function AssignmentTable({ onSelectStudent, onselectAssignmentId }) {
   const Navigate = useNavigate()
   const [data, setData] = useState([]);
   const [sortField, setSortField] = useState("");
@@ -56,11 +56,12 @@ export default function AssignmentTable({ onSelectStudent }) {
     if (!selected) fetchData();
   }, [selected]);
 
-  if (selected) return
-  <StudentAssignmentPage
-    studentId={selected.student_user_id} assignmentId={selected.assignment_id} assignmentTitle={selected.assignmentTitle}
-    onBack={() => preselectedUsed && preselectedId ? Navigate(-1) : setSelected(null)}
-  />;
+  if (selected) return (
+    <StudentAssignmentPage
+      studentId={selected.student_user_id} assignmentId={selected.assignment_id} assignmentTitle={selected.assignmentTitle}
+      onBack={() => preselectedUsed && preselectedId ? Navigate(-1) : setSelected(null)}
+    />
+  );
 
   return (
     <div style={{ marginBottom: "20px" }}>
@@ -103,11 +104,18 @@ export default function AssignmentTable({ onSelectStudent }) {
             return (
               <tr key={item.id} style={{ background: isLate ? "#fee2e2" : "white" }}>
                 <td>{item.studentName}</td>
-                <td>{item.assignmentTitle}{isLate && <span style={{ color: "red", marginLeft: "8px", fontSize: "11px" }}>Late</span>}</td>
-                <td>{markDisplay}</td>
+                <td>{item.assignmentTitle}</td>
+            <td>{item.submissionDate}</td>
+            <td>{item.due_on}</td>
+                <td>{item.status}</td>
                 <td>
-                  {isSubmitted ? (
-                    <button onClick={() => setSelected(item)}>Check & Grade</button>
+                  {item.status === "submitted" ? (
+                    <button onClick={() => {
+                  console.log("item.student_user_id: ", item.student_user_id);
+                  onSelectStudent(item.student_user_id);
+                  onselectAssignmentId(item.assignment_id)}}>
+                  Check & Grade
+                </button>
                   ) : (
                     <span>{item.status}</span>
                   )}

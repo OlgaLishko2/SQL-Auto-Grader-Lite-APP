@@ -19,8 +19,7 @@ import { useAntiCheat } from "../../../../components/hooks/useAntiCheat";
 import ResultTable from "./ResultTable";
 
 const AntiCheatingQuestionDetail = () => {
-  const { fetchItems } = useAppContext();
-  const navigate = useNavigate();
+  const { fetchItems, getTableSchemaInTable, allTables } = useAppContext();  const navigate = useNavigate();
   const location = useLocation();
   const assignment_id = location.state?.assignment_id;
   const question = location.state?.question;
@@ -31,7 +30,6 @@ const AntiCheatingQuestionDetail = () => {
   const [isCorrect, setIsCorrect] = useState(false);
   const [error, setError] = useState("");
   const [tableSchemas, setTableSchemas] = useState([]);
-  const { getTableSchemaInTable } = useAppContext();
   const [isSubmit, setIsSubmmit] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState(question?.attemptTime);
@@ -64,14 +62,25 @@ const AntiCheatingQuestionDetail = () => {
   }, [dataset, question?.answer, fetchItems]);
 
   useEffect(() => {
-    if (!dataset || !question?.table) {
-      console.log(`${dataset}, ${question?.table}`);
-      return;
-    }
+    // If new `tables` array exists and is non-empty, use it directly.
+    // Otherwise always auto-detect from the answer SQL against all dataset tables
+    // (this also fixes old questions that only stored a single `table` string).
+    if (!dataset) return;
+
     const loadSchema = async () => {
-      const tables = question.table.split(",").map((t) => t.trim());
+      let tableList = Array.isArray(question?.tables) && question.tables.length > 0
+        ? question.tables
+        : null;
+
+      if (!tableList) {
+        const all = await allTables(dataset);
+        const allNames = all.map((t) => t.tableName);
+        tableList = allNames.filter(t => question?.answer?.toLowerCase().includes(t.toLowerCase()));
+      }
+
+      if (tableList.length === 0) return;
       const results = await Promise.all(
-        tables.map(async (table) => {
+        tableList.map(async (table) => {
           const schema = await getTableSchemaInTable(dataset, table);
           return [table, schema];
         }),
@@ -80,7 +89,7 @@ const AntiCheatingQuestionDetail = () => {
       setIsLoading(false);
     };
     loadSchema();
-  }, [dataset, question?.table]);
+  }, [dataset, question?.tables, question?.table]);
 
   async function excuteQueryAndCompare() {
     if (!isSelectQuery(sqlCode)) {
