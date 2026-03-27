@@ -82,3 +82,54 @@
 .student-scroll-list::-webkit-scrollbar-thumb:hover {
   background: #b7b9cc;
 }
+
+
+.container-fluid.py-4.w-100 {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+
+.form-control:focus {
+  border-color: #4e73df;
+  box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.bg-light {
+  background-color: #f8f9fc !important;
+}
+
+
+.custom-switch .custom-control-label::before {
+  height: 1.25rem;
+  width: 2.25rem;
+  border-radius: 1rem;
+}
+
+.custom-switch .custom-control-label::after {
+  width: calc(1.25rem - 4px);
+  height: calc(1.25rem - 4px);
+  border-radius: 1rem;
+}
+
+
+.card-header h6 i {
+  width: 20px;
+}
+
+
+.alert-danger {
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
