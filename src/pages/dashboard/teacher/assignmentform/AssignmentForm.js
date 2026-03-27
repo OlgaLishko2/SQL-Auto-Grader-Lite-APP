@@ -22,6 +22,7 @@ const AssignmentForm = ({ onDone }) => {
   const [cohorts, setCohorts] = useState([]);
   const [assignmentId, setAssignmentId] = useState("");
   const [error, setError] = useState("");
+  const [totalMarks, setTotalMarks] = useState(0);
 
   useEffect(() => {
     getCohortsByOwner(userSession.uid).then(setCohorts);
@@ -71,6 +72,7 @@ const AssignmentForm = ({ onDone }) => {
     reminder_interval: formData.reminder_interval,
     created_on: new Date(),
     updated_on: new Date(),
+    total_marks:totalMarks,
   });
 
   const sendEmailsToStudents = async (id) => {
@@ -135,6 +137,7 @@ const AssignmentForm = ({ onDone }) => {
       setDb={setDb}
       existingQuestions={formData.questions}
       existingDataset={db}
+      setTotalMarks={setTotalMarks}
     />
   );
 

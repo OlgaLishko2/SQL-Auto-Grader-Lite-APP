@@ -6,7 +6,7 @@ import { CodeEditor } from "./CodeEditor";
 import './CreateQuestionSet.css';
 import CollapsiblePanel from '../collapsiblepanel/CollapsiblePanel';
 
-function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], existingDataset = "" }) {
+function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], existingDataset = "", setTotalMarks }) {
   const { allTables, allDataset, getTableSchemaInTable, runSelectQuery } = useAppContext();
 
   const [selectedDataset, setSelectedDataset] = useState(existingDataset);
@@ -18,6 +18,9 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
   const [presets, setPresets] = useState([]);
   const [questions, setQuestions] = useState(existingQuestions);
   const [savedCount, setSavedCount] = useState(existingQuestions.length);
+  const [total, setTotal] = useState(0);
+ 
+  
 
   const filteredPresets = selectedTable.length > 0
     ? presets.filter(p => selectedTable.every(t => p.answer?.toLowerCase().includes(t.toLowerCase())))
@@ -50,6 +53,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
     setQuestions([]);
     setSavedCount(0);
     onAddQuestions([]);
+    setTotal(0);
   };
 
   const addQuestion = () => {
@@ -59,7 +63,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
       orderMatters: false, aliasStrict: false, mark: 1,
       created_on: new Date(), updated_on: new Date(),
       collapsed: false,
-    }]);
+    }]);    
   };
 
   const updateQuestion = (index, field, value) => {
@@ -72,26 +76,44 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
     const invalid = questions.filter((q) => !q.questionText.trim() || !q.answer.trim());
     if (invalid.length > 0) return alert("Every question needs text and an answer.");
     const texts = questions.map(q => q.questionText.trim().toLowerCase());
+    
     if (new Set(texts).size !== texts.length) return alert("Duplicate questions found. Please make each question unique.");
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       const result = await runSelectQuery(selectedDataset, q.answer);
       if (!result?.isSuccessful || !result.data?.length) {
         return alert(`Question ${i + 1} has an invalid answer SQL — it failed or returned no rows.`);
-      }
+      }      
     }
     const updatedQuestions = questions.map((q) => {
       const matchedTable = availableTables.find((t) => q.questionText.toLowerCase().includes(t.toLowerCase()));
       return { ...q, table: matchedTable || q.table, collapsed: true };
     });
+    let final_grade = calculate_totalMarks(updatedQuestions);
     onAddQuestions(updatedQuestions);
     setQuestions(updatedQuestions);
     setSavedCount(updatedQuestions.length);
+    setTotal(final_grade);
+    setTotalMarks(final_grade);    
+    console.log("inside saveQuestions: total marks:", final_grade);
   };
 
   const toggleQuestionCollapse = (index) => {
     setQuestions((prev) => prev.map((q, i) => i === index ? { ...q, collapsed: !q.collapsed } : q));
   };
+
+  const calculate_totalMarks = (question_array) => {
+    let val = 0;
+    for (let i = 0; i < question_array.length; i++) {      
+      let q_mark = question_array[i].mark;
+      let mark_per_question = typeof(q_mark) === "number"? q_mark : parseInt(q_mark);
+      console.log(mark_per_question);
+      val = val + mark_per_question;  
+      console.log("Q#:",i, "mark: ", mark_per_question, "total: ", val);       
+    }
+    console.log("total : ", val, typeof(val));  
+    return val;
+  }
 
   return (
     <div>
@@ -123,6 +145,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
             <h2>Questions</h2>
             <button disabled={!selectedDataset} onClick={addQuestion}>Add Question</button>
             {savedCount > 0 && <span style={{ marginLeft: "12px", color: "green" }}>✓ {savedCount} question(s) saved</span>}
+            {savedCount > 0 && <span style={{ marginLeft: "12px", color: "blue" }}>Total Marks:{total}</span>}
 
             {questions.map((q, index) => (
               <CollapsiblePanel
