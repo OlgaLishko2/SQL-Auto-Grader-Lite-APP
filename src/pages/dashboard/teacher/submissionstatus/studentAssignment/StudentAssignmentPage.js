@@ -42,7 +42,7 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
 
   return (
     <div className="container-fluid w-100 py-3">
-      {/* Простой заголовок */}
+   
       <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
         <div>
           <h4 className="mb-0 text-gray-800">{assignment.title}</h4>
