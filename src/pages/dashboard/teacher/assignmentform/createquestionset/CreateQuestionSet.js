@@ -205,7 +205,9 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
             )}
           </div>
         </div>
-        <CodeEditor selectedDataset={selectedDataset} />
+        <div className={"corner-container"} style={{position: "fixed", top: "20px", right: "20px"}}>
+          <CodeEditor selectedDataset={selectedDataset} />
+        </div>
       </>)}
     </div>
   );

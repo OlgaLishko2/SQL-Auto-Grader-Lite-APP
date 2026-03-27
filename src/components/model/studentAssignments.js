@@ -371,6 +371,27 @@ async function getDashboardDataForTeacher(teacherId) {
   }
 }
 
+/* Added by sreyasi: for assignment grading */
+async function getTeacherQuestionDetails(assignmentId, questionId) {
+  try {
+    console.log("assignmentId, questionId : ", assignmentId, questionId);
+    const ref = doc(db, "assignments", assignmentId);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) return null;
+
+    const assignment = snap.data();
+    console.log("Inside getTeacherQuestionDetails: assignment->", assignment);
+    return assignment.questions?.find(
+      (q) => q.question_id === questionId
+    ) || null;
+
+  } catch (err) {
+    console.error("Error fetching teacher question details:", err);
+    return null;
+  }
+}
+
 export {
   createNewStudentAssignment,
   getAllAssignmnetByStudent,
@@ -382,4 +403,5 @@ export {
   publishAssignmentToStudents,
   isAssignmentPublished,
   getDashboardDataForTeacher,
+  getTeacherQuestionDetails,
 };

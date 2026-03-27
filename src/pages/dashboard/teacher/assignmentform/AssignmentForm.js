@@ -99,7 +99,7 @@ const AssignmentForm = ({ onDone }) => {
     try {
       const id = await createNewAssignment(buildAssignmentPayload());
       setAssignmentId(id);
-      await sendEmailsToStudents(id);
+      //await sendEmailsToStudents(id);
       alert("Assignment saved.");
     } catch (err) {
       setError("Failed to save: " + err.message);

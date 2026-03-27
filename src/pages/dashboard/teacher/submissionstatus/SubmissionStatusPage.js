@@ -1,30 +1,50 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Tabs, TabList, Tab, TabPanel } from "react-tabs";
-import "react-tabs/style/react-tabs.css";
-import AssignmentTable from "./AssignmentTable";
+import AssignmentTable from "./studentAssignment/AssignmentTable";
 import QuizTable from "./QuizTable";
+import StudentAssignmentPage from "./studentAssignment/StudentAssignmentPage";
+
 
 function SubmissionStatusPage() {
-  const [activeTab, setActiveTab] = useState(0);
-  const navigate = useNavigate();
-
-  const handleSelect = (index) => {
-    setActiveTab(index);
-    navigate("/dashboard/submissionstatus", { replace: true, state: {} });
-  };
+  const [activeTab, setActiveTab] = useState("assignments");
+  const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [selectedAssignmetId, setselectedAssignmetId] = useState("");
 
   return (
     <div style={{ padding: "20px" }}>
       <h2>Submission Status</h2>
-      <Tabs selectedIndex={activeTab} onSelect={handleSelect}>
-        <TabList>
-          <Tab>Assignments</Tab>
-          <Tab>Quizzes</Tab>
-        </TabList>
-        <TabPanel><AssignmentTable /></TabPanel>
-        <TabPanel><QuizTable /></TabPanel>
-      </Tabs>
+
+      {/* If a student is selected, show the StudentAssignmentPage */}
+      {(selectedStudentId !== "") ? (
+        <StudentAssignmentPage
+          studentId={selectedStudentId}
+          assignmentId={selectedAssignmetId}
+          onBack={() => setSelectedStudentId("")}
+        />
+      ) : (
+        <>
+          <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+            <button
+              onClick={() => setActiveTab("assignments")}
+              style={{ background: activeTab === "assignments" ? "#ccc" : "#eee" }}
+            >
+              Assignments
+            </button>
+
+            <button
+              onClick={() => setActiveTab("quizzes")}
+              style={{ background: activeTab === "quizzes" ? "#ccc" : "#eee" }}
+            >
+              Quizzes
+            </button>
+          </div>
+
+          {activeTab === "assignments" ? (
+            <AssignmentTable onSelectStudent={setSelectedStudentId} onselectAssignmentId={setselectedAssignmetId}/>
+          ) : (
+            <QuizTable onSelectStudent={setSelectedStudentId} />
+          )}
+        </>
+      )}
     </div>
   );
 }
