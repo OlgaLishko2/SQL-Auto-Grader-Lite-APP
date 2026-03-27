@@ -9,22 +9,22 @@
 }
 
 .card:hover {
-  border-color: #b7b9cc !important;
+  border-color: #b7b9cc ;
   transform: translateY(-1px);
 }
 
 
 .card.shadow:hover {
-  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) ;
 }
 
 
 .border-left-primary {
-  border-left: 0.25rem solid #4e73df !important;
+  border-left: 0.25rem solid #4e73df ;
 }
 
 .border-left-warning {
-  border-left: 0.25rem solid #f6c23e !important;
+  border-left: 0.25rem solid #f6c23e ;
 }
 
 
@@ -53,10 +53,12 @@
 
 
 .bg-light {
-  background-color: #f8f9fc !important;
+  background-color: #f8f9fc;
 }
 
 
 .gap-2 {
   gap: 0.5rem;
 }
+
+
