@@ -38,7 +38,7 @@ const AntiCheatingQuestionDetail = () => {
   useAntiCheat(undefined, { enableFullscreen: true });
   const [antiCheatMessage, setAntiCheatMessage] = useState("");
 
-  const { violations } = useAntiCheat((violation) => {
+  const { violations, isFullscreen, requestFullscreen } = useAntiCheat((violation) => {
     setAntiCheatMessage(
       `Anti-cheat violation detected: ${violation.type.replaceAll("_", " ")}`,
     );
@@ -68,6 +68,7 @@ const AntiCheatingQuestionDetail = () => {
     if (!dataset) return;
 
     const loadSchema = async () => {
+      console.log('[schema] question:', { tables: question?.tables, answer: question?.answer, dataset });
       let tableList = Array.isArray(question?.tables) && question.tables.length > 0
         ? question.tables
         : null;
@@ -75,7 +76,9 @@ const AntiCheatingQuestionDetail = () => {
       if (!tableList) {
         const all = await allTables(dataset);
         const allNames = all.map((t) => t.tableName);
+        console.log('[schema] all table names in dataset:', allNames);
         tableList = allNames.filter(t => question?.answer?.toLowerCase().includes(t.toLowerCase()));
+        console.log('[schema] matched tables from answer:', tableList);
       }
 
       if (tableList.length === 0) return;
@@ -89,7 +92,7 @@ const AntiCheatingQuestionDetail = () => {
       setIsLoading(false);
     };
     loadSchema();
-  }, [dataset, question?.tables, question?.table]);
+  }, [dataset, question?.tables]);
 
   async function excuteQueryAndCompare() {
     if (!isSelectQuery(sqlCode)) {
@@ -178,6 +181,14 @@ const AntiCheatingQuestionDetail = () => {
   return (
     <>
       <LoadingOverlay isOpen={isLoading} message="Loading..." />
+      {!isFullscreen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, background: '#1a1a2e', color: '#fff', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>⚠️ This assignment requires fullscreen mode.</span>
+          <button onClick={requestFullscreen} style={{ background: '#4A76C5', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: 700 }}>
+            Enter Fullscreen
+          </button>
+        </div>
+      )}
       <div className="workspace-container">
         <div className="workspace-content">
           <div className="instructions-panel">
@@ -215,7 +226,7 @@ const AntiCheatingQuestionDetail = () => {
 
               {tableSchemas.map((schema) => (
                 <div className="table-schema" key={schema[0]}>
-                  <h3>{`Table: ${schema[0]}`}</h3>
+                  <h3 style={{marginTop:'20px'}}>{`Table: ${schema[0]}`}</h3>
                   <table>
                     <thead>
                       <tr>

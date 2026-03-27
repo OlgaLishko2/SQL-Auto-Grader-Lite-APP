@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAllAssignmentByOwner } from "../../../../components/model/assignments";
-import { sendReminderEmail } from "../../../../components/services/email";
+import { sendReminderEmail, sendAssignmentEmailsToStudents } from "../../../../components/services/email";
 import { getAllStudents, getCohortsByOwner, getAllCohorts } from "../../../../components/model/cohorts";
 import { publishAssignmentToStudents, isAssignmentPublished } from "../../../../components/model/studentAssignments";
 import CollapsiblePanel from "../assignmentform/collapsiblepanel/CollapsiblePanel";
@@ -101,6 +101,7 @@ function AssignmentList({ onCreate }) {
                     e.stopPropagation();
                     const result = await publishAssignmentToStudents(a.assignment_id, a.student_class, a.dueDate);
                     if (result.success) {
+                      await sendAssignmentEmailsToStudents(a, a.assignment_id);
                       alert("Assignment published!");
                       setAssignments(prev => prev.map(x => x.assignment_id === a.assignment_id ? { ...x, published: true } : x));
                     } else {

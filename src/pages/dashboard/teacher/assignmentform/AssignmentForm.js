@@ -4,9 +4,9 @@ import { Tabs, TabList, Tab, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
 import CreateQuestionSet from './createquestionset/CreateQuestionSet';
 import { createNewAssignment } from "../../../../components/model/assignments";
-import { getCohortsByOwner, getAllStudents } from "../../../../components/model/cohorts";
+import { getCohortsByOwner } from "../../../../components/model/cohorts";
 import { CreateAssignment } from './createquestionset/CreateAssignment';
-import { sendAssignmentEmail } from "../../../../components/services/email";
+import { sendAssignmentEmailsToStudents } from "../../../../components/services/email";
 import { publishAssignmentToStudents } from "../../../../components/model/studentAssignments";
 import userSession from "../../../../components/services/UserSession";
 
@@ -80,17 +80,6 @@ const AssignmentForm = ({ onDone }) => {
     total_marks:totalMarks,
   });
 
-  const sendEmailsToStudents = async (id) => {
-    const allCohorts = await getCohortsByOwner(userSession.uid);
-    console.log('[email] cohorts found:', allCohorts.length, 'student_class:', formData.student_class);
-    const cohort = allCohorts.find(c => c.cohort_id === formData.student_class);
-    console.log('[email] matched cohort:', cohort);
-    if (!cohort?.student_uids?.length) { console.warn('[email] no students in cohort, aborting'); return; }
-    const allStudents = await getAllStudents();
-    const cohortStudents = allStudents.filter(s => cohort.student_uids.includes(s.uid));
-    console.log('[email] sending to', cohortStudents.map(s => s.email));
-    await Promise.all(cohortStudents.map(s => sendAssignmentEmail(s, formData.title, formData.due_date, id)));
-  };
 
   const validateDueDate = () => {
     const date = new Date(formData.due_date);
@@ -106,7 +95,6 @@ const AssignmentForm = ({ onDone }) => {
     try {
       const id = await createNewAssignment(buildAssignmentPayload());
       setAssignmentId(id);
-      // await sendEmailsToStudents(id);
       alert("Assignment saved.");
     } catch (err) {
       setError("Failed to save: " + err.message);
@@ -125,7 +113,7 @@ const AssignmentForm = ({ onDone }) => {
       }
       const result = await publishAssignmentToStudents(id, formData.student_class, formData.due_date);
       if (result.success) {
-        await sendEmailsToStudents(id);
+        await sendAssignmentEmailsToStudents({ student_class: formData.student_class, title: formData.title, due_date: formData.due_date }, id);
         alert("Assignment published!");
         onDone();
       } else alert("Failed to publish: " + result.message);
