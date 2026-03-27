@@ -1,114 +1,43 @@
-.quiz-form, .quiz-list {
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
+
+
+.quiz-list-container {
+  max-width: 100%; 
 }
 
-.quiz-form h2, .quiz-list h2 {
-  margin-bottom: 16px;
+
+.border-left-primary {
+  border-left: 0.25rem solid #4e73df !important;
 }
 
-.form-group {
-  margin-bottom: 14px;
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-row {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
 }
 
-.input-field, .select-field, .textarea-field {
-  width: 100%;
-  max-width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 14px;
+
+.form-control[readonly] {
+  font-size: 0.9rem;
+  border: 1px solid #eaecf4;
+  resize: none;
 }
 
-.input-field.small, .select-field.small {
-  width: 80px;
-}
 
-.textarea-field {
-  min-height: 60px;
-  resize: vertical;
-}
-
-.checkbox-group {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.quiz-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.create-quiz-btn {
-  background-color: green;
-  color: white;
-}
-
-.create-quiz-btn:hover {
-  background-color: #0a8a0a;
-}
-
-.back-btn {
-  background-color: #ccc;
-  color: #333;
-  margin-bottom: 16px;
-}
-
-.back-btn:hover {
-  background-color: #bbb;
-}
-
-.link-text {
-  color: blue;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.error-text {
-  color: red;
-  margin-top: 4px;
-}
-
-.list-header {
-  display: flex;
-  justify-content: space-between;
+.quiz-meta-grid {
   align-items: center;
-  margin-bottom: 16px;
 }
 
-.quiz-preview {
-  border: 1px solid #eee;
-  padding: 12px;
-  border-radius: 6px;
-  margin-top: 6px;
+
+.btn-icon-split .icon {
+  background: rgba(0, 0, 0, 0.15);
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
 }
 
-.quiz-meta {
-  margin-top: 8px;
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-size: 13px;
-  color: #555;
+.btn-icon-split .text {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
 }
