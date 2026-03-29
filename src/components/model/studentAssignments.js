@@ -9,6 +9,7 @@ import {
   updateDoc,
   where,
   orderBy,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import { getBestAttemptByUserQuestion, getAttemptByPolicy } from "./questionAttempts";
@@ -392,6 +393,13 @@ async function getTeacherQuestionDetails(assignmentId, questionId) {
   }
 }
 
+async function deleteAssignmentByAssignmentId(assignmentId) {
+  console.log("inside deleteAssignmentByAssignmentId: delete record from student_assignments where assignment id is ", assignmentId);  
+  await deleteDoc(doc(db, dbCollection, assignmentId));
+  console.log(`Deleted docs from where assignment_id=${assignmentId} successfully`);
+}
+
+
 export {
   createNewStudentAssignment,
   getAllAssignmnetByStudent,
@@ -404,4 +412,5 @@ export {
   isAssignmentPublished,
   getDashboardDataForTeacher,
   getTeacherQuestionDetails,
+  deleteAssignmentByAssignmentId,
 };

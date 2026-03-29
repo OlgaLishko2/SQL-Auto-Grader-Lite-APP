@@ -5,6 +5,8 @@ import { getAllStudents, getCohortsByOwner, getAllCohorts } from "../../../../co
 import { publishAssignmentToStudents, isAssignmentPublished } from "../../../../components/model/studentAssignments";
 import CollapsiblePanel from "../assignmentform/collapsiblepanel/CollapsiblePanel";
 import userSession from "../../../../components/services/UserSession";
+import { deleteAssignment } from "../../../../components/model/assignments";
+
 
 
 import "./AssignmentForm.css"; 
@@ -14,6 +16,7 @@ function AssignmentList({ onCreate }) {
   const [expanded, setExpanded] = useState(null);
   const [cohortMap, setCohortMap] = useState({});
   const [collapsedQuestions, setCollapsedQuestions] = useState({});
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,7 +38,7 @@ function AssignmentList({ onCreate }) {
       setCohortMap(map);
     };
     fetchData();
-  }, []);
+  }, [reloadKey]);
 
   const toggleQuestion = (id) => setCollapsedQuestions(prev => ({ ...prev, [id]: !prev[id] }));
   const toggleAssignment = (id) => setExpanded(expanded === id ? null : id);
@@ -129,6 +132,24 @@ function AssignmentList({ onCreate }) {
                       <i className="fas fa-check-circle text-success mr-1"></i> Published
                     </span>
                   )}
+                  <div className="d-flex align-items-center">
+                    <span className="icon text-white-50">
+                      <i className="fas fa-plus"></i>
+                    </span>
+                    <button className="btn btn-outline-info btn-sm mr-3 font-weight-bold"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if(window.confirm('Are you sure you want to delete this item?')){
+                          console.log("a", a);
+                          deleteAssignment(a.assignment_id);
+                          setReloadKey(k => k + 1);
+                        }
+                      }}>                      
+                        <span>
+                          <i className="fas fa-trash"></i>
+                        </span>
+                    </button>
+                  </div>
                   <span className="text-gray-600 small mr-3">
                     Due: <strong>{a.dueDate}</strong>
                   </span>

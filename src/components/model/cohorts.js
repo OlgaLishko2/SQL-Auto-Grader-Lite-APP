@@ -30,3 +30,13 @@ export async function getAllCohorts() {
   const snap = await getDocs(q);
   return snap.docs.map((d) => d.data());
 }
+
+export async function getAllStudentsPerCohorts(cohortId) {
+  console.log("Inside getAllStudentsPerCohorts: cohortId: ", cohortId)
+  const q = query(dbCollection, 
+    where("cohort_id", "==", cohortId)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data());
+}
+
