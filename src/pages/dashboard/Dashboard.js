@@ -1,25 +1,24 @@
 import { useEffect, useState } from "react";
 import "./Dashboard.css";
-import CardDashboard from './CardDashboard';
+import CardDashboard from "./CardDashboard";
 import StudentSubmissionDashboard from "./StudentSubmissionDashboard";
 import userSession from "../../components/services/UserSession";
-import { 
-  getDashboardDataForTeacher, 
-  getAllAssignmnetByStudent,
-  getAllCompletedAssignmnetByStudent
+import {
+  getDashboardDataForTeacher,
+  getAllAssignmentByStudent,
 } from "../../components/model/studentAssignments";
-import { getQuizzesForStudent } from "../../components/model/quizzes";
-import { getBestAttemptByUserQuestion } from "../../components/model/questionAttempts"; // добавляем
+import { totalQuizesByStudent } from "../../components/model/quizzes";
 import { useNavigate } from "react-router-dom";
 import { getAllUsers } from "../../components/model/users";
 
 const Dashboard = ({ role }) => {
   const [teacherData, setTeacherData] = useState(null);
   const [studentCards, setStudentCards] = useState([]);
+  // const [assignments, setAssignment] = useState([]);
+  const [completedAssignment, setCompletedAssignment] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-
     if (role === "teacher") {
       const loadTeacherData = async () => {
         try {
@@ -38,32 +37,55 @@ const Dashboard = ({ role }) => {
     if (role === "student") {
       const loadStudentData = async () => {
         try {
-          const assignments = await getAllAssignmnetByStudent(userSession.uid);
-          const completedAssignments = await getAllCompletedAssignmnetByStudent(userSession.uid);
-          const seen = new Set();
-          const allAssignments = [...assignments, ...completedAssignments].filter(a => {
-            if (seen.has(a.assignment_id)) return false;
-            seen.add(a.assignment_id);
-            return true;
-          });
-          const quizzes = await getQuizzesForStudent(userSession.uid);
+          let allAssignments = await getAllAssignmentByStudent(
+            userSession.uid,
+            ["assigned", "submitted", "completed"],
+          );
 
-          let totalMarks = 0;
-          let earnedMarks = 0;
+          //getAllCompleted Assignments
+          let completedAss = allAssignments.filter(
+            (assignment) =>
+              assignment.status === "submitted" ||
+              assignment.status === "completed",
+          );
+          // setAssignment(allAssignments);
+          const quizzes = await totalQuizesByStudent(userSession.uid);
+          setCompletedAssignment(completedAss);
+          const totalMarks = completedAss.reduce(
+            (sum, assignment) => sum + assignment.total_marks,
+            0,
+          );
 
-          const allQuestions = allAssignments.flatMap(a => (a.questions || []).map(q => ({ ...q, uid: userSession.uid })));
-          const attempts = await Promise.all(allQuestions.map(q => getBestAttemptByUserQuestion(q.uid, q.question_id)));
-          allQuestions.forEach((q, i) => {
-            totalMarks += Number(q.mark) || 1;
-            if (attempts[i]?.is_correct) earnedMarks += Number(q.mark) || 1;
-          });
-
-          const resultPercentage = totalMarks > 0 ? Math.round((earnedMarks / totalMarks) * 100) : 0;
+          const earnedMarks = completedAss.reduce(
+            (sum, assignment) =>
+              typeof assignment.earned_point !== "undefined"
+                ? sum + assignment.earned_point
+                : sum,
+            0,
+          );
 
           setStudentCards([
-            { label: "Assignments (Total)", value: allAssignments?.length ?? 0, color: "primary", icon: "fa-clipboard-list" , path:"/dashboard/assignments" },
-            { label: "Result (Marks)", value: `${earnedMarks} / ${totalMarks} (${resultPercentage}%)`, color: "success", icon: "fa-percent", path:"/dashboard/results" },
-            { label: "Total Quizzes", value: quizzes?.length ?? 0, color: "warning", icon: "fa-comments" , path:"/dashboard/quizzes" },
+            {
+              label: "Assignments (Total)",
+              value: allAssignments?.length ?? 0,
+              color: "primary",
+              icon: "fa-clipboard-list",
+              path: "/dashboard/assignments",
+            },
+            {
+              label: "Result (Marks)",
+              value: `${earnedMarks} / ${totalMarks} (${(earnedMarks / totalMarks * 100).toFixed(2)}%)`,
+              color: "success",
+              icon: "fa-percent",
+              path: "/dashboard/results",
+            },
+            {
+              label: "Total Quizzes",
+              value: quizzes ?? 0,
+              color: "warning",
+              icon: "fa-comments",
+              path: "/dashboard/quizzes",
+            },
           ]);
         } catch (err) {
           console.error("Error loading student dashboard:", err);
@@ -73,7 +95,6 @@ const Dashboard = ({ role }) => {
     }
   }, [role]);
 
-  
   if (role === "student") {
     if (studentCards.length === 0) return <p>Loading student dashboard...</p>;
 
@@ -81,13 +102,13 @@ const Dashboard = ({ role }) => {
       <div className="dashboard">
         <h2 className="dashboard-title">Student Dashboard</h2>
         <CardDashboard cards={studentCards} />
-        <StudentSubmissionDashboard />
+        <StudentSubmissionDashboard completedAssignment={completedAssignment} />
       </div>
     );
   }
 
-
-  if (role === "teacher" && !teacherData) return <p>Loading teacher dashboard...</p>;
+  if (role === "teacher" && !teacherData)
+    return <p>Loading teacher dashboard...</p>;
 
   return (
     <div className="dashboard">
@@ -115,21 +136,43 @@ const Dashboard = ({ role }) => {
         {teacherData.needsGrading.length > 0 ? (
           <ul>
             {teacherData.needsGrading.map((a, i) => {
-              const studentIds = Array.isArray(a.student_user_id) ? a.student_user_id : [a.student_user_id];
+              const studentIds = Array.isArray(a.student_user_id)
+                ? a.student_user_id
+                : [a.student_user_id];
 
-              const studentNames = studentIds.map(uid => {
-                const student = teacherData.users.find(u => u.uid === uid);
-                return student ? student.fullName || student.email : "Unknown Student";
+              const studentNames = studentIds.map((uid) => {
+                const student = teacherData.users.find((u) => u.uid === uid);
+                return student
+                  ? student.fullName || student.email
+                  : "Unknown Student";
               });
 
-              const assignmentTitle = teacherData.assignments.find(asg => asg.assignment_id === a.assignment_id)?.title || a.assignment_id;
+              const assignmentTitle =
+                teacherData.assignments.find(
+                  (asg) => asg.assignment_id === a.assignment_id,
+                )?.title || a.assignment_id;
 
               return (
-                <li key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>{studentNames.join(", ")} — {assignmentTitle}</span>
-                  <button 
-                    className="grade-button" 
-                    onClick={() => navigate(`/dashboard/submissionstatus`, { state: { student_assignment_id: a.student_assignment_id } })}
+                <li
+                  key={i}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span>
+                    {studentNames.join(", ")} — {assignmentTitle}
+                  </span>
+                  <button
+                    className="grade-button"
+                    onClick={() =>
+                      navigate(`/dashboard/submissionstatus`, {
+                        state: {
+                          student_assignment_id: a.student_assignment_id,
+                        },
+                      })
+                    }
                   >
                     Grade
                   </button>
@@ -154,15 +197,23 @@ const Dashboard = ({ role }) => {
           </thead>
           <tbody>
             {teacherData.assignments.map((a, index) => {
-              const allForAssignment = teacherData.studentAssignments.filter(sa => sa.assignment_id === a.assignment_id);
-              const submittedCount = allForAssignment.filter(sa => sa.status === "submitted" || sa.status === "completed").length;
+              const allForAssignment = teacherData.studentAssignments.filter(
+                (sa) => sa.assignment_id === a.assignment_id,
+              );
+              const submittedCount = allForAssignment.filter(
+                (sa) => sa.status === "submitted" || sa.status === "completed",
+              ).length;
               const totalStudents = allForAssignment.length;
-              const percent = totalStudents ? Math.round((submittedCount / totalStudents) * 100) : 0;
+              const percent = totalStudents
+                ? Math.round((submittedCount / totalStudents) * 100)
+                : 0;
 
               return (
                 <tr key={index}>
                   <td>{a.title || a.description}</td>
-                  <td>{submittedCount}/{totalStudents} ({percent}%)</td>
+                  <td>
+                    {submittedCount}/{totalStudents} ({percent}%)
+                  </td>
                 </tr>
               );
             })}

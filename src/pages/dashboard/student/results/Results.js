@@ -1,17 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import DataTable from "react-data-table-component";
-
 import Breadcrumb from "../Breadcrumb";
-
+import LoadingOverlay from "../LoadingOverlay";
 
 import userSession from "../../../../components/services/UserSession";
-import { getAllCompletedAssignmnetByStudent } from "../../../../components/model/studentAssignments";
-import { getBestAttemptByUserQuestion, getAttemptByPolicy } from "../../../../components/model/questionAttempts";
-
-
-
+import { getAllAssignmentByStudent } from "../../../../components/model/studentAssignments";
+import { getBestAttemptByUserQuestion } from "../../../../components/model/questionAttempts";
 
 /**
  * Results component
@@ -20,70 +15,79 @@ import { getBestAttemptByUserQuestion, getAttemptByPolicy } from "../../../../co
 const Results = () => {
   const navigate = useNavigate();
   const [submissionsdata, setsubmissionsdata] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     // Get data from student assignments table from firebase
     const fetchdata = async () => {
       try {
-        const data = await getAllCompletedAssignmnetByStudent(userSession.uid);
-        console.log('Submissions page - student_assignment records:', data.map(a => ({ assignment_id: a.assignment_id, status: a.status, student_assignment_id: a.student_assignment_id })));
-        const withMarks = await Promise.all(data.map(async (a) => {
-          const questions = a.questions || [];
-          const totalMarks = questions.reduce((s, q) => s + (Number(q.mark) || 1), 0);
-          const attempts = await Promise.all(questions.map(q => getBestAttemptByUserQuestion(userSession.uid, q.question_id)));
-          const oMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (Number(questions[i].mark) || 1) : 0), 0);
-          return { ...a, totalMarks, oMarks, percentage: totalMarks ? Math.round((oMarks / totalMarks) * 100) + "%" : "0%" };
-        }));
-        setsubmissionsdata(withMarks);
+        const data = await getAllAssignmentByStudent(userSession.uid, [
+          "completed",
+          "submitted",
+        ]);
+        // console.log(
+        //   "Submissions page - student_assignment records:",
+        //   data.map((a) => ({
+        //     assignment_id: a.assignment_id,
+        //     status: a.status,
+        //     student_assignment_id: a.student_assignment_id,
+        //   })),
+        // );
+        setsubmissionsdata(data);
       } catch (error) {
         console.error("Error:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchdata();
   }, []);
 
-/**
- * Column configuration for the Results DataTable
- * Each object represents one column in the table
- */
-const columns = [
-  {
-    name: "Sr no.",
-   selector: (row, index) => index + 1,
-    sortable: true,
-  },
-  {
-    name: "Title",
-    selector: row => row.title,
-    sortable: true,
-    cell: (row) => capitalizeFirstLetter(row.title),
-  },
-   {
-    name: "Marks Obtained / Total Marks",
-    selector: row => `${row.oMarks} / ${row.totalMarks}`, 
-    sortable: true,
-  },
- {
-    name: "Percentage",
-    selector: row => row.percentage,
-  },
-  
-  {
-    name: "Action",
-    cell: (row) => (
-    <button
-      className="btn btn-primary btn-sm"
-       style={{ borderRadius: "4px", fontSize: "12px" }}
-            onClick={() =>
-              navigate(`/dashboard/results/${row.assignment_id}`)
-            }
-    >
-      View Detail
-    </button>
-  ),
-  }
-];
+  /**
+   * Column configuration for the Results DataTable
+   * Each object represents one column in the table
+   */
+  const columns = [
+    {
+      name: "Sr no.",
+      selector: (row, index) => index + 1,
+      sortable: true,
+    },
+    {
+      name: "Title",
+      selector: (row) => row.title,
+      sortable: true,
+      cell: (row) => capitalizeFirstLetter(row.title),
+    },
+    {
+      name: "Marks Obtained / Total Marks",
+      selector: (row) =>
+        `${typeof row.earned_point !== "undefined" ? row.earned_point : 0} / ${row.total_marks}`,
+      sortable: true,
+    },
+    {
+      name: "Percentage",
+      selector: (row) =>
+        `${Math.round(
+          ((typeof row.earned_point !== "undefined" ? row.earned_point : 0) /
+            row.total_marks) *
+            100,
+        )} %`,
+    },
+
+    {
+      name: "Action",
+      cell: (row) => (
+        <button
+          className="btn btn-primary btn-sm"
+          style={{ borderRadius: "4px", fontSize: "12px" }}
+          onClick={() => navigate(`/dashboard/results/${row.assignment_id}`)}
+        >
+          View Detail
+        </button>
+      ),
+    },
+  ];
 
   // First letter captial for Assignments title
   const capitalizeFirstLetter = (str) => {
@@ -91,10 +95,9 @@ const columns = [
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
 
-
-
   return (
     <>
+      <LoadingOverlay isOpen={isLoading} message="Loading..." />
       <div className="d-sm-flex align-items-center justify-content-between mb-4">
         <h2>Submitted Assignments</h2>
         <Breadcrumb
@@ -104,19 +107,18 @@ const columns = [
           ]}
         />
       </div>
-        <div className="card shadow mb-4">
-            <DataTable
-            columns={columns}
-            data={submissionsdata}
-            pagination
-            highlightOnHover
-            striped
-            responsive
-            />
-        </div>
-     </>
+      <div className="card shadow mb-4">
+        <DataTable
+          columns={columns}
+          data={submissionsdata}
+          pagination
+          highlightOnHover
+          striped
+          responsive
+        />
+      </div>
+    </>
   );
 };
 
-
-export default Results
+export default Results;

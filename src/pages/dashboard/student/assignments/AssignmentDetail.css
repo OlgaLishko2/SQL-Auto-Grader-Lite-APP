@@ -176,9 +176,9 @@
 }
 
 .back-btn {
-  background: none;
+  background: none !important;
   border: none;
-  color: #4e73df;
+  color: #4e73df !important;
   cursor: pointer;
   font-weight: 600;
   padding: 0;

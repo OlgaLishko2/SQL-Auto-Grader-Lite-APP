@@ -1,4 +1,14 @@
-import { collection, doc, getDocs, getDoc, setDoc, query, where, orderBy } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  query,
+  where,
+  getCountFromServer,
+  orderBy,
+} from "firebase/firestore";
 import { db } from "../../firebase";
 
 const quizCol = collection(db, "student_quizzes");
@@ -6,8 +16,15 @@ const quizzesCol = collection(db, "quizzes");
 
 export async function getAllQuizByOwner(ownerId) {
   try {
-    const snap = await getDocs(query(quizzesCol, where("owner_user_id", "==", ownerId)));
-    return snap.docs.map(d => d.data()).sort((a, b) => (b.created_on?.toMillis?.() ?? 0) - (a.created_on?.toMillis?.() ?? 0));
+    const snap = await getDocs(
+      query(quizzesCol, where("owner_user_id", "==", ownerId)),
+    );
+    return snap.docs
+      .map((d) => d.data())
+      .sort(
+        (a, b) =>
+          (b.created_on?.toMillis?.() ?? 0) - (a.created_on?.toMillis?.() ?? 0),
+      );
   } catch (e) {
     console.error("getAllQuizByOwner:", e);
     return [];
@@ -26,20 +43,36 @@ export async function createNewQuiz(quiz) {
 
 export async function getQuizzesForStudent(studentId) {
   try {
-    const cohortSnap = await getDocs(query(collection(db, "cohorts"), where("student_uids", "array-contains", studentId)));
-    const cohortIds = cohortSnap.docs.map(d => d.data().cohort_id);
+    const cohortSnap = await getDocs(
+      query(
+        collection(db, "cohorts"),
+        where("student_uids", "array-contains", studentId),
+      ),
+    );
+    const cohortIds = cohortSnap.docs.map((d) => d.data().cohort_id);
     if (!cohortIds.length) return [];
 
-    const quizSnap = await getDocs(query(quizzesCol, where("student_class", "in", cohortIds)));
-    const quizzes = quizSnap.docs.map(d => d.data());
+    const quizSnap = await getDocs(
+      query(quizzesCol, where("student_class", "in", cohortIds)),
+    );
+    const quizzes = quizSnap.docs.map((d) => d.data());
 
-    const submissionSnap = await getDocs(query(quizCol, where("student_user_id", "==", studentId)));
+    const submissionSnap = await getDocs(
+      query(quizCol, where("student_user_id", "==", studentId)),
+    );
     const submissionMap = {};
-    submissionSnap.docs.forEach(d => { const s = d.data(); submissionMap[s.quiz_id] = s; });
+    submissionSnap.docs.forEach((d) => {
+      const s = d.data();
+      submissionMap[s.quiz_id] = s;
+    });
 
-    return quizzes.map(q => {
+    return quizzes.map((q) => {
       const sub = submissionMap[q.quiz_id];
-      return { ...q, status: sub ? "Completed" : "New", achievedMark: sub ? sub.mark : null };
+      return {
+        ...q,
+        status: sub ? "Completed" : "New",
+        achievedMark: sub ? sub.mark : null,
+      };
     });
   } catch (e) {
     console.error("getQuizzesForStudent:", e);
@@ -47,12 +80,22 @@ export async function getQuizzesForStudent(studentId) {
   }
 }
 
-export async function submitStudentQuiz({ quiz_id, student_user_id, submitted_sql, is_correct, mark }) {
+export async function submitStudentQuiz({
+  quiz_id,
+  student_user_id,
+  submitted_sql,
+  is_correct,
+  mark,
+}) {
   try {
     const ref = doc(quizCol);
     await setDoc(ref, {
-      student_quiz_id: ref.id, quiz_id, student_user_id,
-      submitted_sql, is_correct, mark,
+      student_quiz_id: ref.id,
+      quiz_id,
+      student_user_id,
+      submitted_sql,
+      is_correct,
+      mark,
       status: "submitted",
       submissionDate: new Date().toISOString(),
     });
@@ -64,7 +107,9 @@ export async function submitStudentQuiz({ quiz_id, student_user_id, submitted_sq
 
 export async function getQuizById(quiz_id) {
   try {
-    const snap = await getDocs(query(quizzesCol, where("quiz_id", "==", quiz_id)));
+    const snap = await getDocs(
+      query(quizzesCol, where("quiz_id", "==", quiz_id)),
+    );
     return snap.empty ? null : snap.docs[0].data();
   } catch (e) {
     console.error("getQuizById:", e);
@@ -74,7 +119,13 @@ export async function getQuizById(quiz_id) {
 
 export async function getStudentQuizSubmission(quiz_id, student_user_id) {
   try {
-    const snap = await getDocs(query(quizCol, where("quiz_id", "==", quiz_id), where("student_user_id", "==", student_user_id)));
+    const snap = await getDocs(
+      query(
+        quizCol,
+        where("quiz_id", "==", quiz_id),
+        where("student_user_id", "==", student_user_id),
+      ),
+    );
     if (snap.empty) return null;
     return snap.docs[0].data();
   } catch (e) {
@@ -83,51 +134,85 @@ export async function getStudentQuizSubmission(quiz_id, student_user_id) {
   }
 }
 
+export async function totalQuizesByStudent(studentId) {
+  try {
+    const quizzQuery = query(
+      quizCol,
+      where("student_user_id", "==", studentId),
+    );
+    const snapshot = await getCountFromServer(quizzQuery);
+    return snapshot.data().count;
+  } catch (error) {
+    console.error(`totalQuizesByStudent: ${error}`);
+    return 0;
+  }
+}
 
 export async function getQuizSubmissionsWithDetails(teacherId) {
   try {
     // Only this teacher's quizzes, ordered by creation date
     const teacherQuizzesSnap = await getDocs(
-      query(quizzesCol, where("owner_user_id", "==", teacherId))
+      query(quizzesCol, where("owner_user_id", "==", teacherId)),
     );
     const teacherQuizzes = teacherQuizzesSnap.docs.map(d => d.data()).sort((a, b) => (b.created_on?.toMillis?.() ?? 0) - (a.created_on?.toMillis?.() ?? 0));
     if (!teacherQuizzes.length) { console.warn('[QuizTable] No quizzes found for teacher:', teacherId); return []; }
 
     const quizMap = {};
-    teacherQuizzes.forEach(q => { quizMap[q.quiz_id] = q; });
-    const teacherQuizIds = teacherQuizzes.map(q => q.quiz_id);
+    teacherQuizzes.forEach((q) => {
+      quizMap[q.quiz_id] = q;
+    });
+    const teacherQuizIds = teacherQuizzes.map((q) => q.quiz_id);
 
     // Submissions for those quizzes ordered by submissionDate desc
     let submissions = [];
     for (let i = 0; i < teacherQuizIds.length; i += 10) {
       const snap = await getDocs(
-        query(quizCol, where("quiz_id", "in", teacherQuizIds.slice(i, i + 10)))
+        query(quizCol, where("quiz_id", "in", teacherQuizIds.slice(i, i + 10))),
       );
-      submissions.push(...snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      submissions.push(...snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     }
 
-    const userIds = [...new Set(submissions.map(s => s.student_user_id))];
-    const userSnaps = await Promise.all(userIds.map(uid => getDoc(doc(db, "users", uid))));
+    const userIds = [...new Set(submissions.map((s) => s.student_user_id))];
+    const userSnaps = await Promise.all(
+      userIds.map((uid) => getDoc(doc(db, "users", uid))),
+    );
     const userMap = {};
-    userSnaps.forEach((s, i) => { if (s.exists()) userMap[userIds[i]] = s.data(); });
+    userSnaps.forEach((s, i) => {
+      if (s.exists()) userMap[userIds[i]] = s.data();
+    });
 
     // Build submitted rows
     const submissionMap = {};
-    submissions.forEach(s => { submissionMap[`${s.quiz_id}_${s.student_user_id}`] = s; });
+    submissions.forEach((s) => {
+      submissionMap[`${s.quiz_id}_${s.student_user_id}`] = s;
+    });
 
     // Include all students in cohorts for not-yet-submitted rows
-    const cohortIds = [...new Set(teacherQuizzes.map(q => q.student_class).filter(Boolean))];
+    const cohortIds = [
+      ...new Set(teacherQuizzes.map((q) => q.student_class).filter(Boolean)),
+    ];
     let cohortStudentMap = {};
     if (cohortIds.length) {
-      const cohortSnaps = await getDocs(query(collection(db, "cohorts"), where("cohort_id", "in", cohortIds)));
-      cohortSnaps.docs.forEach(d => { const c = d.data(); cohortStudentMap[c.cohort_id] = c.student_uids || []; });
-      const allStudentIds = [...new Set(Object.values(cohortStudentMap).flat())];
-      const studentSnaps = await Promise.all(allStudentIds.map(uid => getDoc(doc(db, "users", uid))));
-      studentSnaps.forEach((s, i) => { if (s.exists()) userMap[allStudentIds[i]] = s.data(); });
+      const cohortSnaps = await getDocs(
+        query(collection(db, "cohorts"), where("cohort_id", "in", cohortIds)),
+      );
+      cohortSnaps.docs.forEach((d) => {
+        const c = d.data();
+        cohortStudentMap[c.cohort_id] = c.student_uids || [];
+      });
+      const allStudentIds = [
+        ...new Set(Object.values(cohortStudentMap).flat()),
+      ];
+      const studentSnaps = await Promise.all(
+        allStudentIds.map((uid) => getDoc(doc(db, "users", uid))),
+      );
+      studentSnaps.forEach((s, i) => {
+        if (s.exists()) userMap[allStudentIds[i]] = s.data();
+      });
     }
 
     const result = [];
-    teacherQuizzes.forEach(q => {
+    teacherQuizzes.forEach((q) => {
       const students = cohortStudentMap[q.student_class] || [];
       // also include any students who already submitted, even if cohort is gone
       const submittedStudents = submissions

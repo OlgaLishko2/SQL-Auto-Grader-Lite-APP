@@ -6,7 +6,10 @@ import userSession from "../../../../components/services/UserSession";
 import { useParams } from "react-router-dom";
 import { getAllActiveAssignmnetByStudent } from "../../../../components/model/questions";
 import LoadingOverlay from "../LoadingOverlay";
-import { updateStudentAssignment, getAllAssignmnetByStudent } from "../../../../components/model/studentAssignments";
+import {
+  updateStudentAssignment,
+  getAllAssignmentByStudent,
+} from "../../../../components/model/studentAssignments";
 import { getUser } from "../../../../components/model/users";
 import { sendSubmissionNotificationEmail } from "../../../../components/services/email";
 
@@ -14,7 +17,9 @@ const QuestionList = () => {
   const { assignment_id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [assignment, setAssignment] = useState(location.state?.assignment || null);
+  const [assignment, setAssignment] = useState(
+    location.state?.assignment || null,
+  );
   const [accessDenied, setAccessDenied] = useState(false);
   const [questiondata, setquestiondata] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +28,7 @@ const QuestionList = () => {
 
   // Refetch every time we navigate back to this page
   useEffect(() => {
-    setRefreshKey(k => k + 1);
+    setRefreshKey((k) => k + 1);
   }, [location.key]);
 
   useEffect(() => {
@@ -34,8 +39,12 @@ const QuestionList = () => {
 
         // Direct link from email — no location.state, fetch and verify ownership
         if (!resolvedAssignment) {
-          const studentAssignments = await getAllAssignmnetByStudent(userSession.uid);
-          resolvedAssignment = studentAssignments.find(a => a.assignment_id === assignment_id);
+          const studentAssignments = await getAllAssignmentByStudent(
+            userSession.uid,["assigned"]
+          );
+          resolvedAssignment = studentAssignments.find(
+            (a) => a.assignment_id === assignment_id,
+          );
           if (!resolvedAssignment) {
             setAccessDenied(true);
             setIsLoading(false);
@@ -44,16 +53,32 @@ const QuestionList = () => {
           setAssignment(resolvedAssignment);
         }
 
-        const data = await getAllActiveAssignmnetByStudent(resolvedAssignment.questions, userSession.uid);
+        const data = await getAllActiveAssignmnetByStudent(
+          resolvedAssignment.questions,
+          userSession.uid,
+        );
         setquestiondata(data);
 
         // Auto-submit if all questions are attempted
-        const allAttempted = data.length > 0 && data.every(q => q.attemptTime > 0);
-        if (allAttempted && resolvedAssignment.status === 'assigned') {
-          await updateStudentAssignment({ student_user_id: userSession.uid, assignment_id: resolvedAssignment.assignment_id, status: 'submitted' });
-          if (resolvedAssignment.enable_submission_notification && resolvedAssignment.owner_user_id) {
+        const allAttempted =
+          data.length > 0 && data.every((q) => q.attemptTime > 0);
+        if (allAttempted && resolvedAssignment.status === "assigned") {
+          await updateStudentAssignment({
+            student_user_id: userSession.uid,
+            assignment_id: resolvedAssignment.assignment_id,
+            status: "completed",
+            submissionDate: new Date().toLocaleDateString("en-CA"),
+          });
+          if (
+            resolvedAssignment.enable_submission_notification &&
+            resolvedAssignment.owner_user_id
+          ) {
             const teacher = await getUser(resolvedAssignment.owner_user_id);
-            await sendSubmissionNotificationEmail(teacher, userSession.fullName, resolvedAssignment.title);
+            await sendSubmissionNotificationEmail(
+              teacher,
+              userSession.fullName,
+              resolvedAssignment.title,
+            );
           }
         }
       } catch (error) {
@@ -65,13 +90,16 @@ const QuestionList = () => {
     fetchdata();
   }, [refreshKey]);
 
-  if (accessDenied) return (
-    <div style={{ padding: "40px", textAlign: "center" }}>
-      <h3>Access Denied</h3>
-      <p>This assignment is not assigned to your account.</p>
-      <button onClick={() => navigate("/dashboard/assignments")}>Go to My Assignments</button>
-    </div>
-  );
+  if (accessDenied)
+    return (
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        <h3>Access Denied</h3>
+        <p>This assignment is not assigned to your account.</p>
+        <button onClick={() => navigate("/dashboard/assignments")}>
+          Go to My Assignments
+        </button>
+      </div>
+    );
 
   const dataset = assignment?.dataset;
 
@@ -82,10 +110,18 @@ const QuestionList = () => {
       student_user_id: userSession.uid,
       assignment_id: assignmentId,
       status: "completed",
+      submissionDate: new Date().toLocaleDateString("en-CA"),
     });
-    if (assignment?.enable_submission_notification && assignment?.owner_user_id) {
+    if (
+      assignment?.enable_submission_notification &&
+      assignment?.owner_user_id
+    ) {
       const teacher = await getUser(assignment.owner_user_id);
-      await sendSubmissionNotificationEmail(teacher, userSession.fullName, assignment.title);
+      await sendSubmissionNotificationEmail(
+        teacher,
+        userSession.fullName,
+        assignment.title,
+      );
     }
     navigate("/dashboard/assignments");
   }
@@ -108,7 +144,7 @@ const QuestionList = () => {
     },
     {
       name: "Marks",
-      selector: (row) => row.isSolved ? row.mark : 0,
+      selector: (row) => (row.isSolved ? row.mark : 0),
       cell: (row) => `${row.isSolved ? row.mark : 0} / ${row.mark}`,
     },
     {
@@ -156,7 +192,14 @@ const QuestionList = () => {
             onClick={() =>
               navigate(
                 `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-                { state: { question: row, dataset: dataset, assignment_id, assignment: location.state?.assignment } },
+                {
+                  state: {
+                    question: row,
+                    dataset: dataset,
+                    assignment_id,
+                    assignment: location.state?.assignment,
+                  },
+                },
               )
             }
           >
@@ -173,7 +216,12 @@ const QuestionList = () => {
       <div className="d-sm-flex justify-content-between align-items-center mb-0 al">
         <h2>{assignment?.title || "Questions List"}</h2>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <button onClick={() => setRefreshKey(k => k + 1)} className="btn btn-sm btn-outline-secondary">↻ Refresh</button>
+          {/* <button
+            onClick={() => setRefreshKey((k) => k + 1)}
+            className="btn btn-sm btn-outline-secondary"
+          >
+            ↻ Refresh
+          </button> */}
           <Breadcrumb
             items={[
               { label: "Dashboard", link: "/dashboard" },
@@ -205,7 +253,7 @@ const QuestionList = () => {
           }}
           onClick={markComplele}
         >
-          Mark as completed
+          Mark Finished
         </button>
       </div>
 
@@ -223,7 +271,14 @@ const QuestionList = () => {
             if (!isAttemptLimitReached) {
               navigate(
                 `/dashboard/questions/${assignment_id}/question-view/${row.question_id}`,
-                { state: { question: row, dataset: dataset, assignment_id, assignment: location.state?.assignment } },
+                {
+                  state: {
+                    question: row,
+                    dataset: dataset,
+                    assignment_id,
+                    assignment: location.state?.assignment,
+                  },
+                },
               );
             }
           }}

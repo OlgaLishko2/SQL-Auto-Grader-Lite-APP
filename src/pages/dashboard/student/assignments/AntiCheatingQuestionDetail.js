@@ -16,10 +16,12 @@ import { compareQueryResult } from "../../../../components/comparison/sqlCompari
 import LoadingOverlay from "../LoadingOverlay";
 import userSession from "../../../../components/services/UserSession";
 import { useAntiCheat } from "../../../../components/hooks/useAntiCheat";
+import { updateStudentAssignment } from "../../../../components/model/studentAssignments";
 import ResultTable from "./ResultTable";
 
 const AntiCheatingQuestionDetail = () => {
-  const { fetchItems, getTableSchemaInTable, allTables } = useAppContext();  const navigate = useNavigate();
+  const { fetchItems, getTableSchemaInTable, allTables } = useAppContext();
+  const navigate = useNavigate();
   const location = useLocation();
   const assignment_id = location.state?.assignment_id;
   const question = location.state?.question;
@@ -34,7 +36,6 @@ const AntiCheatingQuestionDetail = () => {
   const [showResults, setShowResults] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState(question?.attemptTime);
   const [isLoading, setIsLoading] = useState(true);
-  // const [bestRunResult, setBestRunResult] = useState({ isCorrect: false, sql: "" });
   useAntiCheat(undefined, { enableFullscreen: true });
   const [antiCheatMessage, setAntiCheatMessage] = useState("");
 
@@ -135,11 +136,6 @@ const AntiCheatingQuestionDetail = () => {
 
   async function runQuery() {
     setShowResults(true);
-    // const correct = await excuteQueryAndCompare();
-    // Track best run result for submit
-    // if (correct || !bestRunResult.isCorrect) {
-    //   setBestRunResult({ isCorrect: correct, sql: normalizeQuery(sqlCode) });
-    // }
     setIsSubmmit(false);
     await excuteQueryAndCompare();
     setIsLoading(false);
@@ -153,9 +149,6 @@ const AntiCheatingQuestionDetail = () => {
       return;
     }
     setShowResults(true);
-    const currentResult = await excuteQueryAndCompare();
-    // const finalCorrect = currentResult || bestRunResult.isCorrect;
-    // const finalSql = finalCorrect && !currentResult ? bestRunResult.sql : normalizeQuery(sqlCode);
     setCurrentAttempt(nextAttempt);
     const comparationResult = await excuteQueryAndCompare();
     const attemptObj = {
@@ -167,8 +160,18 @@ const AntiCheatingQuestionDetail = () => {
     };
 
     await createAttempt(attemptObj);
+    await updateEaredPoint();
     setIsSubmmit(true);
     alert("Your code has been submitted");
+  }
+
+  async function updateEaredPoint() {
+    if (!assignment_id) return;
+    await updateStudentAssignment({
+      student_user_id: userSession.uid,
+      assignment_id: assignment_id,
+      earned_point: isCorrect ? question.mark : 0,
+    });
   }
 
   const sqlKeywordCompletions = completeFromList(

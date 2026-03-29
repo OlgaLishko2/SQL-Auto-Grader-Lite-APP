@@ -11,11 +11,9 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db } from "../../firebase";
-import { getBestAttemptByUserQuestion, getAttemptByPolicy } from "./questionAttempts";
+import { getBestAttemptByUserQuestion } from "./questionAttempts";
 
 const dbCollection = collection(db, "student_assignments");
-
-
 
 async function createNewStudentAssignment(studentAssignment) {
   try {
@@ -35,73 +33,47 @@ async function createNewStudentAssignment(studentAssignment) {
   }
 }
 
-// async function getAllCompletedAssignmnetByStudent(studentId) {
-//   try {
-//     const studentAssignmentQuery = query(
-//       dbCollection,
-//       where("student_user_id", "==", studentId),
-//       where("status", "==", "submitted"),
-//       orderBy("assigned_on", "desc"),
-//     );
-
-//     let assignments = [];
-//     const querySnapshot = await getDocs(studentAssignmentQuery);
-
-//     for (const docSnap of querySnapshot.docs) {
-//       const studentAssignmentData = docSnap.data();
-
-//       const assignmentQuery = query(
-//         collection(db, "assignments"),
-//         where("assignment_id", "==", studentAssignmentData.assignment_id),
-//       );
-
-//       const assignmentSnapShot = await getDocs(assignmentQuery);
-//       const assignment = assignmentSnapShot.docs[0]?.data();
-
-//       if (assignment) {
-//         assignment.status = studentAssignmentData.status;
-//         assignment.assigned_on = studentAssignmentData.assigned_on;
-//         assignments.push(assignment);
-//       }
-//     }
-
-//     return assignments;
-//   } catch (error) {
-//     console.error(`getAllCompletedAssignmnetByStudent: ${error}`);
-//     return [];
-//   }
-// }
-
-async function getAllAssignmnetByStudent(studentId) {
+async function getAllAssignmentByStudent(studentId, status) {
   try {
     const studentAssignmentQuery = query(
       dbCollection,
       where("student_user_id", "==", studentId),
-      where("status", "==", "assigned"),
+      where("status", "in", status),
       orderBy("assigned_on", "desc"),
     );
     const querySnapshot = await getDocs(studentAssignmentQuery);
-    const docs = querySnapshot.docs.map(d => d.data());
+    const docs = querySnapshot.docs.map((d) => d.data());
     if (!docs.length) return [];
 
     const assignmentSnaps = await Promise.all(
-      docs.map(d => getDocs(query(collection(db, "assignments"), where("assignment_id", "==", d.assignment_id))))
+      docs.map((d) =>
+        getDocs(
+          query(
+            collection(db, "assignments"),
+            where("assignment_id", "==", d.assignment_id),
+          ),
+        ),
+      ),
     );
 
     return assignmentSnaps
       .map((snap, i) => {
         const assignment = snap.docs[0]?.data();
         if (!assignment) return null;
-        return { ...assignment, status: docs[i].status, assigned_on: docs[i].assigned_on, student_assignment_id: docs[i].student_assignment_id };
+        return {
+          ...assignment,
+          status: docs[i]?.status,
+          assigned_on: docs[i]?.assigned_on,
+          student_assignment_id: docs[i]?.student_assignment_id,
+          earned_point: docs[i]?.earned_point
+        };
       })
       .filter(Boolean);
   } catch (error) {
-    console.error(`getAllAssignmnetByStudent: ${error}`);
+    console.error(`getAllAssignmentByStudent: ${error}`);
     return [];
   }
 }
-
-
 
 async function updateStudentAssignment(studentAssignment) {
   try {
@@ -112,18 +84,23 @@ async function updateStudentAssignment(studentAssignment) {
       where("assignment_id", "==", studentAssignment.assignment_id),
       limit(1),
     );
-    const objStudentAssignment = await getDocs(studentAssignmentQuery);
+    const studentAssignmentDoc = await getDocs(studentAssignmentQuery);
 
-    if (objStudentAssignment.empty) {
+    if (studentAssignmentDoc.docs[0].empty) {
       console.error(
         "updateStudentAssignment: no matching student assignment found",
         studentAssignment,
       );
       return null;
     }
-
-    studentAssignmentDocRef = objStudentAssignment.docs[0].ref;
-    console.log(studentAssignmentDocRef);
+    const obj = studentAssignmentDoc.docs[0].data();
+    if (typeof studentAssignment.earned_point !== "undefined") {
+      studentAssignment.earned_point =
+        typeof obj?.earned_point !== "undefined"
+          ? obj?.earned_point + studentAssignment.earned_point
+          : studentAssignment.earned_point;
+    }
+    studentAssignmentDocRef = studentAssignmentDoc.docs[0].ref;
     await updateDoc(studentAssignmentDocRef, studentAssignment);
     return studentAssignmentDocRef;
   } catch (error) {
@@ -135,8 +112,22 @@ async function updateStudentAssignment(studentAssignment) {
 //Return an array of  completed assignemnts by Student
 async function getAllCompletedAssignmnetByStudent(studentId) {
   try {
-    const snap1 = await getDocs(query(dbCollection, where("student_user_id", "==", studentId), where("status", "==", "submitted"), orderBy("assigned_on", "desc")));
-    const snap2 = await getDocs(query(dbCollection, where("student_user_id", "==", studentId), where("status", "==", "completed"), orderBy("assigned_on", "desc")));
+    const snap1 = await getDocs(
+      query(
+        dbCollection,
+        where("student_user_id", "==", studentId),
+        where("status", "==", "submitted"),
+        orderBy("assigned_on", "desc"),
+      ),
+    );
+    const snap2 = await getDocs(
+      query(
+        dbCollection,
+        where("student_user_id", "==", studentId),
+        where("status", "==", "completed"),
+        orderBy("assigned_on", "desc"),
+      ),
+    );
     const allDocs = [...snap1.docs, ...snap2.docs];
     let assignments = [];
     for (const doc of allDocs) {
@@ -227,44 +218,77 @@ async function getStudentAssignmentsWithDetails(teacherId) {
   try {
     // Only fetch student_assignments for this teacher's assignments
     const teacherAssignmentsSnap = await getDocs(
-      query(collection(db, "assignments"), where("owner_user_id", "==", teacherId))
+      query(
+        collection(db, "assignments"),
+        where("owner_user_id", "==", teacherId),
+      ),
     );
-    const teacherAssignmentIds = teacherAssignmentsSnap.docs.map(d => d.id);
+    const teacherAssignmentIds = teacherAssignmentsSnap.docs.map((d) => d.id);
     if (!teacherAssignmentIds.length) return [];
 
     const assignmentMap = {};
-    teacherAssignmentsSnap.docs.forEach(d => { assignmentMap[d.id] = d.data(); });
+    teacherAssignmentsSnap.docs.forEach((d) => {
+      assignmentMap[d.id] = d.data();
+    });
 
     // Fetch student_assignments for those assignment IDs in batches of 10
     let studentAssignmentDocs = [];
     for (let i = 0; i < teacherAssignmentIds.length; i += 10) {
       const snap = await getDocs(
-        query(dbCollection, where("assignment_id", "in", teacherAssignmentIds.slice(i, i + 10)))
+        query(
+          dbCollection,
+          where("assignment_id", "in", teacherAssignmentIds.slice(i, i + 10)),
+        ),
       );
-      studentAssignmentDocs.push(...snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      studentAssignmentDocs.push(
+        ...snap.docs.map((d) => ({ id: d.id, ...d.data() })),
+      );
     }
     if (!studentAssignmentDocs.length) return [];
 
-    const userIds = [...new Set(studentAssignmentDocs.map(a => a.student_user_id).filter(Boolean))];
-    const userSnaps = await Promise.all(userIds.map(uid => getDoc(doc(db, "users", uid))));
+    const userIds = [
+      ...new Set(
+        studentAssignmentDocs.map((a) => a.student_user_id).filter(Boolean),
+      ),
+    ];
+    const userSnaps = await Promise.all(
+      userIds.map((uid) => getDoc(doc(db, "users", uid))),
+    );
     const userMap = {};
-    userSnaps.forEach((s, i) => { if (s.exists()) userMap[userIds[i]] = s.data(); });
+    userSnaps.forEach((s, i) => {
+      if (s.exists()) userMap[userIds[i]] = s.data();
+    });
 
-    const results = await Promise.all(studentAssignmentDocs.map(async (a) => {
-      const assignmentData = assignmentMap[a.assignment_id];
-      const questions = assignmentData?.questions || [];
-      const totalMarks = questions.reduce((s, q) => s + (Number(q.mark) || 1), 0);
-      const attempts = await Promise.all(questions.filter(q => q.question_id).map(q => getBestAttemptByUserQuestion(a.student_user_id, q.question_id)));
-      const earnedMarks = attempts.reduce((s, att, i) => s + (att?.is_correct ? (Number(questions[i].mark) || 1) : 0), 0);
-      return {
-        ...a,
-        studentName: userMap[a.student_user_id]?.fullName || "Unknown",
-        assignmentTitle: assignmentData?.title || "Assignment",
-        dueDate: assignmentData?.dueDate || null,
-        earnedMarks,
-        totalMarks,
-      };
-    }));
+    const results = await Promise.all(
+      studentAssignmentDocs.map(async (a) => {
+        const assignmentData = assignmentMap[a.assignment_id];
+        const questions = assignmentData?.questions || [];
+        const totalMarks = questions.reduce(
+          (s, q) => s + (Number(q.mark) || 1),
+          0,
+        );
+        const attempts = await Promise.all(
+          questions
+            .filter((q) => q.question_id)
+            .map((q) =>
+              getBestAttemptByUserQuestion(a.student_user_id, q.question_id),
+            ),
+        );
+        const earnedMarks = attempts.reduce(
+          (s, att, i) =>
+            s + (att?.is_correct ? Number(questions[i].mark) || 1 : 0),
+          0,
+        );
+        return {
+          ...a,
+          studentName: userMap[a.student_user_id]?.fullName || "Unknown",
+          assignmentTitle: assignmentData?.title || "Assignment",
+          dueDate: assignmentData?.dueDate || null,
+          earnedMarks,
+          totalMarks,
+        };
+      }),
+    );
     return results;
   } catch (error) {
     console.error(`getStudentAssignmentsWithDetails: ${error}`);
@@ -286,7 +310,13 @@ async function publishAssignmentToStudents(assignmentId, cohortId, dueDate) {
 
     await Promise.all(
       studentUids.map(async (uid) => {
-        const existing = await getDocs(query(dbCollection, where("assignment_id", "==", assignmentId), where("student_user_id", "==", uid)));
+        const existing = await getDocs(
+          query(
+            dbCollection,
+            where("assignment_id", "==", assignmentId),
+            where("student_user_id", "==", uid),
+          ),
+        );
         if (!existing.empty) return; // already assigned, skip
         const ref = doc(dbCollection);
         return setDoc(ref, {
@@ -394,7 +424,7 @@ async function getTeacherQuestionDetails(assignmentId, questionId) {
 
 export {
   createNewStudentAssignment,
-  getAllAssignmnetByStudent,
+  getAllAssignmentByStudent,
   getAllCompletedAssignmnetByStudent,
   updateStudentAssignment,
   getAssignmentDetailsByAssignmentId,
