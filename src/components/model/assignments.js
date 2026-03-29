@@ -8,8 +8,12 @@ import {
   updateDoc,
   where,
   orderBy,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase";
+import {getAllStudentsPerCohorts} from "./cohorts"
+import { deleteAttemptsByAssignment } from "./questionAttempts";
+import { deleteAssignmentByAssignmentId } from "./studentAssignments";
 
 const dbCollection = collection(db, "assignments");
 const today = () => new Date().toISOString().split("T")[0]; // YYYY-MM-DD
@@ -90,5 +94,40 @@ async function getStudentCohortIds(studentUid) {
     return [];
   }
 }
+async function deleteAssignment(assignmentId) {
+  try {
+    const docSnap = await getDoc(doc(db, 'assignments', assignmentId));
+    if (!docSnap.exists()) return null;
+    console.log(docSnap.data());    
 
-export { createNewAssignment, getAllAssignmentByOwner, updateAssignment, getAssignmentsForStudent, addQuestionToAssignment };
+    const assignmentDocRef = docSnap.data();
+    console.log("assignmentDocRef: ", assignmentDocRef);
+
+    //get students  per cohortid(student_class): call getAllStudentsPerCohorts(cohortId)
+    const cohort_students = await getAllStudentsPerCohorts(assignmentDocRef.student_class);
+    const questionIds = assignmentDocRef.questions.map(q => q.question_id);
+    console.log("cohort_students: ", cohort_students);
+    console.log("questionIds: ", questionIds);
+
+    //delete records from question_attempts: 
+    // for each student and for each question and for each question id from assignments per assignment
+    //  call deleteByAssignment( questionId, StudentId) 
+    for (const student of cohort_students) {
+      for (const qid of questionIds) {
+        console.log("calling delete function for student: ", student, "question_id:", qid);
+        //deleteAttemptsByAssignment(qid, student);
+      }
+    }
+
+    //delete records from student_assignments deleteAssignmentByAssignmentId(assignmentId) 
+    await deleteAssignmentByAssignmentId(assignmentDocRef.assignment_id);
+
+    //await deleteDoc(assignmentDocRef, assignment);
+    await deleteDoc(doc(db, 'assignments', assignmentId));
+    console.log(`assignment Deleted for : ${assignmentDocRef}`);
+    return assignmentDocRef;
+  } catch (error) {
+    console.error(`deleteAssignment: ${error}`);
+  }
+}
+export { createNewAssignment, getAllAssignmentByOwner, updateAssignment, getAssignmentsForStudent, addQuestionToAssignment, deleteAssignment };
