@@ -1,9 +1,9 @@
 /* Fills the modal (90vh) as a flex column */
 .grading-container {
-  display: flex;
+  display: fixed;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 /* Top row: expected + student answer side by side */
@@ -31,6 +31,9 @@
   font-weight: 600;
   margin-bottom: 8px;
 }
+.teacher-box p{
+  align-items: start;
+}
 
 .teacher-box pre,
 .student-box pre {
@@ -44,7 +47,7 @@
 .editor-box {
   flex: 1;
   overflow: hidden;
-  padding: 0 16px 8px;
+  padding: 1px 16px 8px;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -83,7 +86,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
+  padding: 0px 16px;
   border-top: 1px solid #dee2e6;
   background: #fff;
   flex-shrink: 0;
@@ -107,7 +110,7 @@
 }
 
 .close-btn {
-  padding: 6px 16px;
+  padding: 0px 16px;
   background: #6c757d;
   color: #fff;
   border: none;

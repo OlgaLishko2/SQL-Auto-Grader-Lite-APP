@@ -17,6 +17,18 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
     loadData();
   }, []);
 
+  // Close modal on Escape key or when navigating back
+  useEffect(() => {
+    const handleKey = (e) => { if (e.key === "Escape") setGradingContext(null); };
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []);
+
+  function handleBack() {
+    setGradingContext(null);
+    onBack();
+  }
+
   async function loadData() {
     const [assignmentData, allAttempts, studentInfo] = await Promise.all([
       getAssignmentDetailsByAssignmentId(assignmentId),
@@ -40,8 +52,19 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
 
   if (!assignment) return <div className="p-4">Loading...</div>;
 
+  if (gradingContext) {
   return (
-    <div className="container-fluid w-100 py-3">
+    <GradeAttemptPage
+      attempt={gradingContext.attempt}
+      question={gradingContext.question}
+      autoGrade={gradingContext.grade}
+      dataset={gradingContext.dataset}
+      onClose={() => { setGradingContext(null); loadData(); }}
+    />
+  );
+}
+  return (
+    <div className="contagive iner-fluid w-100 py-3">
    
       <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
         <div>
@@ -105,10 +128,8 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
         <button className="btn btn-success shadow" onClick={() => alert("Score saved")}>
           <i className="fas fa-check mr-2"></i> Return Final Score
         </button>
-      </div>
-
-   
-      {gradingContext && (
+      </div>   
+      {/* {gradingContext && (
         <div className="modal-overlay">
           <div className="modal-content border-0 shadow">
             <div className="d-flex justify-content-between p-3 border-bottom bg-white">
@@ -124,7 +145,7 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
             />
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
