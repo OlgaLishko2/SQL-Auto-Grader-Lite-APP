@@ -243,6 +243,7 @@ const AssignmentForm = ({ onDone }) => {
     owner_user_id: userSession.uid,
     dataset: db,
     total_marks: totalMarks,
+    dueDate: formData.due_date,
     created_on: new Date(),
     updated_on: new Date(),
   });
@@ -253,16 +254,22 @@ const AssignmentForm = ({ onDone }) => {
       const id = await createNewAssignment(buildPayload());
       setAssignmentId(id);
       alert("Draft saved!");
-      onDone(); 
+      onDone();
     } catch (err) { setError(err.message); }
   };
 
   const handlePublish = async () => {
+    if (!formData.student_class) { setError("Please select a cohort."); return; }
     if (!window.confirm("Publish to students now?")) return;
     try {
-      let id = assignmentId || await createNewAssignment(buildPayload());
+      let id = assignmentId;
+      if (!id) {
+        id = await createNewAssignment(buildPayload());
+        setAssignmentId(id);
+      }
       const result = await publishAssignmentToStudents(id, formData.student_class, formData.due_date);
       if (result.success) { alert("Published!"); onDone(); }
+      else setError("Failed to publish: " + result.message);
     } catch (err) { setError(err.message); }
   };
 
