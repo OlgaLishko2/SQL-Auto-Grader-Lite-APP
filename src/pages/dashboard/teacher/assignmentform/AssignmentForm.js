@@ -266,7 +266,35 @@ const AssignmentForm = ({ onDone }) => {
     } catch (err) { setError(err.message); }
   };
 
-  if (!cohortsLoaded) return <div className="p-4 text-center"><div className="spinner-border text-primary"></div></div>;
+  if (!cohortsLoaded) {
+    return (
+      <div className="p-4 text-center">
+        <div className="spinner-border text-primary"></div>
+      </div>
+    );
+  }
+
+
+  if (cohorts.length === 0) {
+    return (
+      <div style={{ 
+        padding: '20px', 
+        margin: '20px',
+        border: '1px solid #f5c6cb', 
+        borderRadius: '8px', 
+        background: '#fff3f3', 
+        color: '#721c24' 
+      }}>
+        <strong>No cohorts found.</strong> You need to create at least one cohort before creating an assignment.{" "}
+        <span 
+          onClick={() => navigate("/dashboard/cohorts")} 
+          style={{ color: "#0056b3", cursor: "pointer", textDecoration: "underline", fontWeight: 'bold' }}
+        >
+          Create a cohort now
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="container-fluid py-4 w-100">
