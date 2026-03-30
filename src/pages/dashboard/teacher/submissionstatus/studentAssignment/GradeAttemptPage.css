@@ -115,3 +115,27 @@
 .close-btn:hover {
   background: #5c636a;
 }
+
+
+
+.editor-box .card-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 10px;
+}
+
+
+.editor-box textarea:first-of-type {
+  flex: 7; 
+  min-height: 150px;
+  font-family: 'Courier New', monospace;
+}
+
+
+.editor-box textarea:last-of-type {
+  flex: 3;
+  min-height: 150px;
+  background: #272822;
+  color: #a6e22e;
+}
