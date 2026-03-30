@@ -189,7 +189,16 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
   }
 
   if (!assignment) return <div className="p-4 text-center mt-5"><div className="spinner-border text-primary"></div></div>;
-
+  if(gradingContext)
+    return (<GradeAttemptPage
+                attempt={gradingContext.attempt}
+                question={gradingContext.question}
+                dataset={gradingContext.dataset}
+                onClose={() => { 
+                  setGradingContext(null); 
+                  loadData(); 
+                }}
+              />);
   return (
     <div className="container-fluid w-100 py-3 grading-page-root">
    
