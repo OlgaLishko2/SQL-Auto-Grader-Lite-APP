@@ -6,6 +6,8 @@ import { CodeEditor } from "./CodeEditor";
 import CollapsiblePanel from '../collapsiblepanel/CollapsiblePanel';
 import './CreateQuestionSet.css';
 
+const calculateTotal = (qs) => qs.reduce((acc, q) => acc + (parseInt(q.mark) || 0), 0);
+
 function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], existingDataset = "", setTotalMarks }) {
   const { allTables, allDataset, getTableSchemaInTable, runSelectQuery } = useAppContext();
 
@@ -18,19 +20,16 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
   const [presets, setPresets] = useState([]);
   const [questions, setQuestions] = useState(existingQuestions);
   const [savedCount, setSavedCount] = useState(existingQuestions.length);
-  const [total, setTotal] = useState(0);
-
+  const [total, setTotal] = useState(calculateTotal(existingQuestions));
 
   const filteredPresets = selectedTable.length > 0
     ? presets.filter(p => selectedTable.every(t => p.answer?.toLowerCase().includes(t.toLowerCase())))
     : presets;
 
-
   useEffect(() => {
     allDataset().then((data) => setDatasets(data.map((d) => d.datasetName)));
   }, [allDataset]);
 
-  
   useEffect(() => {
     if (!selectedDataset) return;
     allTables(selectedDataset).then((tables) => {
@@ -71,10 +70,8 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
   };
 
   const saveQuestions = async () => {
-   
     if (questions.some(q => !q.questionText.trim() || !q.answer.trim())) 
       return alert("All questions must have text and an answer.");
-
 
     for (const [i, q] of questions.entries()) {
       const res = await runSelectQuery(selectedDataset, q.answer);
@@ -87,8 +84,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
       collapsed: true 
     }));
 
-    const totalScore = finalQuestions.reduce((acc, q) => acc + (parseInt(q.mark) || 0), 0);
-    
+    const totalScore = calculateTotal(finalQuestions);
     setQuestions(finalQuestions);
     setSavedCount(finalQuestions.length);
     setTotal(totalScore);
@@ -124,6 +120,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
           {selectedDataset && (
             <div className="questions-section">
               <div className="d-flex justify-content-between align-items-center mb-3">
+         
                 <h4>Questions ({questions.length})</h4>
                 <button className="btn btn-primary btn-sm" onClick={addQuestion}>+ Add Question</button>
               </div>
@@ -142,13 +139,26 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
                   onToggle={() => updateQuestion(index, 'collapsed', !q.collapsed)}
                 >
                   <div className="p-3 border rounded bg-light mb-3">
-                    {/* <div >
-              
-                       <button className="btn btn-sm text-danger" 
-                       onClick={() => setQuestions(questions.filter((_, i) => i !== index))}>Delete</button>
-                    </div> */}
+                    
+     
+                    <div className="mb-2">
+                      <label className="small font-weight-bold">Filter Presets by Table:</label>
+                      <div className="d-flex flex-wrap gap-2 mb-2">
+                        {availableTables.map((table) => (
+                          <label key={table} className="mr-3 small">
+                            <input type="checkbox" className="mr-1" checked={selectedTable.includes(table)}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setSelectedTable(prev => checked ? [...prev, table] : prev.filter(t => t !== table));
+                              }} 
+                            />
+                            {table}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
 
-               <select className="form-control form-control-sm mb-2" onChange={(e) => {
+                    <select className="form-control form-control-sm mb-2" onChange={(e) => {
                       const p = JSON.parse(e.target.value);
                       updateQuestion(index, "questionText", p.question);
                       updateQuestion(index, "answer", p.answer);
