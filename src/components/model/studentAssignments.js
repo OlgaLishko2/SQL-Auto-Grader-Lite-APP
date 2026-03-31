@@ -284,7 +284,7 @@ async function getStudentAssignmentsWithDetails(teacherId) {
           ...a,
           studentName: userMap[a.student_user_id]?.fullName || "Unknown",
           assignmentTitle: assignmentData?.title || "Assignment",
-          dueDate: assignmentData?.dueDate || null,
+          due_date: assignmentData?.due_date || assignmentData?.dueDate||null,
           earnedMarks,
           totalMarks,
         };

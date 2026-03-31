@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../../firebase";
 import { signInWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import { getUser } from "../../components/model/users";
+import { getUser, markUserVerified } from "../../components/model/users";
 import userSession from "../../components/services/UserSession";
 import "../register/Register.css";
 
@@ -39,6 +39,7 @@ function Login() {
 
       const userData = await getUser(user.uid);
       if (userData) {
+        await markUserVerified(user.uid);
         userSession.set(userData);
         navigate('/dashboard', { replace: true })
 

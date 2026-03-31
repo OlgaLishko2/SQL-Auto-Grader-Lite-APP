@@ -1,9 +1,13 @@
-import { doc, getDoc, setDoc, getDocs, collection, query, where } from "firebase/firestore";
+import { doc, getDoc, setDoc, getDocs, updateDoc, collection, query, where } from "firebase/firestore";
 import { db } from "../../firebase";
 
 export async function getUser(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   return snap.exists() ? snap.data() : null;
+}
+
+export async function markUserVerified(uid) {
+  await updateDoc(doc(db, "users", uid), { emailVerified: true });
 }
 
 export async function createUser(uid, data) {

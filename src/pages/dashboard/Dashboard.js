@@ -208,14 +208,13 @@ const Dashboard = ({ role }) => {
                 ? Math.round((submittedCount / totalStudents) * 100)
                 : 0;
 
-              return (
-                <tr key={index}>
+              return totalStudents?  (<tr key={index} onClick={()=> navigate(`/dashboard/assignments/${a.assignment_id}/cohort-results`)}>
                   <td>{a.title || a.description}</td>
                   <td>
                     {submittedCount}/{totalStudents} ({percent}%)
                   </td>
                 </tr>
-              );
+              ): null;
             })}
           </tbody>
         </table>

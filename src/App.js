@@ -25,6 +25,7 @@ import SubmittedQuestions from "./pages/dashboard/student/results/SubmittedQuest
 import DatabaseLoader from "./pages/dashboard/teacher/datasets/dbLoader"
 import AssignmentForm from "./pages/dashboard/teacher/assignmentform/AssignmentForm"
 import AssignmentList from "./pages/dashboard/teacher/assignmentform/AssignmentList"
+import AssignmentCohortResults from "./pages/dashboard/teacher/assignmentform/AssignmentCohortResults"
 import QuizForm from "./pages/dashboard/teacher/quizform/QuizForm"
 import QuizList from "./pages/dashboard/teacher/quizform/QuizList"
 import CohortManager from "./pages/dashboard/teacher/cohorts/CohortManager"
@@ -77,6 +78,7 @@ function App() {
                   ? <Assignments />
                   : <TeacherAssignments />
               } />
+              <Route path="assignments/:assignment_id/cohort-results" element={<AssignmentCohortResults />} />
               <Route path="assignments/:id" element={<AssignmentDetail />} />
               <Route path="questions/:assignment_id" element={<QuestionList />} />
               <Route path="questions/:assignment_id/question-view/:question_id" element={<AssignmentDetail />} />
