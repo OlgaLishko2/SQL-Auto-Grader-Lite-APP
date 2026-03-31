@@ -115,7 +115,7 @@ async function deleteAssignment(assignmentId) {
     for (const student of cohort_students) {
       for (const qid of questionIds) {
         console.log("calling delete function for student: ", student, "question_id:", qid);
-        //deleteAttemptsByAssignment(qid, student);
+        deleteAttemptsByAssignment(qid, student);
       }
     }
 

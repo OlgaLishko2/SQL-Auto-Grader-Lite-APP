@@ -143,6 +143,7 @@ function AssignmentList({ onCreate }) {
                           console.log("a", a);
                           deleteAssignment(a.assignment_id);
                           setReloadKey(k => k + 1);
+                          //window.location.reload();                          
                         }
                       }}>                      
                         <span>

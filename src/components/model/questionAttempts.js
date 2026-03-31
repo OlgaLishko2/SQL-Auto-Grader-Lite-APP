@@ -202,9 +202,9 @@ async function deleteAttemptsByAssignment( questionId, StudentId) {
   if (!snap.empty){
     const deletions = snap.docs.map(d => deleteDoc(d.ref));
     await Promise.all(deletions);
-    console.log(`Deleted ${snap.size} docs from ${dbCollection} where student_user_id=${StudentId}`);
+    console.log(`Deleted ${snap.size} docs from ${dbCollection} where student_user_id=${StudentId}`);    
   }else{
-    console.log("no attempt record found to delete");
+    console.log("no attempt record found to delete");    
   }
 }
 export {
