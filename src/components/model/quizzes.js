@@ -135,19 +135,19 @@ export async function getStudentQuizSubmission(quiz_id, student_user_id) {
   }
 }
 
-export async function totalQuizesByStudent(studentId) {
-  try {
-    const quizzQuery = query(
-      quizCol,
-      where("student_user_id", "==", studentId),
-    );
-    const snapshot = await getCountFromServer(quizzQuery);
-    return snapshot.data().count;
-  } catch (error) {
-    console.error(`totalQuizesByStudent: ${error}`);
-    return 0;
-  }
-}
+// export async function totalQuizesByStudent(studentId) {
+//   try {
+//     const quizzQuery = query(
+//       quizCol,
+//       where("student_user_id", "==", studentId),
+//     );
+//     const snapshot = await getCountFromServer(quizzQuery);
+//     return snapshot.data().count;
+//   } catch (error) {
+//     console.error(`totalQuizesByStudent: ${error}`);
+//     return 0;
+//   }
+// }
 
 export async function getQuizSubmissionsWithDetails(teacherId) {
   try {

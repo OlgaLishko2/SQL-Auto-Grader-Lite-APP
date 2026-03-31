@@ -15,7 +15,6 @@ const Quizzes = () => {
     const fetch = async () => {
       const quizzes = await getQuizzesForStudent(userSession.uid);
 
-console.log(quizzes);
       setData(quizzes);
       setIsLoading(false);
     };
@@ -53,7 +52,6 @@ console.log(quizzes);
     },
 
     { name: "Mark", selector: r => r.achievedMark !== null && r.achievedMark !== undefined ? `${r.achievedMark} / ${r.mark}` : "-" },
-    { name: "Due Date", selector: r => r.due_date || "—", sortable: true },
     {
       name: "Action",
       cell: r => r.status === "Completed"

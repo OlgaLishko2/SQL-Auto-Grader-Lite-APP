@@ -8,6 +8,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { sql } from "@codemirror/lang-sql";
 import { SQL_KEYWORDS } from "../../../../components/db/common";
 import { autocompletion, completeFromList } from "@codemirror/autocomplete";
+import { EditorView, keymap } from "@codemirror/view";
 import {
   submitStudentQuiz,
   getStudentQuizSubmission,
@@ -281,20 +282,25 @@ const QuizDetail = () => {
           </div> */}
           <div className="editor-section">
             <div className="editor-header">
-              <span>SQL Query Editor</span>
+                <span>SQL Query Editor</span>
+              </div>
+              <CodeMirror
+                value={sqlCode}
+                className="code-input"
+                height="200px"
+                basicSetup={{ lineNumbers: true, foldGutter: false }}
+                extensions={[
+                  sql(),
+                  autocompletion({ override: [sqlKeywordCompletions] }),
+                  EditorView.lineWrapping,
+                  keymap.of([
+                    { key: "Mod-v", run: () => true },
+                    { key: "Mod-c", run: () => true },
+                  ]),
+                ]}
+                onChange={(value) => setSqlCode(value)}
+              />
             </div>
-            <CodeMirror
-              className="code-input"
-              value={sqlCode}
-              height="200px"
-              basicSetup={{ lineNumbers: true, foldGutter: false }}
-              extensions={[
-                sql(),
-                autocompletion({ override: [sqlKeywordCompletions] })
-              ]}
-              onChange={(value) => setSqlCode(value)}
-            />
-          </div>
           <div className="editor-btns">
             {lost && !submitted && (
               <p style={{ color: "red", margin: 0, fontWeight: "bold" }}>
