@@ -39,7 +39,6 @@ const Assignments = () => {
         const pendingAssignment = allAssigments.filter(
           (assignment) => assignment.status === "assigned",
         );
-
         setAssignmentsdata(pendingAssignment);
       } catch (error) {
         console.error("Error:", error);
@@ -93,15 +92,16 @@ const Assignments = () => {
     {
       name: "Due Date",
       id: "dueDate",
-      selector: (row) => row.dueDate,
+      selector: (row) => typeof row?.dueDate !== "undefined" ? row?.dueDate : row?.due_date,
       sortable: true,
     },
     {
       name: "Status",
       selector: (row) => row.status,
       cell: (row) => {
+        const dueDate = typeof row?.dueDate !== "undefined" ? row?.dueDate : row?.due_date
         const isOverDue =
-          new Date(row.dueDate) < new Date(todayDate) ? true : false;
+          new Date(dueDate) < new Date(todayDate) ? true : false;
         return (
           <>
             <span
@@ -123,8 +123,9 @@ const Assignments = () => {
       name: "Action",
       button: true,
       cell: (row) => {
+        const dueDate = typeof row?.dueDate !== "undefined" ? row?.dueDate : row?.due_date
         const isOverDue =
-          new Date(row.dueDate) < new Date(todayDate) ? true : false;
+          new Date(dueDate) < new Date(todayDate) ? true : false;
         return (
           <button
             className={`btn btn-sm ${isOverDue ? "btn-danger" : "btn-primary"}`}
@@ -161,7 +162,7 @@ const Assignments = () => {
     {
       name: "Due Date",
       id: "dueDate",
-      selector: (row) => row.dueDate,
+      selector: (row) => typeof row?.dueDate !== "undefined" ? row?.dueDate : row?.due_date,
       sortable: true,
     },
     {
