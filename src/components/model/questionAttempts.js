@@ -8,6 +8,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 
@@ -188,6 +189,24 @@ async function updateAttemptCorrectness(attemptId, newValue) {
 
   return true;
 }
+
+async function deleteAttemptsByAssignment( questionId, StudentId) {
+
+  const q = query(dbCollection, 
+    where("question_id", "==", questionId),
+    where("student_user_id", "==", StudentId),
+
+  );
+  
+  const snap = await getDocs(q);
+  if (!snap.empty){
+    const deletions = snap.docs.map(d => deleteDoc(d.ref));
+    await Promise.all(deletions);
+    console.log(`Deleted ${snap.size} docs from ${dbCollection} where student_user_id=${StudentId}`);    
+  }else{
+    console.log("no attempt record found to delete");    
+  }
+}
 export {
   countAttempt,
   createAttempt,
@@ -200,4 +219,5 @@ export {
   computeQuestionGrade,
   computeTotalMarks,
   updateAttemptCorrectness,
+  deleteAttemptsByAssignment,
 };

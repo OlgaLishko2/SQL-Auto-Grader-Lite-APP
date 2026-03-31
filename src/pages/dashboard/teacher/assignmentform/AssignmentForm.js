@@ -243,7 +243,7 @@ const AssignmentForm = ({ onDone }) => {
     owner_user_id: userSession.uid,
     dataset: db,
     total_marks: totalMarks,
-    dueDate: formData.due_date,
+    due_date: formData.due_date,
     created_on: new Date(),
     updated_on: new Date(),
   });

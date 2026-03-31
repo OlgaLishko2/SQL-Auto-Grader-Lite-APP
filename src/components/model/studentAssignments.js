@@ -9,6 +9,7 @@ import {
   updateDoc,
   where,
   orderBy,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import { getBestAttemptByUserQuestion } from "./questionAttempts";
@@ -326,7 +327,7 @@ async function publishAssignmentToStudents(assignmentId, cohortId, dueDate) {
           status: "assigned",
           assigned_on: new Date(),
           submissionDate: null,
-          due_on: dueDate,
+          due_date: dueDate,
         });
       }),
     );
@@ -422,6 +423,18 @@ async function getTeacherQuestionDetails(assignmentId, questionId) {
   }
 }
 
+async function deleteAssignmentByAssignmentId(assignmentId) {
+  console.log("inside deleteAssignmentByAssignmentId: delete record from student_assignments where assignment id is ", assignmentId);  
+  try{
+    await deleteDoc(doc(db, dbCollection, assignmentId));
+    console.log(`Deleted docs from student_assignments where assignment_id=${assignmentId} successfully`);    
+  }catch{
+    console.log(`Cannot delete docs from student_assignments where assignment_id=${assignmentId}`);
+  }  
+  
+}
+
+
 export {
   createNewStudentAssignment,
   getAllAssignmentByStudent,
@@ -434,4 +447,5 @@ export {
   isAssignmentPublished,
   getDashboardDataForTeacher,
   getTeacherQuestionDetails,
+  deleteAssignmentByAssignmentId,
 };
