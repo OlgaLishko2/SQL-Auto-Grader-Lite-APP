@@ -165,18 +165,18 @@ const QuizDetail = () => {
       return;
     }
     setShowResults(true);
-    await executeAndCompare();
+    const correct = await executeAndCompare();
+    if (!correct) {
+      setAttemptsLeft((prev) => prev - 1);
+      return;
+    }
   };
 
   const submitQuery = async () => {
     const user = userSession.uid;
     if (!user || submitted || lost) return;
     setShowResults(true);
-    const correct = await executeAndCompare();
-    if (!correct) {
-      setAttemptsLeft((prev) => prev - 1);
-      return;
-    }
+    const correct  = await executeAndCompare();
     const createdOn = new Date(
       quiz.created_on?.seconds
         ? quiz.created_on.seconds * 1000

@@ -35,6 +35,7 @@ const QuizForm = ({ onDone }) => {
     orderMatters: false,
     aliasStrict: false,
     student_class: '',
+    due_date: '',
   });
 
   useEffect(() => {
@@ -177,7 +178,11 @@ const QuizForm = ({ onDone }) => {
                   )}
                 </div>
               )}
-            </div>
+
+              <div className="form-group">
+                <label className="small font-weight-bold text-gray-600">DUE DATE</label>
+                <input type="date" name="due_date" value={formData.due_date} onChange={handleChange} className="form-control" />
+              </div>            </div>
           </div>
 
           {formData.dataset && (

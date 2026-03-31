@@ -29,6 +29,8 @@ function DatabaseManager() {
   const [showInsertForm, setShowInsertForm] = useState(false);
   const [insertSQL, setInsertSQL] = useState("");
   const [insertResult, setInsertResult] = useState(null);
+  const [datasetError, setDatasetError] = useState("");
+  const [tableError, setTableError] = useState("");
 
   const loadDatasets = useCallback(async () => {
     const data = await allDataset();
@@ -54,6 +56,8 @@ function DatabaseManager() {
 
   const loadSelectedTables = async (dbname, tablename) => {
     const schema = await getTable(dbname, tablename);
+    setNewTableName("")
+    setNewDatasetName("")
     if (schema.exists) {
       setTableSchema(schema.schema);
       setTableNotExists(false);
@@ -67,18 +71,39 @@ function DatabaseManager() {
   };
 
   const insertDataset = async () => {
-    if (newDatasetName) {
+    setDatasetError("");
+    setTableError("");
+    setInsertResult(null);
+    setNewTableName("")
+    if (!newDatasetName.trim()) { setDatasetError("Dataset name is required."); return; }
+    const result = await runSelectQuery('db', `INSERT INTO Datasets (datasetName) VALUES ('${newDatasetName}')`);
+    if (result.isSuccessful) {
       await addDataset(newDatasetName);
       await loadDatasets();
+      setSelectedDataset(newDatasetName);
+      setSelectedTable("");
+      await loadTables(newDatasetName);
       setNewDatasetName("");
+    } else {
+      setDatasetError(result.message?.includes("UNIQUE") ? "Dataset name already exists." : result.message);
     }
   };
 
   const insertTable = async () => {
-    if (newTableName && selectedDataset) {
+    setTableError("");
+    setInsertResult(null);
+    if (!newTableName.trim()) { setTableError("Table name is required."); return; }
+    if (!selectedDataset) { setTableError("Select a dataset first."); return; }
+    const result = await runSelectQuery('db', `INSERT INTO Tables (tableName, datasetName) VALUES ('${newTableName}', '${selectedDataset}')`);
+    if (result.isSuccessful) {
       await addTable(newTableName, selectedDataset);
       await loadTables(selectedDataset);
+      setSelectedTable(newTableName);
+      await loadSelectedTables(selectedDataset, newTableName);
       setNewTableName("");
+      loadTables(selectedDataset);
+    } else {
+      setTableError(result.message?.includes("UNIQUE") ? "Table name already exists in this dataset." : result.message);
     }
   };
   const handleInsertSubmit = async () => {
@@ -175,8 +200,8 @@ function DatabaseManager() {
         <HintPopup />
       </div>
 
-      <div className="dataset-grid dataset-grid-two">
-        <section className="dataset-card">
+      <div className="dataset-grid dataset-grid-one">
+        {/* <section className="dataset-card">
           <div className="card-heading">
             <h2>Dataset</h2>
             <span className="card-meta">{datasets.length} available</span>
@@ -202,19 +227,7 @@ function DatabaseManager() {
               </option>
             ))}
           </select>
-          <div className="inlineForm">
-            <input
-              value={newDatasetName}
-              onChange={(e) =>
-                setNewDatasetName(e.target.value.trim().replace(/\s+/g, ""))
-              }
-              placeholder="New dataset name"
-            />
-            <button className="dataset-btn" onClick={insertDataset}>
-              Create Dataset
-            </button>
-          </div>
-        </section>
+        </section> */}
         <section className="dataset-card">
           <div className="card-heading">
             <h2>Datasets in Database</h2>
@@ -228,19 +241,41 @@ function DatabaseManager() {
               </thead>
               <tbody>
                 {datasets.map((ds) => (
-                  <tr key={ds.id}>
+                  <tr key={ds.id} className={`clickable${selectedDataset === ds.content ? " active" : ""}`} onClick={() => {
+                    setSelectedDataset(ds.content);
+                    setSelectedTable("");
+                    loadTables(ds.content);
+                    setDatasetError("");
+                    setNewTableName("");
+                    setNewDatasetName("")
+                    setTableError("");
+                    setInsertResult(null);
+                  }}>
                     <td>{ds.content}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          <p className="insert-message error" style={{ minHeight: "18px", width: '70%' }}>{datasetError}</p>
+          <div className="inlineForm">
+            <input
+              value={newDatasetName}
+              onChange={(e) =>
+                setNewDatasetName(e.target.value.trim().replace(/\s+/g, ""))
+              }
+              placeholder="New dataset name"
+            />
+            <button className="dataset-btn" onClick={insertDataset}>
+              Create Dataset
+            </button>
+          </div>
         </section>
       </div>
 
       {selectedDataset && (
-        <div className="dataset-grid dataset-grid-two">
-          <section className="dataset-card">
+        <div className="dataset-grid dataset-grid-one">
+          {/* <section className="dataset-card">
             <div className="card-heading">
               <h2>Tables in {selectedDataset}</h2>
               <span className="card-meta">{tables.length} found</span>
@@ -264,6 +299,37 @@ function DatabaseManager() {
                 </option>
               ))}
             </select>
+            
+          </section> */}
+          <section className="dataset-card">
+            <div className="card-heading">
+              <h2>Tables in {selectedDataset}</h2>
+            </div>
+            <div className="table-shell">
+              <table className="dataset-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tables.map((t) => (
+                    <tr key={t.id} className={`clickable${selectedTable === t.content ? " active" : ""}`} onClick={() => {
+                      setSelectedTable(t.content);
+                      loadSelectedTables(selectedDataset, t.content);
+                      setDatasetError("");
+                      setTableError("");
+                      setInsertResult(null);
+                      setNewTableName("");
+                      setNewDatasetName("")
+                    }}>
+                      <td>{t.content}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="insert-message error" style={{ minHeight: "18px", width: '70%' }}>{tableError}</p>
             <div className="inlineForm">
               <input
                 value={newTableName}
@@ -276,27 +342,7 @@ function DatabaseManager() {
                 Create New Table
               </button>
             </div>
-          </section>
-          <section className="dataset-card">
-            <div className="card-heading">
-              <h2>Tables in Database</h2>
-            </div>
-            <div className="table-shell">
-              <table className="dataset-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tables.map((t) => (
-                    <tr key={t.id}>
-                      <td>{t.content}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+
           </section>
         </div>
       )}
