@@ -87,7 +87,6 @@ export default function GradeAttemptPage({ attempt, question, autoGrade, dataset
           <pre>{attempt.submitted_sql}</pre>
         </div>
       </div>
-
       <div className="editor-box">
         <CodeEditor selectedDataset={dataset} />
       </div>
