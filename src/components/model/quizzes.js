@@ -44,35 +44,36 @@ export async function createNewQuiz(quiz) {
 export async function getQuizzesForStudent(studentId) {
   try {
     const cohortSnap = await getDocs(
-      query(
-        collection(db, "cohorts"),
-        where("student_uids", "array-contains", studentId),
-      ),
+      query(collection(db, "cohorts"), where("student_uids", "array-contains", studentId)),
     );
     const cohortIds = cohortSnap.docs.map((d) => d.data().cohort_id);
-    if (!cohortIds.length) return [];
-
-    const quizSnap = await getDocs(
-      query(quizzesCol, where("student_class", "in", cohortIds)),
-    );
-    const quizzes = quizSnap.docs.map((d) => d.data());
+    const targets = ["all", ...cohortIds];
 
     const submissionSnap = await getDocs(
       query(quizCol, where("student_user_id", "==", studentId)),
     );
     const submissionMap = {};
-    submissionSnap.docs.forEach((d) => {
-      const s = d.data();
-      submissionMap[s.quiz_id] = s;
-    });
+    submissionSnap.docs.forEach((d) => { submissionMap[d.data().quiz_id] = d.data(); });
 
-    return quizzes.map((q) => {
+    // fetch quizzes by cohort
+    const quizSnap = targets.length
+      ? await getDocs(query(quizzesCol, where("student_class", "in", targets)))
+      : { docs: [] };
+    const quizMap = {};
+    quizSnap.docs.forEach((d) => { quizMap[d.data().quiz_id] = d.data(); });
+
+    // also fetch quizzes the student already submitted (cohort may be deleted)
+    const submittedQuizIds = Object.keys(submissionMap).filter(id => !quizMap[id]);
+    if (submittedQuizIds.length) {
+      for (let i = 0; i < submittedQuizIds.length; i += 10) {
+        const snap = await getDocs(query(quizzesCol, where("quiz_id", "in", submittedQuizIds.slice(i, i + 10))));
+        snap.docs.forEach((d) => { quizMap[d.data().quiz_id] = d.data(); });
+      }
+    }
+
+    return Object.values(quizMap).map((q) => {
       const sub = submissionMap[q.quiz_id];
-      return {
-        ...q,
-        status: sub ? "Completed" : "New",
-        achievedMark: sub ? sub.mark : null,
-      };
+      return { ...q, status: sub ? "Completed" : "New", achievedMark: sub ? sub.mark : null };
     });
   } catch (e) {
     console.error("getQuizzesForStudent:", e);

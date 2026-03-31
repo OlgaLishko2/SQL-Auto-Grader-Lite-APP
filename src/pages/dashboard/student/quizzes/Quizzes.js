@@ -14,6 +14,8 @@ const Quizzes = () => {
   useEffect(() => {
     const fetch = async () => {
       const quizzes = await getQuizzesForStudent(userSession.uid);
+
+console.log(quizzes);
       setData(quizzes);
       setIsLoading(false);
     };
@@ -21,7 +23,12 @@ const Quizzes = () => {
   }, []);
 
   const today = new Date();
-  const sortedData = [...data].sort((a, b) => new Date(b.created_on?.seconds ? b.created_on.seconds * 1000 : b.created_on) - new Date(a.created_on?.seconds ? a.created_on.seconds * 1000 : a.created_on));
+  const sortedData = [...data].sort((a, b) => {
+    const aDate = a.due_date ? new Date(a.due_date) : new Date(a.created_on?.seconds ? a.created_on.seconds * 1000 : a.created_on);
+    const bDate = b.due_date ? new Date(b.due_date) : new Date(b.created_on?.seconds ? b.created_on.seconds * 1000 : b.created_on);
+    return aDate - bDate;
+  });
+  
 
   const columns = [
     { name: "S.No", selector: (_, i) => i + 1, width: "70px" },
@@ -46,7 +53,7 @@ const Quizzes = () => {
     },
 
     { name: "Mark", selector: r => r.achievedMark !== null && r.achievedMark !== undefined ? `${r.achievedMark} / ${r.mark}` : "-" },
-    { name: "Date", selector: r => { const d = new Date(r.created_on?.seconds ? r.created_on.seconds * 1000 : r.created_on); return d.toLocaleDateString("en-US", { month: "long", day: "numeric" }); } },
+    { name: "Due Date", selector: r => r.due_date || "—", sortable: true },
     {
       name: "Action",
       cell: r => r.status === "Completed"
@@ -60,7 +67,6 @@ const Quizzes = () => {
           </button>
     },
   ];
-
   return (
     <>
       <LoadingOverlay isOpen={isLoading} message="Loading..." />

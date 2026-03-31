@@ -106,16 +106,16 @@ export default function AssignmentCohortResults() {
 
   return (
     <div className="container-fluid p-4" style={{ background: "#f8f9fc", minHeight: "100vh" }}>
-      <div className="d-flex align-items-center mb-4">
-        <button className="btn btn-link p-0 mr-3 text-decoration-none" onClick={() => navigate(-1)}>
-          <i className="fas fa-arrow-left mr-1"></i> Back
+
+      <div className="d-flex justify-content-between align-items-center"
+        style={{marginBottom: '20px' }}>
+        <h4 className="mb-0 font-weight-bold text-gray-800 mr-3">
+          {assignment?.title || "Assignment"} — Cohort Results
+        </h4>
+        <small className="text-muted">Due: {assignment?.due_date || assignment?.dueDate}</small>
+        <button className="btn btn-secondary shadow-sm" onClick={() => navigate(-1)} style={{ marginBottom: '10px' }}>
+          <i className="fas fa-arrow-left mr-2"></i> Back
         </button>
-        <div>
-          <h4 className="mb-0 font-weight-bold text-gray-800">
-            {assignment?.title || "Assignment"} — Cohort Results
-          </h4>
-          <small className="text-muted">Due: {assignment?.due_date}</small>
-        </div>
       </div>
 
       {loading ? (
