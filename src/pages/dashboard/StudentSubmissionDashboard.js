@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 const StudentSubmissionDashboard = ({ completedAssignment }) => {
+  const Navigate = useNavigate();
   return (
     <>
       <div className="row">
@@ -28,7 +31,7 @@ const StudentSubmissionDashboard = ({ completedAssignment }) => {
                 const color = getColor(percent);
 
                 return (
-                  <div key={item.assignment_id || index}>
+                  <div key={item.assignment_id || index} onClick={()=>Navigate(`/dashboard/results/${item.assignment_id}`)}>
                     <h4 className="small font-weight-bold">
                       {item.title || `Assignment ${index + 1}`}{" "}
                       <span className="float-right">

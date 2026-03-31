@@ -116,15 +116,15 @@ const Dashboard = ({ role }) => {
 
       {/* Cards */}
       <div className="cards">
-        <div className="card">
+        <div className="card" onClick={()=>navigate('/dashboard/cohorts')}>
           <p className="blue">Students</p>
           <h3>{teacherData.studentsCount}</h3>
         </div>
-        <div className="card">
+        <div className="card" onClick={()=>navigate('/dashboard/assignments')}>
           <p className="green">Assignments</p>
           <h3>{teacherData.assignments.length}</h3>
         </div>
-        <div className="card">
+        <div className="card" onClick={()=>navigate('/dashboard/submissionstatus')}>
           <p className="cyan">Needs Grading</p>
           <h3>{teacherData.needsGrading.length}</h3>
         </div>
