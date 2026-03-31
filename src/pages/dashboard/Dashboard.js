@@ -7,7 +7,7 @@ import {
   getDashboardDataForTeacher,
   getAllAssignmentByStudent,
 } from "../../components/model/studentAssignments";
-import { totalQuizesByStudent } from "../../components/model/quizzes";
+import { getQuizzesForStudent } from "../../components/model/quizzes";
 import { useNavigate } from "react-router-dom";
 import { getAllUsers } from "../../components/model/users";
 
@@ -49,7 +49,7 @@ const Dashboard = ({ role }) => {
               assignment.status === "completed",
           );
           // setAssignment(allAssignments);
-          const quizzes = await totalQuizesByStudent(userSession.uid);
+          const quizzes = await getQuizzesForStudent(userSession.uid);
           setCompletedAssignment(completedAss);
           const totalMarks = completedAss.reduce(
             (sum, assignment) => sum + assignment.total_marks,
@@ -81,7 +81,7 @@ const Dashboard = ({ role }) => {
             },
             {
               label: "Total Quizzes",
-              value: quizzes ?? 0,
+              value: quizzes.length ?? 0,
               color: "warning",
               icon: "fa-comments",
               path: "/dashboard/quizzes",
