@@ -22,9 +22,10 @@ function AssignmentList({ onCreate }) {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log(userSession.uid);
       const data = await getAllAssignmentByOwner(userSession.uid);
       const today = new Date().toISOString().split("T")[0];
-      const filtered = data.filter(a => a.dueDate >= today);
+      const filtered = data.filter(a => a.due_date >= today);
       
       const withPublished = await Promise.all(
         filtered.map(async (a) => ({ 
@@ -104,7 +105,7 @@ function AssignmentList({ onCreate }) {
                         const cohorts = await getCohortsByOwner(userSession.uid);
                         const cohort = cohorts.find(c => c.cohort_id === a.student_class);
                         const cohortStudents = allStudentsList.filter(s => cohort?.student_uids?.includes(s.uid));
-                        await Promise.all(cohortStudents.map(s => sendReminderEmail(s, a.title, a.dueDate, a.assignment_id)));
+                        await Promise.all(cohortStudents.map(s => sendReminderEmail(s, a.title, a.due_date, a.assignment_id)));
                         alert("Reminder emails sent!");
                       }}
                     >
@@ -119,7 +120,7 @@ function AssignmentList({ onCreate }) {
                       className="btn btn-outline-success btn-sm mr-3 font-weight-bold"
                       onClick={async (e) => {
                         e.stopPropagation();
-                        const result = await publishAssignmentToStudents(a.assignment_id, a.student_class, a.dueDate);
+                        const result = await publishAssignmentToStudents(a.assignment_id, a.student_class, a.due_date);
                         if (result.success) {
                           await sendAssignmentEmailsToStudents(a, a.assignment_id);
                       alert("Assignment published!");
@@ -143,7 +144,7 @@ function AssignmentList({ onCreate }) {
                         e.stopPropagation();
                         if(window.confirm('Are you sure you want to delete this item?')){
                           console.log("a", a);
-                          deleteAssignment(a.assignment_id);
+                          await deleteAssignment(a.assignment_id);
                           setReloadKey(k => k + 1);
                           //window.location.reload();                          
                         }
@@ -154,7 +155,7 @@ function AssignmentList({ onCreate }) {
                     </button>
                   </div>
                   <span className="text-gray-600 small mr-3">
-                    Due: <strong>{a.dueDate}</strong>
+                    Due: <strong>{a.due_date}</strong>
                   </span>
                   <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-gray-400 transition-icon`}></i>
                 </div>
