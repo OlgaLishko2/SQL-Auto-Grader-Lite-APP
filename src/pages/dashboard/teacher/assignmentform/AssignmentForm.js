@@ -230,6 +230,10 @@ const AssignmentForm = ({ onDone }) => {
       setError("Please fill in the title and due date.");
       return;
     }
+    if (activeTab === 0 && (formData.due_date< new Date().toISOString().split("T")[0])) {
+      setError("Due date cannot be in the past.");
+      return;
+    }
     if (activeTab === 1 && (!formData.questions || formData.questions.length === 0)) {
       setError("Please add at least one question to proceed.");
       return;
@@ -369,7 +373,7 @@ const AssignmentForm = ({ onDone }) => {
                     </div>
                     <div className="custom-control custom-switch">
                       <input type="checkbox" className="custom-control-input" id="remindCheck" name="reminder_interval" checked={formData.reminder_interval} onChange={handleChange} />
-                      <label className="custom-control-label font-weight-bold cursor-pointer" htmlFor="remindCheck">Send automatic reminders to students</label>
+                      <label className="custom-control-label font-weight-bold cursor-pointer" htmlFor="remindCheck">Send reminders to students</label>
                     </div>
                   </div>
 

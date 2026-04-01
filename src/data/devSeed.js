@@ -25,16 +25,6 @@ export async function seedAllData() {
       created_on: new Date(),
       updated_on: new Date(),
     });
-    // for (const q of qs) {
-    //   const qRef = doc(collection(db, "questions"));
-    //   await setDoc(qRef, {
-    //     ...q,
-    //     question_id: qRef.id,
-    //     assignment_id: assignment.assignment_id,
-    //     created_on: new Date(),
-    //     updated_on: new Date(),
-    //   });
-    // }
   }
 
   for (const [dataset, tables] of Object.entries(questions)) {

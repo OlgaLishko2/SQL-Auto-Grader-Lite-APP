@@ -36,14 +36,12 @@ const AntiCheatingQuestionDetail = () => {
   const [showResults, setShowResults] = useState(false);
   const [currentAttempt, setCurrentAttempt] = useState(question?.attemptTime);
   const [isLoading, setIsLoading] = useState(true);
-  useAntiCheat(undefined, { enableFullscreen: true });
   const [antiCheatMessage, setAntiCheatMessage] = useState("");
-
   const { violations, isFullscreen, requestFullscreen } = useAntiCheat((violation) => {
     setAntiCheatMessage(
       `Anti-cheat violation detected: ${violation.type.replaceAll("_", " ")}`,
     );
-  });
+  }, { enableFullscreen: true });
 
   useEffect(() => {
     if (!dataset || !question?.answer) return;
