@@ -106,12 +106,12 @@ export const sendReminderEmail = async (student, assignmentTitle, assignmentDueD
   }
 };
 
-// Shared helper — send assignment notification emails to all students in the assignment's cohort
-export const sendAssignmentEmailsToStudents = async (assignment, assignmentId) => {
-  const allCohorts = await getCohortsByOwner(userSession.uid);
-  const cohort = allCohorts.find(c => c.cohort_id === assignment.student_class);
-  if (!cohort?.student_uids?.length) return;
-  const allStudents = await getAllStudents();
-  const cohortStudents = allStudents.filter(s => cohort.student_uids.includes(s.uid));
-  await Promise.all(cohortStudents.map(s => sendAssignmentEmail(s, assignment.title, assignment.dueDate || assignment.due_date, assignmentId)));
-};
+// // Shared helper — send assignment notification emails to all students in the assignment's cohort
+// export const sendAssignmentEmailsToStudents = async (assignment, assignmentId) => {
+//   const allCohorts = await getCohortsByOwner(userSession.uid);
+//   const cohort = allCohorts.find(c => c.cohort_id === assignment.student_class);
+//   if (!cohort?.student_uids?.length) return;
+//   const allStudents = await getAllStudents();
+//   const cohortStudents = allStudents.filter(s => cohort.student_uids.includes(s.uid));
+//   await Promise.all(cohortStudents.map(s => sendAssignmentEmail(s, assignment.title, assignment.dueDate || assignment.due_date, assignmentId)));
+// };

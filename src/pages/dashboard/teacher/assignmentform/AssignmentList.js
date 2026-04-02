@@ -126,7 +126,12 @@ function AssignmentList({ onCreate }) {
                         e.stopPropagation();
                         const result = await publishAssignmentToStudents(a.assignment_id, a.student_class, a.due_date || a.dueDate || null);
                         if (result.success) {
-                          await sendAssignmentEmailsToStudents(a, a.assignment_id);
+                          const allStudentsList = await getAllStudents();
+                          const cohorts = await getCohortsByOwner(userSession.uid);
+                          const cohort = cohorts.find(c => c.cohort_id === a.student_class);
+                          const cohortStudents = allStudentsList.filter(s => cohort?.student_uids?.includes(s.uid));
+                          await Promise.all(cohortStudents.map(s => sendReminderEmail(s, a.title, a.due_date, a.assignment_id)));
+                          // await sendAssignmentEmailsToStudents(a, a.assignment_id);
                       alert("Assignment published!");
                           setAssignments(prev => prev.map(x => x.assignment_id === a.assignment_id ? { ...x, published: true } : x));
                         } else alert("Failed: " + result.message);
