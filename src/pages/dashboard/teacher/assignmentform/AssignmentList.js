@@ -22,6 +22,7 @@ function AssignmentList({ onCreate }) {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log(userSession.uid);
       const data = await getAllAssignmentByOwner(userSession.uid);
       const today = new Date().toISOString().split("T")[0];
       
@@ -108,7 +109,7 @@ function AssignmentList({ onCreate }) {
                         const cohorts = await getCohortsByOwner(userSession.uid);
                         const cohort = cohorts.find(c => c.cohort_id === a.student_class);
                         const cohortStudents = allStudentsList.filter(s => cohort?.student_uids?.includes(s.uid));
-                        await Promise.all(cohortStudents.map(s => sendReminderEmail(s, a.title, a.dueDate, a.assignment_id)));
+                        await Promise.all(cohortStudents.map(s => sendReminderEmail(s, a.title, a.due_date, a.assignment_id)));
                         alert("Reminder emails sent!");
                       }}
                     >

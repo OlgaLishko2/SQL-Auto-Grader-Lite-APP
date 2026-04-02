@@ -74,7 +74,7 @@ const Dashboard = ({ role }) => {
             },
             {
               label: "Result (Marks)",
-              value: `${earnedMarks} / ${totalMarks} (${(earnedMarks / totalMarks * 100).toFixed(2)}%)`,
+              value: totalMarks>0?`${earnedMarks} / ${totalMarks} (${(earnedMarks / totalMarks * 100).toFixed(2)}%)`:0,
               color: "success",
               icon: "fa-percent",
               path: "/dashboard/results",
