@@ -327,7 +327,7 @@ async function publishAssignmentToStudents(assignmentId, cohortId, dueDate) {
           status: "assigned",
           assigned_on: new Date(),
           submissionDate: null,
-          due_date: dueDate,
+          due_on: dueDate,
         });
       }),
     );

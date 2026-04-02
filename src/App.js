@@ -34,6 +34,7 @@ import SubmissionStatusPage from "./pages/dashboard/teacher/submissionstatus/Sub
 
 import "./App.css";
 import AssignmentDetail from "./pages/dashboard/student/assignments/AntiCheatingQuestionDetail";
+import Cohort from "./pages/dashboard/student/cohort/Cohort";
 
 function TeacherAssignments() {
   const [creating, setCreating] = useState(false);
@@ -93,7 +94,11 @@ function App() {
               {/* <Route path="questions" element={<CreateQuestionSet />} /> */}
               {/* <Route path="datasets" element={<Datasets />} /> */}
               <Route path="datasets" element={<DatabaseLoader />} />
-              <Route path="cohorts" element={<CohortManager />} />
+              <Route path="cohorts" element={
+                role === "student"
+                  ? <Cohort />
+                  : <CohortManager />
+              } />
               <Route path="submissionstatus" element={<SubmissionStatusPage />} />
               <Route path="profile" element={<Profile />} />
             </Route>

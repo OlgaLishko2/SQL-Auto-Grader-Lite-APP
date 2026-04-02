@@ -25,10 +25,14 @@ function AssignmentList({ onCreate }) {
       console.log(userSession.uid);
       const data = await getAllAssignmentByOwner(userSession.uid);
       const today = new Date().toISOString().split("T")[0];
-      const filtered = data.filter(a => a.due_date >= today);
       
       const withPublished = await Promise.all(
-        filtered.map(async (a) => ({ 
+        data
+          .filter(a => {
+            const due = a.due_date || a.dueDate;
+            return !due || due >= today;
+          })
+          .map(async (a) => ({ 
           ...a, 
           published: await isAssignmentPublished(a.assignment_id) 
         }))
@@ -120,7 +124,7 @@ function AssignmentList({ onCreate }) {
                       className="btn btn-outline-success btn-sm mr-3 font-weight-bold"
                       onClick={async (e) => {
                         e.stopPropagation();
-                        const result = await publishAssignmentToStudents(a.assignment_id, a.student_class, a.due_date);
+                        const result = await publishAssignmentToStudents(a.assignment_id, a.student_class, a.due_date || a.dueDate || null);
                         if (result.success) {
                           await sendAssignmentEmailsToStudents(a, a.assignment_id);
                       alert("Assignment published!");
@@ -143,7 +147,6 @@ function AssignmentList({ onCreate }) {
                       onClick={async (e) => {
                         e.stopPropagation();
                         if(window.confirm('Are you sure you want to delete this item?')){
-                          console.log("a", a);
                           await deleteAssignment(a.assignment_id);
                           setReloadKey(k => k + 1);
                           //window.location.reload();                          
@@ -155,7 +158,7 @@ function AssignmentList({ onCreate }) {
                     </button>
                   </div>
                   <span className="text-gray-600 small mr-3">
-                    Due: <strong>{a.due_date}</strong>
+                    Due: <strong>{a.due_date || a.dueDate || "—"}</strong>
                   </span>
                   <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'} text-gray-400 transition-icon`}></i>
                 </div>
@@ -186,7 +189,7 @@ function AssignmentList({ onCreate }) {
                     </div>
                     <div className="col-md-4">
                       <div className="p-2 bg-white border rounded shadow-sm text-center">
-                        <div className="small text-gray-500">Auto Reminders</div>
+                        <div className="small text-gray-500">Reminders</div>
                         <div className={`h6 mb-0 font-weight-bold ${a.reminder_interval ? 'text-warning' : 'text-gray-400'}`}>
                           {a.reminder_interval ? "Active" : "Inactive"}
                         </div>

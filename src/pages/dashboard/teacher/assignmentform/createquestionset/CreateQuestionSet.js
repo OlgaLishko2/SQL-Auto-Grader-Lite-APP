@@ -14,7 +14,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
   const [selectedDataset, setSelectedDataset] = useState(existingDataset);
   const [datasets, setDatasets] = useState([]);
   const [availableTables, setAvailableTables] = useState([]);
-  const [selectedTable, setSelectedTable] = useState([]); 
+  const [selectedTable, setSelectedTable] = useState({}); // per-question: { [question_id]: string[] }
   const [selectedTableForSchema, setSelectedTableForSchema] = useState("");
   const [tableSchemas, setTableSchemas] = useState({});
   const [presets, setPresets] = useState([]);
@@ -22,9 +22,12 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
   const [savedCount, setSavedCount] = useState(existingQuestions.length);
   const [total, setTotal] = useState(calculateTotal(existingQuestions));
 
-  const filteredPresets = selectedTable.length > 0
-    ? presets.filter(p => selectedTable.every(t => p.answer?.toLowerCase().includes(t.toLowerCase())))
-    : presets;
+  const filteredPresets = (questionId) => {
+    const tables = selectedTable[questionId] || [];
+    return tables.length > 0
+      ? presets.filter(p => tables.every(t => p.answer?.toLowerCase().includes(t.toLowerCase())))
+      : presets;
+  };
 
   useEffect(() => {
     allDataset().then((data) => setDatasets(data.map((d) => d.datasetName)));
@@ -75,7 +78,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
 
     for (const [i, q] of questions.entries()) {
       const res = await runSelectQuery(selectedDataset, q.answer);
-      if (!res?.isSuccessful) return alert(`Question ${i + 1} has invalid SQL!`);
+      if (!res?.isSuccessful) return alert(`Question ${i + 1}: SQL error — ${res?.message || "query returned no results or is invalid"}`);
     }
 
     const finalQuestions = questions.map(q => ({
@@ -146,11 +149,17 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
                       <div className="d-flex flex-wrap gap-2 mb-2">
                         {availableTables.map((table) => (
                           <label key={table} className="mr-3 small">
-                            <input type="checkbox" className="mr-1" checked={selectedTable.includes(table)}
+                            <input type="checkbox" className="mr-1"
+                              checked={(selectedTable[q.question_id] || []).includes(table)}
                               onChange={(e) => {
                                 const checked = e.target.checked;
-                                setSelectedTable(prev => checked ? [...prev, table] : prev.filter(t => t !== table));
-                              }} 
+                                setSelectedTable(prev => ({
+                                  ...prev,
+                                  [q.question_id]: checked
+                                    ? [...(prev[q.question_id] || []), table]
+                                    : (prev[q.question_id] || []).filter(t => t !== table)
+                                }));
+                              }}
                             />
                             {table}
                           </label>
@@ -165,7 +174,7 @@ function CreateQuestionSet({ onAddQuestions, setDb, existingQuestions = [], exis
                       updateQuestion(index, "mark", p.mark);
                     }}>
                       <option value="">-- Use a Preset Question --</option>
-                      {filteredPresets.map(p => <option key={p.id} value={JSON.stringify(p)}>{p.question}</option>)}
+                      {filteredPresets(q.question_id).map(p => <option key={p.id} value={JSON.stringify(p)}>{p.question}</option>)}
                     </select>
 
                     <textarea className="form-control mb-2" placeholder="Question text..." value={q.questionText} onChange={e => updateQuestion(index, 'questionText', e.target.value)} />

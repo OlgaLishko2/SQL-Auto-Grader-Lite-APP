@@ -20,13 +20,11 @@ function CohortManager() {
     setSelected(prev => prev.includes(uid) ? prev.filter(u => u !== uid) : [...prev, uid]);
 
   const toggleCohort = (id) => setExpanded(prev => (prev === id ? null : id));
-
+  
   const handleCreate = async () => {
-    if (!name.trim() || selected.length === 0) return alert("Enter name and select students.");
-    const id = await createCohort({ name, owner_user_id: userSession.uid, student_uids: selected, created_on: new Date() });
-    setCohorts(prev => [...prev, { cohort_id: id, name, student_uids: selected }]);
+    const id = await createCohort({ name, owner_user_id: userSession.uid, created_on: new Date() } );
+    setCohorts(prev => [...prev, { cohort_id: id, name}]);
     setName("");
-    setSelected([]);
     setExpanded(null);
   };
 
@@ -36,51 +34,20 @@ function CohortManager() {
     setExpanded(null);
   };
 
-const renderStudentList = () => (
-  <div className="student-selection-wrapper border rounded bg-white shadow-sm mt-2">
-    <div className="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
-      <span className="text-uppercase small font-weight-bold text-gray-700">
-        <i className="fas fa-users mr-2"></i>Members: {selected.length}
-      </span>
-      <button 
-        type="button" 
-        className="btn btn-outline-primary btn-sm" 
-        onClick={() => setSelected(selected.length === students.length ? [] : students.map(s => s.uid))}
-      >
-        {selected.length === students.length ? "Deselect All" : "Select All Students"}
-      </button>
-    </div>
-    
-    <div className="student-scroll-list p-2">
-      {students.map(s => (
-        <div 
-          key={s.uid} 
-          className={`student-row d-flex align-items-center justify-content-between p-3 rounded mb-2 ${selected.includes(s.uid) ? 'bg-selected' : ''}`}
-          onClick={() => toggleStudent(s.uid)}
-          style={{ cursor: 'pointer', border: '1px solid #e3e6f0' }}
-        >
-          <div className="d-flex align-items-center">
-            <div className="custom-check-box mr-3">
-              <input 
-                type="checkbox" 
-                checked={selected.includes(s.uid)} 
-                readOnly
-                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-              />
-            </div>
-            <div className="student-main-info">
-              <span className="h6 mb-0 font-weight-bold text-gray-800">{s.fullName}</span>
-            </div>
-          </div>
-          
-          <div className="student-email-info">
-            <span className="text-gray-500 small font-italic">{s.email}</span>
-          </div>
+const renderStudentList = (cohort) => {
+  const members = students.filter(s => cohort.student_uids?.includes(s.uid));
+  if (members.length === 0) return <p className="text-gray-500 small mt-2">No students have joined yet.</p>;
+  return (
+    <div className="mt-2">
+      {members.map(s => (
+        <div key={s.uid} className="d-flex justify-content-between align-items-center p-2 mb-1 rounded" style={{ border: '1px solid #e3e6f0', background: '#fff' }}>
+          <span className="font-weight-bold text-gray-800">{s.fullName}</span>
+          <span className="text-gray-500 small font-italic">{s.email}</span>
         </div>
       ))}
     </div>
-  </div>
-);
+  );
+};
   return (
     <div className="container-fluid py-4">
   
@@ -116,7 +83,7 @@ const renderStudentList = () => (
                 value={name}
                 onChange={e => setName(e.target.value)}
               />
-              {renderStudentList()}
+              {/* {renderStudentList()} */}
               <button onClick={handleCreate} className="btn btn-success btn-block mt-3 shadow-sm">
                 <i className="fas fa-check mr-2"></i> Create Cohort
               </button>
@@ -132,20 +99,21 @@ const renderStudentList = () => (
               preview={`${c.student_uids?.length || 0} students enrolled`}
               isCollapsed={expanded !== c.cohort_id}
               onToggle={() => {
-                setSelected(c.student_uids ?? []);
+                // setSelected(c.student_uids ?? []);
                 toggleCohort(c.cohort_id);
               }}
             >
               <div className="card-body bg-light border-top">
                 <h6 className="font-weight-bold text-primary mb-3">
-                  <i className="fas fa-user-graduate mr-2"></i>Edit Cohort Members
+                  {/* <i className="fas fa-user-graduate mr-2"></i>Edit Cohort Members */}
+                  <i className="fas fa-user-graduate mr-2"></i>{c.cohort_id}
                 </h6>
-                {renderStudentList()}
-                <div className="d-flex justify-content-end">
+                {renderStudentList(c)}
+                {/* <div className="d-flex justify-content-end">
                   <button onClick={() => handleSaveEdit(c)} className="btn btn-primary shadow-sm px-4">
                     <i className="fas fa-save mr-2"></i> Save Changes
                   </button>
-                </div>
+                </div> */}
               </div>
             </CollapsiblePanel>
           </div>

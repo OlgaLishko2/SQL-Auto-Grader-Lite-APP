@@ -178,11 +178,7 @@ const QuizForm = ({ onDone }) => {
                   )}
                 </div>
               )}
-
-              <div className="form-group">
-                <label className="small font-weight-bold text-gray-600">DUE DATE</label>
-                <input type="date" name="due_date" value={formData.due_date} onChange={handleChange} className="form-control" />
-              </div>            </div>
+           </div>
           </div>
 
           {formData.dataset && (
@@ -197,16 +193,6 @@ const QuizForm = ({ onDone }) => {
                 {selectedTableForSchema && <div className="border rounded p-2 bg-white"><TableSchema info={tableSchemas[selectedTableForSchema]} /></div>}
                 
                 <hr />
-                
-                <label className="small font-weight-bold text-gray-600">FILTER BY TABLES</label>
-                <div className="d-flex flex-wrap gap-2 mt-1">
-                  {availableTables.map(table => (
-                    <div key={table} className="custom-control custom-checkbox mr-3 mb-2">
-                      <input type="checkbox" className="custom-control-input" id={`chk-${table}`} checked={selectedTables.includes(table)} onChange={e => toggleTable(table, e.target.checked)} />
-                      <label className="custom-control-label small cursor-pointer" htmlFor={`chk-${table}`}>{table}</label>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           )}
@@ -219,14 +205,24 @@ const QuizForm = ({ onDone }) => {
               <div className="card shadow mb-4 border-left-success">
                 <div className="card-header py-3 bg-white d-flex justify-content-between align-items-center">
                   <h6 className="m-0 font-weight-bold text-success">Question Designer</h6>
-                  <div className="w-50">
+                  <label className="small font-weight-bold text-gray-600">FILTER BY TABLES</label>
+                <div className="d-flex flex-wrap gap-2 mt-1">
+                  {availableTables.map(table => (
+                    <div key={table} className="custom-control custom-checkbox mr-3 mb-2">
+                      <input type="checkbox" className="custom-control-input" id={`chk-${table}`} checked={selectedTables.includes(table)} onChange={e => toggleTable(table, e.target.checked)} />
+                      <label className="custom-control-label small cursor-pointer" htmlFor={`chk-${table}`}>{table}</label>
+                    </div>
+                  ))}
+                </div>
+                  
+                </div>
+                <div className="card-body">
+                  <div className="form-group">
                     <select onChange={handlePresetChange} className="form-control form-control-sm border-success">
                       <option value="">-- Use a Preset Question --</option>
                       {filteredPresets.map(p => <option key={p.id} value={JSON.stringify(p)}>{p.question}</option>)}
                     </select>
                   </div>
-                </div>
-                <div className="card-body">
                   <div className="form-group">
                     <label className="small font-weight-bold text-gray-600">QUESTION PROMPT</label>
                     <textarea name="questionText" value={formData.questionText} onChange={handleChange} className="form-control" rows="3" placeholder="Explain what the student needs to find..." />

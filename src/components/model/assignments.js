@@ -32,10 +32,13 @@ async function createNewAssignment(assignment) {
 // Teacher: only their own assignments, ordered by due date
 async function getAllAssignmentByOwner(ownerId) {
   try {
-    const q = query(dbCollection, where("owner_user_id", "==", ownerId), orderBy("due_date", "asc"));
+    const q = query(dbCollection, where("owner_user_id", "==", ownerId));
     const snap = await getDocs(q);
-    console.log("inside getAllAssignmentByOwner: fetched data: ", snap.docs);
-    return snap.docs.map(d => d.data());
+    return snap.docs.map(d => d.data()).sort((a, b) => {
+      const aDate = a.due_date || a.dueDate || "";
+      const bDate = b.due_date || b.dueDate || "";
+      return aDate.localeCompare(bDate);
+    });
   } catch (error) {
     console.error(`getAllAssignmentByOwner: ${error}`);
     return [];

@@ -49,10 +49,11 @@ service cloud.firestore {
       allow write: if isTeacher();
     }
 
-    // Cohorts: teachers manage, authenticated read
+    // Cohorts: teachers manage, students can join (update student_uids only)
     match /cohorts/{docId} {
       allow read: if isAuth();
       allow write: if isTeacher();
+      allow update: if isAuth() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['student_uids']);
     }
 
     // Quizzes: teachers write, authenticated read
