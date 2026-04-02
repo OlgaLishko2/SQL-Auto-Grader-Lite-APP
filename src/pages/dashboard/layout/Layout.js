@@ -5,6 +5,7 @@ import LeftMenu from "../leftmenu/LeftMenu";
 
 const studentNavItems = [
   { name: "Dashboard", address: "/dashboard", icon: "fa-tachometer-alt" },
+  { name: "Cohorts", address: "/dashboard/cohorts", icon: "fa-users" },
   { name: "Assignments", address: "/dashboard/assignments", icon: "fa-book" },
   { name: "Quizzes", address: "/dashboard/quizzes", icon: "fa-question" },
   { name: "Submission", address: "/dashboard/results", icon: "fa-chart-area" },

@@ -8,3 +8,15 @@
   border: 1px solid #ccc;
   padding: 4px 10px;
 };
+
+.table-schema {
+  overflow-x: auto;
+}
+
+.table-schema table {
+  width: 100%;
+  min-width: 280px;
+  border-collapse: collapse;
+  margin-top: 15px;
+  font-size: 12px;
+}

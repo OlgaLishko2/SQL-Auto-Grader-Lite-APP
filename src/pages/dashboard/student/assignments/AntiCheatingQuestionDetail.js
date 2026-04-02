@@ -133,7 +133,6 @@ const AntiCheatingQuestionDetail = () => {
   }
 
   async function runQuery() {
-    setShowResults(true);
     setIsSubmmit(false);
     await excuteQueryAndCompare();
     setIsLoading(false);

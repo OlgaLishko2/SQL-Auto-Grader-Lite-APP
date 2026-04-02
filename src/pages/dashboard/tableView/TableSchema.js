@@ -2,7 +2,7 @@ import "./tableSchema.css"
 const TableSchema = (({info}) => {
     if (!info || !Array.isArray(info)) return null;
     return (
-    <table style={{ marginTop: "6px", borderCollapse: "collapse", fontSize: "13px" }}>
+    <table className="table-schema" style={{ marginTop: "6px", borderCollapse: "collapse", fontSize: "13px" }}>
         <thead>
             <tr style={{ backgroundColor: "#f0f0f0" }}>
                 <th className="thStyle">Column</th>
