@@ -132,7 +132,7 @@
 
 import { useEffect, useState } from "react";
 import { getAttemptsByStudent } from "../../../../../components/model/questionAttempts";
-import { getAssignmentDetailsByAssignmentId } from "../../../../../components/model/studentAssignments";
+import { getAssignmentDetailsByAssignmentId, updateStudentAssignment } from "../../../../../components/model/studentAssignments";
 import { getUser } from "../../../../../components/model/users";
 import GradeAttemptPage from "./GradeAttemptPage";
 import "./StudentAssignmentPage.css";
@@ -267,7 +267,17 @@ export default function StudentAssignmentPage({ studentId, assignmentId, onBack 
 
     
       <div className="d-flex justify-content-end pb-5">
-        <button className="btn btn-success px-4 py-2 shadow-sm font-weight-bold" onClick={() => alert("Score saved")}>
+        <button className="btn btn-success px-4 py-2 shadow-sm font-weight-bold" onClick={async () => {
+          await updateStudentAssignment({
+            student_user_id: studentId,
+            assignment_id: assignmentId,
+            status: "completed",
+            earned_point: earned,
+            submissionDate: new Date().toLocaleDateString("en-CA"),
+          });
+          alert("Final score returned!");
+          onBack();
+        }}>
           <i className="fas fa-paper-plane mr-2"></i> Return Final Score
         </button>
       </div>
